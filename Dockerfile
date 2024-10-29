@@ -1,4 +1,4 @@
-FROM node:20-alpine as builder
+FROM node:20-alpine AS builder
 
 ENV NODE_ENV build
 
@@ -26,4 +26,4 @@ COPY --from=builder --chown=node:node /home/node/package.json /home/node/yarn.lo
 COPY --from=builder --chown=node:node /home/node/node_modules/ ./node_modules/
 COPY --from=builder --chown=node:node /home/node/dist/ ./dist/
 
-CMD ["node", "dist/src/main.js"]
+CMD ["yarn", "start:prod"]
