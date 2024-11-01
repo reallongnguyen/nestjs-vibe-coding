@@ -1,41 +1,39 @@
 # API Service
 
-This repository houses the backend API service for [Your System Name], providing lightweight CRUD operations for various resources.
+This repository houses the backend API service for [Your System], providing lightweight CRUD operations for various resources.
 
 ## Key Features
 
-- Robust Data Layer: Leverages Prisma ORM for efficient data access and manipulation.
-- Enhanced Security: Implements JWT-based authentication and role-based authorization to safeguard sensitive data.
-- Reliable Error Handling: Utilizes a custom error mapping system to gracefully handle and respond to errors.
-- Automated Documentation: Generates OpenAPI documentation for easy API consumption and integration.
-- Code Quality Assurance: Enforces code quality standards with ESLint and automated linting fixes.
-- Scalability and Flexibility: Designed with microservices architecture principles in mind, allowing for easy scaling and independent module deployment.
-- Adaptability: Built to accommodate future technological advancements and evolving business requirements.
+- **Robust Data Layer:** Leverages Prisma ORM for efficient data access and manipulation.
+- **Enhanced Security:** Implements JWT-based authentication and role-based authorization to safeguard sensitive data.
+- **Reliable Error Handling:** Utilizes a custom error mapping system to gracefully handle and respond to errors.
+- **Automated Documentation:** Generates OpenAPI documentation for easy API consumption and integration.
+- **Code Quality Assurance:** Enforces code quality standards with ESLint and automated linting fixes.
+- **Scalability and Flexibility:** Designed with microservices architecture principles in mind, allowing for easy scaling and independent module deployment.
+- **Adaptability:** Built to accommodate future technological advancements and evolving business requirements.
 
-## Philosophy
-
-Microservices-First Approach
+## Philosophy: Microservices-First Approach
 
 We embrace a microservices-first approach to design and develop our API service. This means that each module within the src/modules directory is designed to be self-contained and independently deployable.
 
 ### Key Principles
 
-Loose Coupling
+#### Loose Coupling
 
 - Minimal Dependencies: Modules should rely only on shared common utilities and interfaces, minimizing direct dependencies on other modules.
 - Communication Protocols: Modules should communicate with each other using well-defined protocols like HTTP, gRPC, or message brokers, rather than direct code imports. This promotes flexibility and isolation.
 
-Scalability
+#### Scalability
 
 - Horizontal Scaling: Our system is designed to handle increasing load by adding more instances of individual modules. This allows for efficient scaling of specific components as needed.
 - Performance Optimization: We employ techniques like caching, asynchronous processing, and database optimization to ensure optimal performance under heavy load.
 
-Adaptability
+#### Adaptability
 
 - Technology Agnostic: We strive to minimize vendor lock-in by using modular and interchangeable components. This allows us to easily adopt new technologies and frameworks as needed.
 - Configuration-Driven: We use configuration files and environment variables to manage system behavior, making it easier to adapt to different environments and configurations.
 
-Continuous Improvement
+#### Continuous Improvement
 
 - Experimentation: We encourage a culture of experimentation and innovation. By trying new approaches and technologies, we can identify opportunities for improvement and optimize our system.
 - Feedback Loops: We gather feedback from users, monitoring tools, and performance metrics to continuously refine our system and address potential issues.
@@ -72,12 +70,12 @@ Edit the `.env` file to configure your environment variables.
 
 You can create additional environment files to configure different environments. These files will be loaded in the following order (highest priority first):
 
-1. .env.local
-2. .env.production.local
-3. .env.production
-4. .env.development.local
-5. .env.development
-6. .env
+1. `.env.local`
+2. `.env.production.local`
+3. `.env.production`
+4. `.env.development.local`
+5. `.env.development`
+6. `.env`
 
 Please Note: Prisma ORM and Docker Compose only read environment variables from the `.env` file.
 
