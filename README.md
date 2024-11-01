@@ -1,115 +1,156 @@
 # API Service
 
-## Description
+This repository houses the backend API service for [Your System Name], providing lightweight CRUD operations for various resources.
 
-The API service handles lightweight CRUD API in your system
+## Key Features
 
-### Installed toys
+- Robust Data Layer: Leverages Prisma ORM for efficient data access and manipulation.
+- Enhanced Security: Implements JWT-based authentication and role-based authorization to safeguard sensitive data.
+- Reliable Error Handling: Utilizes a custom error mapping system to gracefully handle and respond to errors.
+- Automated Documentation: Generates OpenAPI documentation for easy API consumption and integration.
+- Code Quality Assurance: Enforces code quality standards with ESLint and automated linting fixes.
+- Scalability and Flexibility: Designed with microservices architecture principles in mind, allowing for easy scaling and independent module deployment.
+- Adaptability: Built to accommodate future technological advancements and evolving business requirements.
 
-- Prisma ORM
-- Logging
-- Authentication by JWT Token & Authorization by Role
-- Error mapping: you define an error mapping file and server convert App Error to HTTP response
-- Auto generate Open API document
-- Eslint & Auto run fix-lint before git commit
-- Other: cahce, queue, event emitter, validate input... etc
+## Philosophy
 
-### Philosophy
+Microservices-First Approach
 
-All modules in `src/modules` should ready to become an independent micoservice
+We embrace a microservices-first approach to design and develop our API service. This means that each module within the src/modules directory is designed to be self-contained and independently deployable.
 
-- A module shoulds not depend on implement of other module except common module in `src/common`
-- A module should communicate with other one via event emitter, message broker, restful API, gRPC... instead of import code
+### Key Principles
 
-Build for scale in mind
+Loose Coupling
 
-- Let's imagine our system deal with 1M DAU
-- We start simple but always prepare plan to scale our system efficiently
+- Minimal Dependencies: Modules should rely only on shared common utilities and interfaces, minimizing direct dependencies on other modules.
+- Communication Protocols: Modules should communicate with each other using well-defined protocols like HTTP, gRPC, or message brokers, rather than direct code imports. This promotes flexibility and isolation.
 
-Dealing with change
+Scalability
 
-- Technology grow very fast. Your bussiness change is slower than technology
-- Our project should change framework, database and other external services easily with small impact to core business
+- Horizontal Scaling: Our system is designed to handle increasing load by adding more instances of individual modules. This allows for efficient scaling of specific components as needed.
+- Performance Optimization: We employ techniques like caching, asynchronous processing, and database optimization to ensure optimal performance under heavy load.
 
-Improvement development experiment
+Adaptability
 
-### Todo
+- Technology Agnostic: We strive to minimize vendor lock-in by using modular and interchangeable components. This allows us to easily adopt new technologies and frameworks as needed.
+- Configuration-Driven: We use configuration files and environment variables to manage system behavior, making it easier to adapt to different environments and configurations.
 
-- Add widely-used modules such as notification, user management...
-- Add deploy manual about running API Service in production-ready microservice system. See [daft](infra/docker/README.md)
-- Apply Adapter-Port Architecture for each module
+Continuous Improvement
 
-## Running Service
+- Experimentation: We encourage a culture of experimentation and innovation. By trying new approaches and technologies, we can identify opportunities for improvement and optimize our system.
+- Feedback Loops: We gather feedback from users, monitoring tools, and performance metrics to continuously refine our system and address potential issues.
 
-### Installation
+By adhering to these principles, we aim to build a robust, scalable, and maintainable API service that can evolve with the changing needs of our business.
+
+## Getting Started
+
+### Clone the Repository and Install Dependencies
 
 ```bash
+git clone https://github.com/reallongnguyen/base-api-service.git && cd base-api-service
 yarn install
 ```
 
-### Preparation environment variables `.env`
+This command will clone the repository and install all necessary dependencies using `yarn`.
+
+### Set Up Environment Variables
+
+Copy the `.env.example` file to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-Let change values in `.env` file.
-By default, API Service doesn't verify JWT Token because we will do it at [API Gateway](infra/docker/README.md). Incase you run API Service as a standalone service, you should enable verify JWT feature by set ENV variable `VERIFY_TOKEN=true` and set your `JWT_SECRET`.
+Edit the `.env` file to configure your environment variables.
 
-You can add other environment files to modify ENV variables in API Service depend on running environment. This list is in decrement priority:
+#### Important Note
 
-- `.env.local`
-- `.env.production.local`
-- `.env.production`
-- `.env.development.local`
-- `.env.development`
-- `.env`
+- By default, JWT token verification is disabled because it's assumed to be handled by an external API Gateway (see [infra/docker/README.md](infra/docker/README.md)).
+- If you run the API Service as a standalone service, enable JWT verification by setting `VERIFY_TOKEN=true` and providing your secret key with `JWT_SECRET`.
 
-Please inform **Prisma ORM & Docker compose are accept only `.env` file**
+#### Environment Variable Loading Priority
 
-### Running the depend services
+You can create additional environment files to configure different environments. These files will be loaded in the following order (highest priority first):
 
-In the local, you can use Docker to start depend services:
+1. .env.local
+2. .env.production.local
+3. .env.production
+4. .env.development.local
+5. .env.development
+6. .env
 
-- Postgres
-- Redis
-- MQTT
+Please Note: Prisma ORM and Docker Compose only read environment variables from the `.env` file.
 
-Running dependency and migration Prisma ORM
+### Running Dependent Services (Local Development Only)
+
+To run dependencies like Postgres, Redis, and MQTT locally, use Docker Compose:
 
 ```bash
-# Create dockers
+# Start dependent services in detached mode
 docker compose up -d
 
-# Migrate database
+# Migrate the database schema using Prisma ORM
 npx prisma db push
 ```
 
-### Running the server
+### Starting the Server
+
+#### Development Mode (Watch Mode)
 
 ```bash
-# development, watch mode
 yarn run start:dev
+```
 
-# production mode
+This command starts the server in development mode, enabling automatic code reloading when changes are detected.
+
+#### Production Mode
+
+Build the production-ready version of the API Service
+
+```bash
 yarn build
+```
+
+Start the server in production mode
+
+```bash
 yarn run start:prod
 ```
 
-### Test your API
+This command starts the server in production mode, optimized for performance and stability.
 
-After server running, API docs will be showed at [http://localhost:8000/api](http://localhost:8000/api)
+### Testing Your API
 
-You can interact with API throught API docs page, curl or Postman. Here is a curl example:
+Once the server is running, you can test your API functionalities using a variety of methods:
+
+#### API Documentation
+
+Navigate to `http://localhost:8000/api` in your web browser to access the interactive API documentation. This interface allows you to explore available endpoints, view request parameters and responses, and even interact with the API directly.
+
+#### Command-Line Tools
+
+Use tools like curl to send HTTP requests to your API and examine the responses. Here's an example of using curl to check the API's health endpoint:
 
 ```bash
 curl --location 'localhost:8000/health' \
 --header 'Authorization: Bearer <YOUR JWT>'
 ```
 
-You will receive JWT Token after login via [Auth Service](infra/docker/README.md) and attach token to request's header.
+#### Postman
 
-Just for testing, you can create JWT Token quickly on [jwt.io](https://jwt.io/) with following configuration.
+For a more user-friendly experience, consider using a tool like Postman. Postman allows you to create and send requests, visualize responses, manage environment variables, and explore different authentication methods (including JWT).
+
+#### JWT Token Retrieval
+
+JWT tokens are typically generated by a separate authentication service. For testing purposes, you have two options:
+
+Authorization Service:
+
+If you have a separate authentication service running (as mentioned in [infra/docker/README.md](infra/docker/README.md)), follow its instructions to obtain a valid JWT token after successful login.
+
+JWT.io (Testing Only):
+
+For quick testing without a full authentication setup, you can temporarily generate JWT tokens using a website like jwt.io. However, keep in mind that tokens generated on this website are not secure and should not be used in a production environment.
 
 ```json
 # Header
@@ -126,24 +167,18 @@ Just for testing, you can create JWT Token quickly on [jwt.io](https://jwt.io/) 
 }
 ```
 
+Remember:
+
+- Replace `<YOUR JWT>` with the actual JWT token obtained from your authentication service or generated temporarily on jwt.io.
+- Ensure your API expects JWT authorization and is configured to verify the token's signature.
+
+By following these steps, you can effectively test and interact with your API.
+
 ### Clean up
 
 ```bash
 # Stop all dockers and remove volumes
 docker compose down --volumes --remove-orphans
-```
-
-## Test
-
-```bash
-# unit tests
-yarn run test
-
-# e2e tests
-yarn run test:e2e
-
-# test coverage
-yarn run test:cov
 ```
 
 ## Using the Prisma ORM
