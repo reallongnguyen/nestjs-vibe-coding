@@ -20,7 +20,7 @@ import {
   HttpExceptionFilter,
   ErrorResponse,
   OkResponse,
-} from 'src/common/present/http';
+} from 'src/common/user-interface/http';
 import { AppError } from 'src/common/models';
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';

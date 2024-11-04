@@ -23,7 +23,7 @@ import {
   OkResponse,
   PaginatedResponse,
   HttpExceptionFilter,
-} from 'src/common/present/http';
+} from 'src/common/user-interface/http';
 import {
   NotificationListQuery,
   NotificationOutput,

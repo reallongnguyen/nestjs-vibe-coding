@@ -1,6 +1,6 @@
-export { AuthContext } from './decorators/auth-context.decorator';
-export { AuthContextInfo } from './models/auth-context-info.model';
-export { RequireAnyRoles } from './decorators/require-any-roles.decorator';
-export { AuthGuard } from './auth.guard';
-export { RolesGuard } from './role.guard';
-export { Role } from './models/role.enum';
+export { AuthContextInfo } from './domain/models/auth-context-info.model';
+export { Role } from './domain/models/role.enum';
+export { AuthContext } from './user-interface/nestjs/decorators/auth-context.decorator';
+export { RequireAnyRoles } from './user-interface/nestjs/decorators/require-any-roles.decorator';
+export { AuthGuard } from './user-interface/nestjs/auth.guard';
+export { RolesGuard } from './user-interface/nestjs/role.guard';

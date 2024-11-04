@@ -24,7 +24,7 @@ import {
   PaginatedResponse,
   HttpExceptionFilter,
   FormatHttpResponseInterceptor,
-} from 'src/common/present/http';
+} from 'src/common/user-interface/http';
 import { UserUpsertInput, UserService } from './user.service';
 import { UserCreateDto, UserDto } from './dto/user.dto';
 import { ProfileDto } from './dto/profile.dto';

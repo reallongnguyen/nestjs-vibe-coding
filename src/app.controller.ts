@@ -5,7 +5,7 @@ import {
   FormatHttpResponseInterceptor,
   HttpExceptionFilter,
   OkResponse,
-} from 'src/common/present/http';
+} from 'src/common/user-interface/http';
 import { version } from '../package.json';
 
 @Controller()
