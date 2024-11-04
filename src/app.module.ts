@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from 'src/modules/user/user.module';
-import { AppController } from './app.controller';
-import { FileModule } from './modules/asset/file.module';
-import { CommonModule } from './common/common.module';
-import { NotificationModule } from './modules/notification/notification.module';
+import { CommonModule } from 'src/common/common.module';
+import { UserModule } from 'src/user-management/user.module';
+import { AppController } from 'src/app.controller';
+import { FileModule } from 'src/storage/file.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
