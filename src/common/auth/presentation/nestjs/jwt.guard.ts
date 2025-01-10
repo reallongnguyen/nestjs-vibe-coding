@@ -9,26 +9,26 @@ import { Logger } from 'nestjs-pino';
 import { Cache } from 'cache-manager';
 
 import { AuthUsecase } from '../../domain/usecases/auth.usecase';
-import { JwtAuthContextRepo } from '../../infrastructure/repositories/jwt-auth-ctx.repo';
+import { JwtAuthCtxRepo } from '../../infrastructure/repositories/jwt-auth-ctx.repo';
 
 @Injectable()
 export class JWTGuard implements CanActivate {
-  private readonly authService: AuthUsecase;
+  private readonly authUsecase: AuthUsecase;
 
   constructor(
-    private readonly jwtAuthContextRepo: JwtAuthContextRepo,
+    private readonly jwtAuthCtxRepo: JwtAuthCtxRepo,
     private readonly logger: Logger,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {
-    this.authService = new AuthUsecase(
+    this.authUsecase = new AuthUsecase(
       this.logger,
       this.cacheManager,
-      this.jwtAuthContextRepo,
+      this.jwtAuthCtxRepo,
     );
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    return this.authService.canActivate(request);
+    return this.authUsecase.canActivate(request);
   }
 }

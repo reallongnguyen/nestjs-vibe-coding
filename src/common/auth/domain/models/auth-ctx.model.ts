@@ -15,7 +15,7 @@ export interface Service {
   id: string;
 }
 
-export class AuthContextInfo {
+export class AuthCtx {
   agentType: AgentType;
   roles: Role[];
   expireAt?: number;
@@ -23,8 +23,8 @@ export class AuthContextInfo {
   person?: Person;
   service?: Service;
 
-  static fromAuthServiceJwtPayload(obj: any): AuthContextInfo {
-    const authCtx = new AuthContextInfo();
+  static fromAuthServiceJwtPayload(obj: any): AuthCtx {
+    const authCtx = new AuthCtx();
 
     authCtx.person = { authId: obj.sub };
     authCtx.agentType = AgentType.person;
@@ -35,7 +35,7 @@ export class AuthContextInfo {
   }
 }
 
-export function shouldCache(authCtx: AuthContextInfo): boolean {
+export function shouldCache(authCtx: AuthCtx): boolean {
   if (authCtx.agentType === AgentType.service) {
     return true;
   }
@@ -47,9 +47,9 @@ export function shouldCache(authCtx: AuthContextInfo): boolean {
 }
 
 export function setUser(
-  authCtx: AuthContextInfo,
+  authCtx: AuthCtx,
   user: { id: string; roles: Role[] },
-): AuthContextInfo {
+): AuthCtx {
   const newAuthCtx = cloneDeep(authCtx);
 
   newAuthCtx.roles = [...newAuthCtx.roles, ...user.roles];

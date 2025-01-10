@@ -9,7 +9,7 @@ import { AuthCtx, setUser } from '../../domain/models/auth-ctx.model';
 import { AuthCtxRepo } from '../../domain/ports/auth-ctx-repo.port';
 
 @Injectable()
-export class JwtAuthCtxRepo implements AuthCtxRepo {
+export class JwtAuthContextRepository implements AuthCtxRepo {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,

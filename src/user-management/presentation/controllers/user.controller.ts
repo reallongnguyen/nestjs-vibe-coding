@@ -26,10 +26,12 @@ import {
   HttpExceptionFilter,
   FormatHttpResponseInterceptor,
 } from 'src/common/user-interface/http';
-import { UserUpsertInput, UserService } from './user.service';
-import { UserCreateDto, UserDto } from './dto/user.dto';
-import { ProfileDto, PatchProfileDto } from './dto/profile.dto';
-import { userErrorMap } from './models/user-error.map';
+import { UserService } from '../../domain/services/user.service';
+import { CreateUserDto } from '../dto/input/user.dto';
+import { PatchProfileDto } from '../dto/input/profile.dto';
+import { userErrorMap } from '../../domain/models/user-error.map';
+import { UserDto } from '../dto/output/user.dto';
+import { ProfileDto } from '../dto/output/profile.dto';
 
 @Controller({
   path: 'users',
@@ -51,21 +53,21 @@ export class UserController {
   @CreatedResponse(UserDto)
   @ErrorResponse('user.create', userErrorMap, { hasValidationErr: true })
   async create(
-    @Body() userData: UserCreateDto,
+    @Body() userData: CreateUserDto,
     @AuthContext() authCtx: AuthContextInfo,
   ): Promise<UserDto> {
     if (!authCtx.person) {
       throw new AppError('common.requirePerson');
     }
 
-    const userUpsertInput: UserUpsertInput = {
-      ...userData,
-      authId: authCtx.person.authId,
-    };
+    const userUpsertInput = CreateUserDto.toApplication(
+      userData,
+      authCtx.person.authId,
+    );
 
     const user = await this.userService.createOrUpdateUser(userUpsertInput);
 
-    return user;
+    return UserDto.fromApplication(user);
   }
 
   @Get()
@@ -77,9 +79,12 @@ export class UserController {
   @PaginatedResponse(UserDto)
   @ErrorResponse('user.list', userErrorMap, { hasValidationErr: true })
   async list(): Promise<Collection<UserDto>> {
-    const userCollection = await this.userService.users({});
+    const userCollection = await this.userService.getUsers({});
 
-    return userCollection;
+    return {
+      ...userCollection,
+      edges: userCollection.edges.map(UserDto.fromApplication),
+    };
   }
 
   @Get('/profile')
@@ -99,7 +104,7 @@ export class UserController {
 
     const profile = await this.userService.getProfile(authCtx.person.userId);
 
-    return profile;
+    return ProfileDto.fromApplication(profile);
   }
 
   @Patch('/profile')
@@ -122,9 +127,9 @@ export class UserController {
 
     const updatedProfile = await this.userService.updateProfile(
       authCtx.person.userId,
-      profileData,
+      PatchProfileDto.toApplication(profileData),
     );
 
-    return updatedProfile;
+    return ProfileDto.fromApplication(updatedProfile);
   }
 }

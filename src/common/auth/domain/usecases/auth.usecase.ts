@@ -1,8 +1,8 @@
 import { Logger } from 'nestjs-pino';
 import { Cache } from 'cache-manager';
 import { AppError } from 'src/common/models';
-import { shouldCache } from '../models/auth-context-info.model';
-import { AuthCtxRepo } from '../ports/authCtxRepo.port';
+import { shouldCache } from '../models/auth-ctx.model';
+import { AuthCtxRepo } from '../ports/auth-ctx-repo.port';
 
 const defaultTokenCacheTTL = 15 * 60 * 1000;
 const maxTokenCacheTTL = 60 * 60 * 1000;

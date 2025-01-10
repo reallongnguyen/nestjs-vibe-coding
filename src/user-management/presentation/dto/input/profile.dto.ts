@@ -1,9 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional } from 'class-validator';
 
-import { UserDto } from './user.dto';
-
-export class ProfileDto extends UserDto {}
+import { PatchProfileInput } from '../../../domain/dto/input/profile.input';
 
 export class PatchProfileDto {
   @ApiProperty({
@@ -26,4 +24,11 @@ export class PatchProfileDto {
   @IsString()
   @IsOptional()
   avatar?: string;
+
+  static toApplication(dto: PatchProfileDto): PatchProfileInput {
+    return {
+      name: dto.name,
+      avatar: dto.avatar,
+    };
+  }
 }

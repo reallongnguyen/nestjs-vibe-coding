@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { AppError } from 'src/common/models/AppError';
 import { Role } from '../../domain/models/role.enum';
 import { ROLES_KEY } from './decorators/require-any-roles.decorator';
-import { AuthContextInfo } from '../../domain/models/auth-context-info.model';
+import { AuthCtx } from '../../domain/models/auth-ctx.model';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -20,7 +20,7 @@ export class RolesGuard implements CanActivate {
     }
 
     const { authContext } = context.switchToHttp().getRequest();
-    const authCtx = authContext as AuthContextInfo;
+    const authCtx = authContext as AuthCtx;
 
     if (!authCtx || !Array.isArray(authCtx.roles)) {
       throw new AppError('common.invalidToken');
