@@ -4,26 +4,25 @@ export const commonErrorMap = {
   common: {
     serverError: {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'internal server error',
+      message: 'Internal server error',
     },
     invalidToken: {
       status: HttpStatus.UNAUTHORIZED,
-      message: 'access token has expired or is not yet valid',
+      message: 'Access token has expired or is not valid',
     },
     noPrivilege: {
       status: HttpStatus.FORBIDDEN,
-      message: 'require any of roles [{{roles}}]',
+      message: 'Required one of the following roles: [{{roles}}]',
     },
     requirePerson: {
       status: HttpStatus.FORBIDDEN,
-      message: 'require agent is a person',
+      message: 'Agent must be a person',
     },
   },
   validation: {
     validationFailed: {
       status: HttpStatus.BAD_REQUEST,
-      message:
-        'this message is representative of all validation error messages that depend on the class-validator library',
+      message: 'Validation failed. Please check the input values.',
     },
   },
 };

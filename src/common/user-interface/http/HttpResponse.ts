@@ -63,9 +63,9 @@ export default class HttpResponse<T> {
     if (!errorConfig) {
       return new HttpException(
         new HttpResponse(
-          'common.undefinedError',
+          'common.errorMessageUndefinedError',
           {
-            name: 'common.undefinedError',
+            name: 'common.errorMessageUndefinedError',
             message: `error type '${name}' is undefined`,
           },
           undefined,
@@ -84,7 +84,7 @@ export default class HttpResponse<T> {
       const params = matchArr.map((key) => key.slice(2, key.length - 2));
 
       params.forEach((param) => {
-        if (extra.msgParams && extra.msgParams[param] !== undefined) {
+        if (extra.msgParams?.[param] !== undefined) {
           error.message = error.message.replace(
             `{{${param}}}`,
             String(extra.msgParams[param]),
@@ -107,7 +107,7 @@ export default class HttpResponse<T> {
     const firstConstraint = Object.keys(firstError.constraints as any)[0];
 
     const errorName = `${firstError.property}.${firstConstraint}`;
-    const errorMessage = firstError.constraints[firstConstraint] as string;
+    const errorMessage = firstError.constraints[firstConstraint];
 
     const message = `validation.${errorName}`;
 

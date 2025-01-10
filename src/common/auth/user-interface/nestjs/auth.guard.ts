@@ -3,7 +3,7 @@ import { JWTGuard } from './jwt.guard';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtGuard: JWTGuard) {}
+  constructor(private readonly jwtGuard: JWTGuard) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     return this.jwtGuard.canActivate(context);

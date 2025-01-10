@@ -13,4 +13,10 @@ export const userErrorMap = {
       },
     },
   },
+  'user.profile.update': {
+    notFound: {
+      status: HttpStatus.NOT_FOUND,
+      message: 'User not found',
+    },
+  },
 };

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   UseFilters,
   UseGuards,
   UseInterceptors,
@@ -27,7 +28,7 @@ import {
 } from 'src/common/user-interface/http';
 import { UserUpsertInput, UserService } from './user.service';
 import { UserCreateDto, UserDto } from './dto/user.dto';
-import { ProfileDto } from './dto/profile.dto';
+import { ProfileDto, PatchProfileDto } from './dto/profile.dto';
 import { userErrorMap } from './models/user-error.map';
 
 @Controller({
@@ -99,5 +100,31 @@ export class UserController {
     const profile = await this.userService.getProfile(authCtx.person.userId);
 
     return profile;
+  }
+
+  @Patch('/profile')
+  @RequireAnyRoles(Role.user)
+  @ApiOperation({
+    description: 'Update the profile of authenticated user',
+    summary: 'Update my profile',
+  })
+  @OkResponse(ProfileDto)
+  @ErrorResponse('user.profile.update', userErrorMap, {
+    hasValidationErr: true,
+  })
+  async updateProfile(
+    @Body() profileData: PatchProfileDto,
+    @AuthContext() authCtx: AuthContextInfo,
+  ): Promise<ProfileDto> {
+    if (!authCtx.person) {
+      throw new AppError('common.requirePerson');
+    }
+
+    const updatedProfile = await this.userService.updateProfile(
+      authCtx.person.userId,
+      profileData,
+    );
+
+    return updatedProfile;
   }
 }

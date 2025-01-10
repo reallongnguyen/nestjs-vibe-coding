@@ -7,11 +7,11 @@ import { AuthCtxRepo } from '../ports/authCtxRepo.port';
 const defaultTokenCacheTTL = 15 * 60 * 1000;
 const maxTokenCacheTTL = 60 * 60 * 1000;
 
-export class AuthService {
+export class AuthUsecase {
   constructor(
-    private logger: Logger,
-    private cacheManager: Cache,
-    private authCtxRepo: AuthCtxRepo,
+    private readonly logger: Logger,
+    private readonly cacheManager: Cache,
+    private readonly authCtxRepo: AuthCtxRepo,
   ) {}
 
   async canActivate(request: any): Promise<boolean> {
@@ -36,9 +36,14 @@ export class AuthService {
       const authCtx = await this.authCtxRepo.getAuthCtx(request);
 
       if (shouldCache(authCtx)) {
-        let ttl = authCtx.expireAt
-          ? authCtx.expireAt * 1000 - Date.now()
-          : defaultTokenCacheTTL;
+        let ttl = defaultTokenCacheTTL;
+
+        // Calculate time until token expiration if available
+        if (authCtx.expireAt && !Number.isNaN(authCtx.expireAt)) {
+          ttl = authCtx.expireAt * 1000 - Date.now();
+        }
+
+        // Clamp TTL between 0 and max cache time
         ttl = Math.max(0, Math.min(maxTokenCacheTTL, ttl));
 
         if (ttl > 0) {

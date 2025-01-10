@@ -42,7 +42,7 @@ import { notificationErrorMap } from '../entities/notification-error.map';
 @ApiTags('notifications')
 @ErrorResponse('common', notificationErrorMap)
 export class NotificationController {
-  constructor(private notificationService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
   @RequireAnyRoles(Role.user)

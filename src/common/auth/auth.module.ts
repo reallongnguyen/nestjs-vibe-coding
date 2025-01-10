@@ -5,12 +5,20 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './user-interface/nestjs/auth.guard';
 import { RolesGuard } from './user-interface/nestjs/role.guard';
 import { JWTGuard } from './user-interface/nestjs/jwt.guard';
+import { JwtAuthContextRepo } from './infrastructure/repositories/jwt-auth-ctx.repo';
 
 // TODO: implement loose coupling between the auth module and the PrismaService
 @Global()
 @Module({
   imports: [LightConfigModule, JwtModule],
-  providers: [AuthGuard, ConfigService, JwtService, RolesGuard, JWTGuard],
+  providers: [
+    AuthGuard,
+    ConfigService,
+    JwtService,
+    RolesGuard,
+    JWTGuard,
+    JwtAuthContextRepo,
+  ],
   exports: [AuthGuard, RolesGuard, JWTGuard],
 })
 export class AuthModule {}

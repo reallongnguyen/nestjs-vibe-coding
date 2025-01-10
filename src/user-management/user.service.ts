@@ -7,6 +7,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from './models/user.model';
 import { Role } from './models/role.model';
 
+import { PatchProfileDto, ProfileDto } from './dto/profile.dto';
+
 export class UserUpsertInput {
   authId: string;
   name: string;
@@ -46,9 +48,9 @@ export class ListUserInput {
 @Injectable()
 export class UserService {
   constructor(
-    private prisma: PrismaService,
-    private logger: Logger,
-    private eventEmitter: EventEmitter2,
+    private readonly prisma: PrismaService,
+    private readonly logger: Logger,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async users(params: ListUserInput): Promise<Collection<UserOutput>> {
@@ -120,5 +122,26 @@ export class UserService {
 
       throw new AppError('common.serverError');
     }
+  }
+
+  async updateProfile(
+    userId: string,
+    profileData: PatchProfileDto,
+  ): Promise<ProfileDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new AppError('user.notFound');
+    }
+
+    Object.assign(user, profileData);
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: profileData,
+    });
+
+    return ProfileOutput.fromUser(updatedUser);
   }
 }
