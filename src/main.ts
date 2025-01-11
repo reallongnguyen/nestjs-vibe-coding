@@ -3,7 +3,7 @@ import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import HttpResponse from 'src/common/user-interface/http/HttpResponse';
+import RestResponse from 'src/common/presentation/rest/RestResponse';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { version } from '../package.json';
@@ -22,7 +22,7 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true,
       stopAtFirstError: true,
-      exceptionFactory: HttpResponse.transformValidatorError,
+      exceptionFactory: RestResponse.transformValidatorError,
     }),
   );
 

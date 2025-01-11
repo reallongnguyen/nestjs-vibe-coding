@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
-import { ProfileUpdatedEvent } from 'src/common/models';
+import { IProfileUpdatedEvent } from 'src/common/event-bus/core/domain/events/event.interface';
 import { ClientProxy, MqttRecordBuilder } from '@nestjs/microservices';
 import { NotificationProducerService } from '../usecases/notification-producer.service';
 import { NotificationOutput } from './dto/notification.dto';
@@ -18,7 +18,7 @@ export class EventSubscriber {
 
   // demo notification
   @OnEvent('profile.updated')
-  handleProfileUpdatedEvent(payload: ProfileUpdatedEvent) {
+  handleProfileUpdatedEvent(payload: IProfileUpdatedEvent) {
     this.logger.debug(
       `notification: event.subscriber: profile.updated: ${JSON.stringify(payload)}`,
     );

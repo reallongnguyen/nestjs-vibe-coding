@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AppResult, ProfileUpdatedEvent } from 'src/common/models';
+import { AppResult } from 'src/common/models';
+import { IProfileUpdatedEvent } from 'src/common/event-bus/core/domain/events/event.interface';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { NotificationCreateInput } from '../controllers/dto/notification.dto';
@@ -8,11 +9,12 @@ import { NotificationCreateInput } from '../controllers/dto/notification.dto';
 @Injectable()
 export class NotificationProducerService {
   constructor(
-    private logger: Logger,
-    @InjectQueue('notification') private notiQueue: Queue,
+    private readonly logger: Logger,
+    @InjectQueue('notification') private readonly notiQueue: Queue,
   ) {}
+
   async handleProfileUpdated(
-    payload: ProfileUpdatedEvent,
+    payload: IProfileUpdatedEvent,
   ): Promise<AppResult<string, string>> {
     const notification = new NotificationCreateInput();
     notification.key = `updateProfile:${payload.id}:${payload.id}`;

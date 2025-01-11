@@ -9,18 +9,18 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthContext,
-  AuthContextInfo,
+  AuthCtx,
   RequireAnyRoles,
   AuthGuard,
   RolesGuard,
   Role,
 } from 'src/common/auth';
 import {
-  FormatHttpResponseInterceptor,
-  HttpExceptionFilter,
+  FormatRestResponseInterceptor,
+  RestExceptionFilter,
   ErrorResponse,
   OkResponse,
-} from 'src/common/user-interface/http';
+} from 'src/common/presentation/rest';
 import { AppError } from 'src/common/models';
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';
@@ -31,8 +31,8 @@ import { fileErrorMap } from './models/file-error.map';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseInterceptors(new FormatHttpResponseInterceptor())
-@UseFilters(new HttpExceptionFilter(fileErrorMap))
+@UseInterceptors(new FormatRestResponseInterceptor())
+@UseFilters(new RestExceptionFilter(fileErrorMap))
 @ApiTags('files')
 @ErrorResponse('common', fileErrorMap)
 export class FileController {
@@ -48,7 +48,7 @@ export class FileController {
   @ErrorResponse('file.getUploadAvatarUrl', fileErrorMap)
   async getUploadAvatarUrl(
     @Query() query: GetImageUploadUrlDto,
-    @AuthContext() authCtx: AuthContextInfo,
+    @AuthContext() authCtx: AuthCtx,
   ): Promise<UploadUrlDto> {
     if (!authCtx.person) {
       throw new AppError('common.requirePerson');

@@ -996,6 +996,13 @@
     path-to-regexp "3.3.0"
     tslib "2.7.0"
 
+"@nestjs/cqrs@^10.2.8":
+  version "10.2.8"
+  resolved "https://registry.yarnpkg.com/@nestjs/cqrs/-/cqrs-10.2.8.tgz#0bfda904669d7ac50e94c0c979c8e4bb4092cdca"
+  integrity sha512-nes4J9duwogme6CzNg8uhF5WVbSKYnNotjhHP+3kJxe6RTzcvJDZN10KpROjWJALEVO5fNmKnkGMecoOfqYzYA==
+  dependencies:
+    uuid "11.0.2"
+
 "@nestjs/event-emitter@^2.0.4":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@nestjs/event-emitter/-/event-emitter-2.1.1.tgz#4e34edc487c507edbe6d02033e3dd014a19210f9"
@@ -7184,6 +7191,11 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
+
+uuid@11.0.2:
+  version "11.0.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.0.2.tgz#a8d68ba7347d051e7ea716cc8dcbbab634d66875"
+  integrity sha512-14FfcOJmqdjbBPdDjFQyk/SdT4NySW4eM0zcG+HqbHP5jzuH56xO3J1DGhgs/cEMCfwYi3HQI1gnTO62iaG+tQ==
 
 uuid@^8.0.0, uuid@^8.3.0:
   version "8.3.2"

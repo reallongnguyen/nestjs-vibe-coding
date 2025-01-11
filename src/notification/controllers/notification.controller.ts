@@ -10,7 +10,7 @@ import {
 import { AppError, Collection } from 'src/common/models';
 import {
   AuthContext,
-  AuthContextInfo,
+  AuthCtx,
   AuthGuard,
   RequireAnyRoles,
   Role,
@@ -18,12 +18,12 @@ import {
 } from 'src/common/auth';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  FormatHttpResponseInterceptor,
+  FormatRestResponseInterceptor,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
-  HttpExceptionFilter,
-} from 'src/common/user-interface/http';
+  RestExceptionFilter,
+} from 'src/common/presentation/rest';
 import {
   NotificationListQuery,
   NotificationOutput,
@@ -37,8 +37,8 @@ import { notificationErrorMap } from '../entities/notification-error.map';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseInterceptors(new FormatHttpResponseInterceptor())
-@UseFilters(new HttpExceptionFilter(notificationErrorMap))
+@UseInterceptors(new FormatRestResponseInterceptor())
+@UseFilters(new RestExceptionFilter(notificationErrorMap))
 @ApiTags('notifications')
 @ErrorResponse('common', notificationErrorMap)
 export class NotificationController {
@@ -54,7 +54,7 @@ export class NotificationController {
   @PaginatedResponse(NotificationOutput)
   @ErrorResponse('notification.list', notificationErrorMap)
   async list(
-    @AuthContext() authCtx: AuthContextInfo,
+    @AuthContext() authCtx: AuthCtx,
     @Query() query: NotificationListQuery,
   ): Promise<Collection<NotificationOutput>> {
     if (!authCtx.person) {
@@ -80,7 +80,7 @@ export class NotificationController {
   @OkResponse(null)
   @ErrorResponse('notification.markAsRead', notificationErrorMap)
   async markAsRead(
-    @AuthContext() authCtx: AuthContextInfo,
+    @AuthContext() authCtx: AuthCtx,
     @Query() query: NotificationPatchQuery,
   ): Promise<null> {
     if (!authCtx.person) {

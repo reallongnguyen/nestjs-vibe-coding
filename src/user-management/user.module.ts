@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './presentation/controllers/user.controller';
-import { UserService } from './domain/services/user.service';
-import { UserRepository } from './infrastructure/persistence/user.repository';
+import { EventBusModule } from 'src/common/event-bus/event-bus.module';
+import { UserController } from './adapter/presentation/rest/user.controller';
+import { UserService } from './core/application/services/user.service';
+import { UserRepository } from './adapter/infrastructure/persistence/user.repository';
 
 @Module({
-  imports: [],
+  imports: [EventBusModule],
   controllers: [UserController],
-  providers: [UserService, UserRepository],
+  providers: [
+    UserService,
+    { provide: 'UserRepositoryPort', useClass: UserRepository },
+  ],
 })
 export class UserModule {}
