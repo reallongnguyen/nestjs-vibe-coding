@@ -1135,10 +1135,10 @@
   resolved "https://registry.yarnpkg.com/@prisma/client/-/client-5.21.1.tgz#ad51ef220eb80173f882e859960d81e626b73898"
   integrity sha512-3n+GgbAZYjaS/k0M03yQsQfR1APbr411r74foknnsGpmhNKBG49VuUkxIU6jORgvJPChoD4WC4PqoHImN1FP0w==
 
-"@prisma/debug@5.20.0":
-  version "5.20.0"
-  resolved "https://registry.yarnpkg.com/@prisma/debug/-/debug-5.20.0.tgz#c6d1cf6e3c6e9dba150347f13ca200b1d66cc9fc"
-  integrity sha512-oCx79MJ4HSujokA8S1g0xgZUGybD4SyIOydoHMngFYiwEwYDQ5tBQkK5XoEHuwOYDKUOKRn/J0MEymckc4IgsQ==
+"@prisma/debug@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@prisma/debug/-/debug-6.0.0.tgz#4f0ce75ae464de0bb2cd3fe5775527943c502d4e"
+  integrity sha512-eUjoNThlDXdyJ1iQ2d7U6aTVwm59EwvODb5zFVNJEokNoSiQmiYWNzZIwZyDmZ+j51j42/0iTaHIJ4/aZPKFRg==
 
 "@prisma/debug@6.2.1":
   version "6.2.1"
@@ -1169,12 +1169,12 @@
     "@prisma/engines-version" "6.2.0-14.4123509d24aa4dede1e864b46351bf2790323b69"
     "@prisma/get-platform" "6.2.1"
 
-"@prisma/generator-helper@5.20.0":
-  version "5.20.0"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-5.20.0.tgz#36f9309bc1a67416c630eeaba2138760530dde5b"
-  integrity sha512-37Aibw0wVRQgQVtCdNAIN71YFnSQfvetok7vd95KKkYkQRbEx94gsvPDpyN9Mw7p3IwA3nFgPfLc3jBRztUkKw==
+"@prisma/generator-helper@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-6.0.0.tgz#1aada1001304d0ad0d65e40311451718986fc1da"
+  integrity sha512-5DkG7hspZo6U4OtqI2W0JcgtY37sr7HgT8Q0W/sjL4VoV4px6ivzK6Eif5bKM7q+S4yFUHtjUt/3s69ErfLn7A==
   dependencies:
-    "@prisma/debug" "5.20.0"
+    "@prisma/debug" "6.0.0"
 
 "@prisma/get-platform@6.2.1":
   version "6.2.1"
@@ -5993,13 +5993,13 @@ pretty-format@^29.0.0, pretty-format@^29.7.0:
     ansi-styles "^5.0.0"
     react-is "^18.0.0"
 
-prisma-json-types-generator@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/prisma-json-types-generator/-/prisma-json-types-generator-3.1.1.tgz#c29a84513b83ba3f00617a7532ffbeee2b974325"
-  integrity sha512-LYVBKWcnh6SSPf6jNJuQEmByyZtj79kuxzilCF8962ViBNciBzk+pQ8qt7HR7lFUIOEN3sUeOOhJe1RuytGk6A==
+prisma-json-types-generator@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/prisma-json-types-generator/-/prisma-json-types-generator-3.2.2.tgz#202b739a62db6ee94c1a2562bbb20dcd3d957f0e"
+  integrity sha512-kvEbJPIP5gxk65KmLs0nAvY+CxpqVMWb4OsEvXlyXZmp2IGfi5f52BUV7ezTYQNjRPZyR4QlayWJXffoqVVAfA==
   dependencies:
-    "@prisma/generator-helper" "5.20.0"
-    tslib "2.7.0"
+    "@prisma/generator-helper" "6.0.0"
+    tslib "2.8.1"
 
 prisma@^6.2.1:
   version "6.2.1"
