@@ -8,36 +8,37 @@ This module follows [Hexagonal Architecture](https://medium.com/ssense-tech/hexa
 
 ```bash
 user-management/
-├── core/ # Domain + Application layers (inside the hexagon)
-│ ├── domain/ # Domain layer
-│ │ ├── entities/ # Domain entities/aggregates
-│ │ │ └── user.entity.ts
-│ │ ├── value-objects/
-│ │ ├── events/
-│ │ └── services/ # Domain services
-│ │
-│ ├── ports/ # Ports (interfaces) for incoming and outgoing adapters
-│ │ ├── incoming/ # Primary/Driving ports (use cases)
-│ │ │ └── user-management.port.ts
-│ │ └── outgoing/ # Secondary/Driven ports (repositories, external services)
-│ │   └── user.repository.port.ts
-│ │
-│ └── application/ # Application services implementing use cases
-│   ├── dto/
-│   └── services/
-│     └── user.service.ts
+├── domain/ # Domain layer
+│ ├── entities/ # Domain entities/aggregates
+│ │ └── user.entity.ts
+│ ├── value-objects/
+│ ├── events/
+│ └── services/ # Domain services
 │
-├── adapter/ # Outside the hexagon
-│ ├── presentation/ # Primary/Driving adapters
-│ │ ├── rest/ # REST API controllers
-│ │ │ └── user.controller.ts
-│ │ └── graphql/ # GraphQL resolvers (if needed)
-│ │
-│ └── infrastructure/ # Secondary/Driven adapters
-│   ├── persistence/ # Database implementations
-│   │ └── user.repository.ts
-│   └── external/ # External service adapters
-│     └── notification/
+├── ports/ # Ports (interfaces) for incoming and outgoing adapters
+│ ├── incoming/ # Primary/Driving ports (use cases)
+│ │ └── user-management.port.ts
+│ └── outgoing/ # Secondary/Driven ports (repositories, external services)
+│   └── user.repository.port.ts
+│
+├── application/ # Application services implementing use cases
+│ ├── input/
+│ ├── output/
+│ └── services/
+│   └── user.service.ts
+│
+├── presentation/ # Primary/Driving adapters
+│ ├── rest/ # REST API controllers
+│ │ ├── input/
+│ │ ├── output/
+│ │ └── user.controller.ts
+│ └── graphql/ # GraphQL resolvers (if needed)
+│
+├── infrastructure/ # Secondary/Driven adapters
+│ ├── persistence/ # Database implementations
+│ │ └── user.repository.ts
+│ └── external/ # External service adapters
+│   └── notification/
 │
 └── user.module.ts # Module definition
 ```
