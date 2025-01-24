@@ -3,8 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { RedisClientOptions } from 'redis';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { redisStore } from 'cache-manager-redis-store';
+import KeyvRedis from '@keyv/redis';
 import { BullModule } from '@nestjs/bull';
+
 import { LoggerModule } from './logger/logger.module';
 import { LightConfigModule } from './config/config.module';
 import { AuthModule } from './auth/auth.module';
@@ -20,8 +21,7 @@ import { PrismaModule } from './prisma/prisma.module';
       isGlobal: true,
       useFactory: (service: ConfigService) => {
         return {
-          store: redisStore as any,
-          url: service.get<string>('redis.url'),
+          stores: [new KeyvRedis(service.get<string>('redis.url'))],
         };
       },
     }),
