@@ -7,7 +7,6 @@ import { User } from '../../domain/entities/user.entity';
 import {
   UpsertUserParams,
   UserRepositoryPort,
-  FindManyUserParams,
   FindUniqueUserParams,
   UpdateUserParams,
 } from '../../ports/incoming/user.repository.port';
@@ -30,13 +29,8 @@ export class UserRepository implements UserRepositoryPort {
     });
   }
 
-  async findMany(params: FindManyUserParams): Promise<User[]> {
-    return this.prisma.user.findMany({
-      skip: params.skip,
-      take: params.take,
-      where: params.where,
-      orderBy: params.orderBy,
-    });
+  async findMany(filters: UserSearchFiltersDto): Promise<Collection<User>> {
+    return this.search(filters);
   }
 
   async count(): Promise<number> {
@@ -71,27 +65,53 @@ export class UserRepository implements UserRepositoryPort {
   }
 
   async search(filters: UserSearchFiltersDto): Promise<Collection<User>> {
-    const { offset = 0, limit = 10, searchTerm } = filters;
-    const where = searchTerm ? { name: { contains: searchTerm } } : {};
+    const {
+      offset = 0,
+      limit = 20,
+      searchTerm,
+      role,
+      status,
+      orderDirection,
+      orderBy,
+      createdAtGte,
+      createdAtLte,
+    } = filters;
+
+    const where: any = {
+      OR: searchTerm
+        ? [
+            { email: { contains: searchTerm, mode: 'insensitive' } },
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { phone: { contains: searchTerm } },
+          ]
+        : undefined,
+      roles: role ? { has: role } : undefined,
+      isActive: status ? status === 'active' : undefined,
+      createdAt:
+        createdAtGte || createdAtLte
+          ? {
+              gte: createdAtGte,
+              lte: createdAtLte,
+            }
+          : undefined,
+    };
 
     const users = await this.prisma.user.findMany({
       where,
+      orderBy: orderBy ? { [orderBy]: orderDirection } : undefined,
       skip: offset,
       take: limit,
     });
 
     const total = await this.prisma.user.count({ where });
 
-    return {
-      edges: users,
-      pagination: { total, offset, limit },
-    };
+    return new Collection(users, { total, offset, limit });
   }
 
-  async updateRole(userId: string, role: Role): Promise<User> {
+  async updateRole(userId: string, roles: Role[]): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },
-      data: { roles: [role] },
+      data: { roles },
     });
   }
 
@@ -99,6 +119,13 @@ export class UserRepository implements UserRepositoryPort {
     return this.prisma.user.update({
       where: { id: userId },
       data: { isActive: false },
+    });
+  }
+
+  async activate(userId: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: true },
     });
   }
 

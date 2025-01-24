@@ -1,4 +1,6 @@
 import { cloneDeep, merge } from 'lodash';
+import { isNotEmpty } from 'class-validator';
+
 import { Role } from './role.enum';
 
 export enum AgentType {
@@ -9,6 +11,8 @@ export enum AgentType {
 export interface Person {
   authId: string;
   userId?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface Service {
@@ -26,7 +30,12 @@ export class AuthCtx {
   static fromAuthServiceJwtPayload(obj: any): AuthCtx {
     const authCtx = new AuthCtx();
 
-    authCtx.person = { authId: obj.sub };
+    authCtx.person = {
+      authId: obj.sub,
+      email: isNotEmpty(obj.email) ? obj.email : undefined,
+      phone: isNotEmpty(obj.phone) ? obj.phone : undefined,
+    };
+
     authCtx.agentType = AgentType.person;
     authCtx.roles = obj.roles || [];
     authCtx.expireAt = obj.exp;

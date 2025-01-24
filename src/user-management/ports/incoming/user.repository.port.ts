@@ -2,17 +2,7 @@ import { Collection } from 'src/common/models';
 
 import { UserSearchFiltersDto } from '../../presentation/rest/input/user-search-filters.dto';
 import { User } from '../../domain/entities/user.entity';
-
-export interface FindManyUserParams {
-  skip?: number;
-  take?: number;
-  where?: {
-    name?: string;
-  };
-  orderBy?: {
-    [key in keyof User]?: 'asc' | 'desc';
-  };
-}
+import { Role } from '../../domain/entities/role.enum';
 
 export interface FindUniqueUserParams {
   where: {
@@ -40,13 +30,14 @@ export interface UpsertUserParams {
 export interface UserRepositoryPort {
   findById(id: string): Promise<User | null>;
   findUnique(params: { where: any }): Promise<User | null>;
-  findMany(params: any): Promise<User[]>;
+  findMany(filters: UserSearchFiltersDto): Promise<Collection<User>>;
   count(): Promise<number>;
   upsert(params: any): Promise<User>;
   update(params: any): Promise<User>;
   search(filters: UserSearchFiltersDto): Promise<Collection<User>>;
-  updateRole(userId: string, role: string): Promise<User>;
+  updateRole(userId: string, role: Role[]): Promise<User>;
   deactivate(userId: string): Promise<User>;
+  activate(userId: string): Promise<User>;
   delete(userId: string): Promise<void>;
   createPasswordReset(
     userId: string,

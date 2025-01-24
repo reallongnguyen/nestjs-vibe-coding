@@ -1,6 +1,19 @@
 import { HttpStatus } from '@nestjs/common';
 
-export const commonErrorMap = {
+export type ErrorMapType = {
+  [key: string]:
+    | {
+        status: HttpStatus;
+        message: string;
+      }
+    | ErrorMapType;
+};
+
+export type ErrorMap = {
+  [key: string]: ErrorMapType;
+};
+
+export const commonErrorMap: ErrorMap = {
   common: {
     serverError: {
       status: HttpStatus.INTERNAL_SERVER_ERROR,

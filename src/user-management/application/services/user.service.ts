@@ -4,7 +4,7 @@ import { AppError } from 'src/common/models/AppError';
 import { Logger } from 'nestjs-pino';
 import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
 
-import { ListUserInput, UpsertUserInput } from '../input/user.input';
+import { UpsertUserInput } from '../input/user.input';
 import { ProfileOutput } from '../output/profile.output';
 import { Role } from '../../domain/entities/role.enum';
 import { PatchProfileInput } from '../input/profile.input';
@@ -34,28 +34,6 @@ export class UserService {
     private readonly userActivityRepository: UserActivityRepositoryPort,
   ) {}
 
-  async getUsers(params: ListUserInput): Promise<Collection<User>> {
-    const { name, offset, limit, orderBy, orderDirection } = params;
-
-    const users = await this.userRepository.findMany({
-      skip: offset,
-      take: limit,
-      where: { name },
-      orderBy: { [orderBy]: orderDirection },
-    });
-
-    const total = await this.userRepository.count();
-
-    return {
-      edges: users,
-      pagination: {
-        total,
-        limit,
-        offset,
-      },
-    };
-  }
-
   async createOrUpdateUser(input: UpsertUserInput): Promise<User> {
     const user = await this.userRepository.upsert({
       where: { authId: input.authId },
@@ -81,7 +59,7 @@ export class UserService {
         `user: getProfile: user ${JSON.stringify(userId)} not found`,
       );
 
-      throw new AppError('user.getProfile.notFound');
+      throw new AppError('user.profile.get.notFound');
     }
 
     return ProfileOutput.fromUser(user);
@@ -98,7 +76,7 @@ export class UserService {
     if (!user) {
       this.logger.warn(`user: updateProfile: user ${userId} not found`);
 
-      throw new AppError('user.notFound');
+      throw new AppError('user.profile.update.notFound');
     }
 
     Object.assign(user, input);
@@ -115,9 +93,11 @@ export class UserService {
 
   async getUserById(userId: string): Promise<User> {
     const user = await this.userRepository.findById(userId);
+
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError('user.get.notFound');
     }
+
     return user;
   }
 
@@ -138,16 +118,19 @@ export class UserService {
       try {
         switch (operation.operation) {
           case BulkOperationType.UPDATE_ROLE:
-            await this.userRepository.updateRole(userId, operation.newRole);
+            await this.userRepository.updateRole(userId, operation.newRoles);
             break;
           case BulkOperationType.DEACTIVATE:
             await this.userRepository.deactivate(userId);
+            break;
+          case BulkOperationType.ACTIVATE:
+            await this.userRepository.activate(userId);
             break;
           case BulkOperationType.DELETE:
             await this.userRepository.delete(userId);
             break;
           default:
-            throw new Error('Invalid operation');
+            throw new AppError('user.bulk.invalidOperation');
         }
         result.successCount += 1;
       } catch (error) {

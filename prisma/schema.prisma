@@ -25,6 +25,8 @@ enum UserRole {
 model User {
   id           String         @id @default(uuid())
   authId       String         @unique @map("auth_id") @db.Uuid
+  email        String?
+  phone        String?
   name         String         @db.Text
   avatar       String?        @db.Text
   roles        UserRole[]

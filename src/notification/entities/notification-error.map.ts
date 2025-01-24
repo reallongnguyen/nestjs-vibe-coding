@@ -1,6 +1,6 @@
-import { commonErrorMap } from 'src/common/models/common-error.map';
+import { commonErrorMap, ErrorMap } from 'src/common/models/error.map';
 
-export const notificationErrorMap = {
+export const notificationErrorMap: ErrorMap = {
   ...commonErrorMap,
   notification: {
     list: {},

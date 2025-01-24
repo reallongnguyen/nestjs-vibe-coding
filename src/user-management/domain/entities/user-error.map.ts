@@ -1,22 +1,35 @@
 import { HttpStatus } from '@nestjs/common';
-import { commonErrorMap } from 'src/common/models/common-error.map';
+import { commonErrorMap, ErrorMap } from 'src/common/models/error.map';
 
-export const userErrorMap = {
+export const userErrorMap: ErrorMap = {
   ...commonErrorMap,
   user: {
+    bulk: {},
     create: {},
     list: {},
-    getProfile: {
+    get: {
       notFound: {
         status: HttpStatus.NOT_FOUND,
-        message: 'user profile not found',
+        message: 'User not found',
       },
     },
-  },
-  'user.profile.update': {
-    notFound: {
-      status: HttpStatus.NOT_FOUND,
-      message: 'User not found',
+    search: {},
+    password: {
+      reset: {},
+    },
+    profile: {
+      get: {
+        notFound: {
+          status: HttpStatus.NOT_FOUND,
+          message: 'User profile not found',
+        },
+      },
+      update: {
+        notFound: {
+          status: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+        },
+      },
     },
   },
 };

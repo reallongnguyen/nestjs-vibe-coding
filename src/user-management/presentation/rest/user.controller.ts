@@ -35,7 +35,7 @@ import { userErrorMap } from '../../domain/entities/user-error.map';
 import { UserDto } from './output/user.dto';
 import { ProfileDto } from './output/profile.dto';
 import { UserSearchFiltersDto } from './input/user-search-filters.dto';
-import { BulkUserOperationDto } from './input/user-bulk-operation.dto';
+import { BulkUserOperationDto } from './input/bulk-user-operation.dto';
 import { BulkOperationResultDto } from './output/bulk-user-operation.dto';
 import { UserActivityDto } from './output/user-activity.dto';
 import { ActivityFiltersDto } from './input/activity-filters.dto';
@@ -73,6 +73,8 @@ export class UserController {
     const userUpsertInput = CreateUserDto.toApplication(
       userData,
       authCtx.person.authId,
+      authCtx.person.email,
+      authCtx.person.phone,
     );
 
     const user = await this.userService.createOrUpdateUser(userUpsertInput);
@@ -85,20 +87,19 @@ export class UserController {
   @ApiOperation({ summary: 'List up users' })
   @PaginatedResponse(UserDto)
   @ErrorResponse('user.list', userErrorMap, { hasValidationErr: true })
-  async list(): Promise<Collection<UserDto>> {
-    const userCollection = await this.userService.getUsers({});
+  async list(
+    @Query() filters: UserSearchFiltersDto,
+  ): Promise<Collection<UserDto>> {
+    const userCollection = await this.userService.searchUsers(filters);
 
-    return {
-      ...userCollection,
-      edges: userCollection.edges.map(UserDto.fromApplication),
-    };
+    return Collection.transform(userCollection, UserDto.fromApplication);
   }
 
   @Get('/profile')
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Get my profile' })
   @OkResponse(ProfileDto)
-  @ErrorResponse('user.profile', userErrorMap)
+  @ErrorResponse('user.profile.get', userErrorMap)
   async getProfile(@AuthContext() authCtx: AuthCtx): Promise<ProfileDto> {
     this.validatePerson(authCtx);
 
@@ -128,6 +129,17 @@ export class UserController {
     return ProfileDto.fromApplication(updatedProfile);
   }
 
+  @Post('/bulk')
+  @RequireAnyRoles(Role.ADMIN)
+  @ApiOperation({ summary: 'Bulk user operations (update/delete/deactivate)' })
+  @OkResponse(BulkOperationResultDto)
+  @ErrorResponse('user.bulk', userErrorMap, { hasValidationErr: true })
+  async bulkOperation(
+    @Body() operation: BulkUserOperationDto,
+  ): Promise<BulkOperationResultDto> {
+    return this.userService.processBulkOperation(operation);
+  }
+
   @Get('/:id')
   @RequireAnyRoles(Role.ADMIN)
   @ApiOperation({ summary: 'Get user by ID' })
@@ -135,31 +147,8 @@ export class UserController {
   @ErrorResponse('user.get', userErrorMap)
   async getUser(@Param('id') userId: string): Promise<UserDto> {
     const user = await this.userService.getUserById(userId);
+
     return UserDto.fromApplication(user);
-  }
-
-  @Get('/search')
-  @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'Search users with filters' })
-  @PaginatedResponse(UserDto)
-  async searchUsers(
-    @Query() filters: UserSearchFiltersDto,
-  ): Promise<Collection<UserDto>> {
-    const userCollection = await this.userService.searchUsers(filters);
-    return {
-      ...userCollection,
-      edges: userCollection.edges.map(UserDto.fromApplication),
-    };
-  }
-
-  @Post('/bulk')
-  @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'Bulk user operations (update/delete/deactivate)' })
-  @OkResponse(BulkOperationResultDto)
-  async bulkOperation(
-    @Body() operation: BulkUserOperationDto,
-  ): Promise<BulkOperationResultDto> {
-    return this.userService.processBulkOperation(operation);
   }
 
   @Get('/:id/activity')
@@ -171,16 +160,15 @@ export class UserController {
     @Query() filters: ActivityFiltersDto,
   ): Promise<Collection<UserActivityDto>> {
     const activities = await this.userService.getUserActivity(userId, filters);
-    return {
-      ...activities,
-      edges: activities.edges.map(UserActivityDto.fromApplication),
-    };
+
+    return Collection.transform(activities, UserActivityDto.fromApplication);
   }
 
   @Post('/:id/reset-password')
   @RequireAnyRoles(Role.ADMIN)
   @ApiOperation({ summary: 'Admin-initiated password reset' })
   @OkResponse(PasswordResetResultDto)
+  @ErrorResponse('user.password.reset', userErrorMap)
   async initiatePasswordReset(
     @Param('id') userId: string,
   ): Promise<PasswordResetResultDto> {

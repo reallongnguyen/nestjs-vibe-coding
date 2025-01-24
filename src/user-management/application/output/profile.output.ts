@@ -1,13 +1,17 @@
 import { Role } from '../../domain/entities/role.enum';
 import { User } from '../../domain/entities/user.entity';
 
-export class ProfileOutput implements Omit<User, 'createdAt' | 'updatedAt'> {
+export class ProfileOutput implements User {
   id: string;
   authId: string;
   name: string;
-  avatar: string;
+  avatar: string | null;
   roles: Role[];
   isActive: boolean;
+  email: string | null;
+  phone: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 
   static fromUser(u: User): ProfileOutput {
     const po = new ProfileOutput();
@@ -17,6 +21,10 @@ export class ProfileOutput implements Omit<User, 'createdAt' | 'updatedAt'> {
     po.avatar = u.avatar;
     po.roles = u.roles;
     po.isActive = u.isActive;
+    po.email = u.email;
+    po.phone = u.phone;
+    po.createdAt = u.createdAt;
+    po.updatedAt = u.updatedAt;
 
     return po;
   }

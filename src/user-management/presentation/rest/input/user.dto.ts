@@ -26,11 +26,18 @@ export class CreateUserDto {
   @MaxLength(256)
   avatar?: string;
 
-  static toApplication(dto: CreateUserDto, authId: string): UpsertUserInput {
+  static toApplication(
+    dto: CreateUserDto,
+    authId: string,
+    email?: string,
+    phoneNumber?: string,
+  ): UpsertUserInput {
     return {
       authId,
       name: dto.name,
       avatar: dto.avatar,
+      email,
+      phoneNumber,
     };
   }
 }

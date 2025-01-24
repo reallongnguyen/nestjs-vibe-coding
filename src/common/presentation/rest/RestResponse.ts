@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, ValidationError } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { get } from 'lodash';
-import { commonErrorMap } from '../../models/common-error.map';
+import { commonErrorMap } from '../../models/error.map';
 
 export interface RestError extends Error {
   name: string;
@@ -116,7 +116,7 @@ export default class RestResponse<T> {
         name: errorName,
         message: errorMessage,
       }),
-      status,
+      status as number,
     );
   }
 

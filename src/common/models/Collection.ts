@@ -30,4 +30,19 @@ export default class Collection<T> {
     description: 'Pagination information',
   })
   pagination: Pagination;
+
+  constructor(edges: T[], pagination: Pagination) {
+    this.edges = edges;
+    this.pagination = pagination;
+  }
+
+  static transform<T, U>(
+    collection: Collection<T>,
+    transformer: (item: T) => U,
+  ): Collection<U> {
+    return new Collection(
+      collection.edges.map(transformer),
+      collection.pagination,
+    );
+  }
 }

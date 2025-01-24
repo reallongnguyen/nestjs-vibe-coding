@@ -10,6 +10,10 @@ export class ProfileDto extends UserDto {
       avatar: applicationDto.avatar,
       roles: applicationDto.roles,
       isActive: applicationDto.isActive,
+      email: applicationDto.email,
+      phone: applicationDto.phone,
+      createdAt: applicationDto.createdAt,
+      updatedAt: applicationDto.updatedAt,
     };
   }
 }
