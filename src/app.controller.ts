@@ -6,7 +6,6 @@ import {
   RestExceptionFilter,
   OkResponse,
 } from 'src/common/presentation/rest';
-import { version } from '../package.json';
 
 @Controller()
 @UseInterceptors(new FormatRestResponseInterceptor())
@@ -24,7 +23,6 @@ export class AppController {
   get(): Record<string, string> {
     return {
       ...this.configService.get<Record<string, string>>('app'),
-      version,
       port: undefined,
     };
   }

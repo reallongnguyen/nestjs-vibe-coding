@@ -31,7 +31,7 @@ docker compose up -d
 npx prisma db push
 
 # Create Root user
-export ROOT_USER_AUTH_ID=<user_id_in_auth_service>
+export ROOT_USER_AUTH_ID=86f41bd0-a011-45a2-837d-36ff38f6e8da
 npx prisma db seed
 ```
 
@@ -63,6 +63,19 @@ For testing purposes, you can generate a valid JWT using:
 # Using node
 node -e "require('dotenv').config(); console.log(require('jsonwebtoken').sign({ sub: '86f41bd0-a011-45a2-837d-36ff38f6e8da' }, process.env.JWT_SECRET, { expiresIn: '1h' }))"
 ```
+
+#### Testing via Postman
+
+To import the API into Postman using the Swagger JSON, follow these steps:
+
+1. Open Postman.
+2. Click on the "Import" button located in the top left corner.
+3. In the Import window, select the "Link" tab.
+4. Enter the following URL: `http://localhost:8000/api-json`.
+5. Click on the "Continue" button.
+6. Postman will fetch the API definitions from the provided URL. Once the import is complete, you will see the API collections in your Postman workspace.
+
+Now you can start testing the API endpoints directly from Postman!
 
 ### Database Management
 

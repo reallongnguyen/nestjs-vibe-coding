@@ -29,7 +29,9 @@ async function bootstrap() {
   // API docs
   const swaggerDocConfig = new DocumentBuilder()
     .addBearerAuth()
-    .setTitle(`${config.get<string>('app.name')} API docs`)
+    .setTitle(
+      `${config.get<string>('app.name')} v${config.get<string>('app.version')}`,
+    )
     .setDescription('The API document is generated automatically')
     .setVersion(version)
     .build();

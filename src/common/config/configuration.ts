@@ -1,9 +1,12 @@
+import { version } from '../../../package.json';
+
 export default () => ({
   nodeEnv: process.env.NODE_ENV || 'development',
   app: {
     name: process.env.APP_NAME || 'App',
     port: parseInt(process.env.APP_PORT, 10) || 8000,
     url: process.env.APP_URL || 'https://example.com',
+    version,
   },
   logLevel: process.env.LOG_LEVEL || 'info',
   security: {
