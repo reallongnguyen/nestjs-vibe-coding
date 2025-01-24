@@ -7,6 +7,7 @@ export class ProfileOutput implements Omit<User, 'createdAt' | 'updatedAt'> {
   name: string;
   avatar: string;
   roles: Role[];
+  isActive: boolean;
 
   static fromUser(u: User): ProfileOutput {
     const po = new ProfileOutput();
@@ -15,6 +16,8 @@ export class ProfileOutput implements Omit<User, 'createdAt' | 'updatedAt'> {
     po.name = u.name;
     po.avatar = u.avatar;
     po.roles = u.roles;
+    po.isActive = u.isActive;
+
     return po;
   }
 }

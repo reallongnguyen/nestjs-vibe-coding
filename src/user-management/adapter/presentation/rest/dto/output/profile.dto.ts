@@ -9,6 +9,7 @@ export class ProfileDto extends UserDto {
       name: applicationDto.name,
       avatar: applicationDto.avatar,
       roles: applicationDto.roles,
+      isActive: applicationDto.isActive,
     };
   }
 }

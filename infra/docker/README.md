@@ -1,70 +1,107 @@
-# Docker Deployment Guide
+# Infrastructure Setup Guide
 
-This guide provides instructions for deploying the system using Docker.
+This guide explains how to set up the development infrastructure using Docker.
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
 - Git
-- Access to the required repositories
+- Access to required repositories
 
-## Installation Steps
+## Setup Steps
 
-### 1. Clone Service Repositories
-
-Clone the required service repositories:
+### 1. Clone Required Repositories
 
 ```bash
-# Clone API Service
 rm -rf api-service \
 && git clone https://github.com/reallongnguyen/base-api-service.git \
 && mv base-api-service api-service
 ```
 
-### 2. Configure Environment Variables
+### 2. Configure Environment
 
-1. Create `.env` files for each service following their respective documentation:
-   - [API Service Configuration Guide](https://github.com/reallongnguyen/base-api-service/blob/main/README.md)
+Create a `.env` file in the `docker` directory:
 
-2. Ensure all required environment variables are properly set before proceeding.
+```bash
+cp .env.example .env
+```
 
-### 3. Deploy Services
+Update the following environment variables:
 
-Launch the entire system using Docker Compose:
+- `AUTH_SERVICE_POSTGRES_USER`: Database username for auth service
+- `AUTH_SERVICE_POSTGRES_PASSWORD`: Database password for auth service
+- `AUTH_SERVICE_JWT_SECRET`: JWT secret for auth service
+- `API_SERVICE_POSTGRES_USER`: Database username for api service
+- `API_SERVICE_POSTGRES_PASSWORD`: Database password for api service
+- `API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS`: Google application credentials for api service
+
+### 3. Start Infrastructure Services
+
+Launch the infrastructure stack:
 
 ```bash
 docker compose up -d
 ```
 
-The `-d` flag runs the containers in detached mode (background).
+This will start:
+
+- Traefik API Gateway (port 80, 8080)
+- Auth service
+- API service
+- Auth Postgres
+- API Postgres
+- API Redis
+- API MQTT
+
+### 4. Verify Services
+
+Check if all services are running:
+
+```bash
+docker compose ps
+```
+
+## Service Access
+
+- **Traefik Gateway**:
+  - Dashboard: `http://traefik.docker.localhost:8080`
+  - API Gateway: `http://traefik.docker.localhost`
+
+- **Services via Traefik**:
+  - Auth Service: `http://auth.docker.localhost`
+  - API Service: `http://api.docker.localhost`
+
+> **Note**: Traefik uses host-based routing to direct traffic to the appropriate service. When you access `auth.docker.localhost` or `api.docker.localhost`, Traefik examines the `Host` header and routes the request to the corresponding service.
 
 ## Useful Commands
 
 ```bash
-# View running containers
-docker compose ps
-
-# View container logs
-docker compose logs -f [service-name]
-
 # Stop all services
 docker compose down
 
-# Rebuild and restart services
-docker compose up -d --build
+# View logs
+docker compose logs -f [service-name]
+
+# Restart a specific service
+docker compose restart [service-name]
+
+# Remove all data (volumes)
+docker compose down -v
 ```
 
 ## Troubleshooting
 
-If you encounter any issues:
+1. **Port Conflicts**: Ensure no other services are using the required ports
+2. **Permission Issues**: Check folder permissions for mounted volumes
+3. **Connection Refused**: Verify services are running (`docker compose ps`)
 
-1. Check if all required ports are available
-2. Verify environment variables are correctly set
-3. Ensure all required services are running (`docker compose ps`)
-4. Review service logs for errors (`docker compose logs`)
+For detailed logs:
+
+```bash
+docker compose logs -f
+```
 
 ## Additional Resources
 
-For more detailed information about individual services, refer to their respective documentation:
-
-- [API Service Documentation](https://github.com/reallongnguyen/base-api-service/blob/main/README.md)
+- [Docker Documentation](https://docs.docker.com/)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)

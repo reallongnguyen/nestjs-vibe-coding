@@ -3,17 +3,22 @@ import { PrismaClient, UserRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const authId = '86f41bd0-a011-45a2-837d-36ff38f6e8da';
-
-  await prisma.user.create({
+async function createRootUser(authId: string) {
+  return prisma.user.create({
     data: {
       authId,
       name: 'Root',
-      roles: [UserRole.root, UserRole.admin, UserRole.user],
+      roles: [UserRole.ROOT, UserRole.ADMIN, UserRole.USER],
     },
   });
 }
+
+async function main() {
+  const authId = process.env.ROOT_USER_AUTH_ID;
+
+  await createRootUser(authId);
+}
+
 main()
   .then(async () => {
     await prisma.$disconnect();

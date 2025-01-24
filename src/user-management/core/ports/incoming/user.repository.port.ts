@@ -1,3 +1,6 @@
+import { Collection } from 'src/common/models';
+import { UserSearchFiltersDto } from 'src/user-management/adapter/presentation/rest/dto/input/user-search-filters.dto';
+
 import { User } from '../../domain/entities/user.entity';
 
 export interface FindManyUserParams {
@@ -35,13 +38,17 @@ export interface UpsertUserParams {
 }
 
 export interface UserRepositoryPort {
-  findMany(params: FindManyUserParams): Promise<User[]>;
-
-  findUnique(params: FindUniqueUserParams): Promise<User | null>;
-
+  findById(id: string): Promise<User | null>;
+  findUnique(params: { where: any }): Promise<User | null>;
+  findMany(params: any): Promise<User[]>;
   count(): Promise<number>;
-
-  update(params: UpdateUserParams): Promise<User>;
-
-  upsert(params: UpsertUserParams): Promise<User>;
+  upsert(params: any): Promise<User>;
+  update(params: any): Promise<User>;
+  search(filters: UserSearchFiltersDto): Promise<Collection<User>>;
+  updateRole(userId: string, role: string): Promise<User>;
+  deactivate(userId: string): Promise<User>;
+  delete(userId: string): Promise<void>;
+  createPasswordReset(
+    userId: string,
+  ): Promise<{ token: string; expiresAt: Date }>;
 }

@@ -45,7 +45,7 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  @RequireAnyRoles(Role.user)
+  @RequireAnyRoles(Role.USER)
   @ApiOperation({
     summary: 'List up notifications belong to a user',
     description:
@@ -71,7 +71,7 @@ export class NotificationController {
   }
 
   @Patch('read')
-  @RequireAnyRoles(Role.user)
+  @RequireAnyRoles(Role.USER)
   @ApiOperation({
     summary: 'Mark all notifications as read',
     description:

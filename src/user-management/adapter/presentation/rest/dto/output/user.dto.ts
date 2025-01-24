@@ -26,10 +26,16 @@ export class UserDto implements Omit<User, 'createdAt' | 'updatedAt'> {
   avatar: string;
 
   @ApiProperty({
-    example: [Role.user],
+    example: [Role.USER],
     required: true,
   })
   roles: Role[];
+
+  @ApiProperty({
+    example: true,
+    required: true,
+  })
+  isActive: boolean;
 
   static fromApplication(applicationDto: User): UserDto {
     return {
@@ -38,6 +44,7 @@ export class UserDto implements Omit<User, 'createdAt' | 'updatedAt'> {
       avatar: applicationDto.avatar,
       roles: applicationDto.roles,
       authId: applicationDto.authId,
+      isActive: applicationDto.isActive,
     };
   }
 }

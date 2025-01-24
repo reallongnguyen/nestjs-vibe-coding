@@ -15,9 +15,9 @@ datasource db {
 }
 
 enum UserRole {
-  user
-  admin
-  root
+  USER
+  ADMIN
+  ROOT
 
   @@map("user_role")
 }
@@ -28,11 +28,44 @@ model User {
   name         String         @db.Text
   avatar       String?        @db.Text
   roles        UserRole[]
+  isActive     Boolean        @default(true) @map("is_active")
   createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
   userInSpaces UserInSpaces[]
+  activities   UserActivity[]
 
   @@map("users")
+}
+
+enum UserActivityType {
+  LOGIN
+  LOGOUT
+  PROFILE_UPDATE
+  PASSWORD_CHANGE
+  PASSWORD_RESET_REQUEST
+  PASSWORD_RESET_COMPLETE
+  ROLE_CHANGE
+  ACCOUNT_DEACTIVATED
+  ACCOUNT_ACTIVATED
+  ACCOUNT_DELETED
+}
+
+model UserActivity {
+  id           String           @id @default(uuid())
+  userId       String           @map("user_id")
+  activityType UserActivityType @map("activity_type")
+  performedBy  String?          @map("performed_by")
+  details      Json             @default("{}")
+  timestamp    DateTime         @default(now()) @db.Timestamptz()
+  ipAddress    String?          @map("ip_address")
+  userAgent    String?          @map("user_agent")
+  metadata     Json?            @default("{}")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("user_activities")
 }
 
 model Space {
@@ -46,9 +79,9 @@ model Space {
 }
 
 enum SpaceMemberRole {
-  owner
-  admin
-  member
+  OWNER
+  ADMIN
+  MEMBER
 
   @@map("space_member_role")
 }

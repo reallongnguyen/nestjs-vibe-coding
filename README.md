@@ -29,6 +29,9 @@ docker compose up -d
 
 # Setup database
 npx prisma db push
+
+# Create Root user
+export ROOT_USER_AUTH_ID=<user_id_in_auth_service>
 npx prisma db seed
 ```
 

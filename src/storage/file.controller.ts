@@ -39,7 +39,7 @@ export class FileController {
   constructor(private assetService: FileService) {}
 
   @Get('avatars/upload-url')
-  @RequireAnyRoles(Role.user)
+  @RequireAnyRoles(Role.USER)
   @ApiOperation({
     description: 'Get the upload url to upload avatar to storage',
     summary: 'Get the upload avatar url',
