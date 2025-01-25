@@ -1,22 +1,27 @@
 import { Logger } from 'nestjs-pino';
 import { Cache } from 'cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
 import { AppError } from 'src/common/models';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
-import { shouldCache } from '../../domain/entities/auth-ctx.model';
+import { AuthCtx, shouldCache } from '../../domain/entities/auth-ctx.model';
 import { AuthCtxRepoPort } from '../../ports/auth-ctx-repo.port';
 
 const defaultTokenCacheTTL = 15 * 60 * 1000;
 const maxTokenCacheTTL = 60 * 60 * 1000;
 
-@Injectable()
 export class AuthService {
+  private readonly logger: Logger;
+  private readonly cacheManager: Cache;
+  private readonly authCtxRepo: AuthCtxRepoPort;
+
   constructor(
-    private readonly logger: Logger,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
-    @Inject('AuthCtxRepoPort') private readonly authCtxRepo: AuthCtxRepoPort,
-  ) {}
+    logger: Logger,
+    cacheManager: Cache,
+    authCtxRepo: AuthCtxRepoPort,
+  ) {
+    this.logger = logger;
+    this.cacheManager = cacheManager;
+    this.authCtxRepo = authCtxRepo;
+  }
 
   async canActivate(request: any): Promise<boolean> {
     const authCtxId = this.authCtxRepo.getAuthCtxId(request);
@@ -28,13 +33,13 @@ export class AuthService {
       const cachedAuthCtx = await this.cacheManager.get(authCtxKey);
 
       if (cachedAuthCtx) {
-        request.authContext = cachedAuthCtx;
+        request.authCtx = AuthCtx.fromJSObject(cachedAuthCtx);
 
         return true;
       }
 
       this.logger.verbose(
-        'auth: authUsecase: there is no cached authCtx => read token',
+        'auth: authService: there is no cached authCtx => read token',
       );
 
       const authCtx = await this.authCtxRepo.getAuthCtx(request);
@@ -43,8 +48,8 @@ export class AuthService {
         let ttl = defaultTokenCacheTTL;
 
         // Calculate time until token expiration if available
-        if (authCtx.expireAt && !Number.isNaN(authCtx.expireAt)) {
-          ttl = authCtx.expireAt * 1000 - Date.now();
+        if (authCtx.getExpireAt() && !Number.isNaN(authCtx.getExpireAt())) {
+          ttl = authCtx.getExpireAt() * 1000 - Date.now();
         }
 
         // Clamp TTL between 0 and max cache time
@@ -55,7 +60,7 @@ export class AuthService {
         }
       }
 
-      request.authContext = authCtx;
+      request.authCtx = authCtx;
 
       return true;
     } catch (err) {
@@ -63,7 +68,7 @@ export class AuthService {
         throw err;
       }
 
-      this.logger.error(`auth: authUsecase: ${err.message}`);
+      this.logger.error(`auth: authService: ${err.message}`);
 
       throw new AppError('common.serverError');
     }

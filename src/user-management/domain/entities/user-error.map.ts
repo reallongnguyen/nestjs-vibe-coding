@@ -13,7 +13,6 @@ export const userErrorMap: ErrorMap = {
         message: 'User not found',
       },
     },
-    search: {},
     password: {
       reset: {},
     },

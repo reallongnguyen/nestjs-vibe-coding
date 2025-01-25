@@ -20,7 +20,11 @@ export class BulkUserOperationDto {
   @IsString({ each: true })
   userIds: string[];
 
-  @ApiProperty({ isArray: true, required: false })
+  @ApiProperty({
+    items: { type: 'string' },
+    required: false,
+    example: Object.values(Role),
+  })
   @ValidateIf((o) => o.operation === BulkOperationType.UPDATE_ROLE)
   @IsArray()
   @IsEnum(Role, { each: true })

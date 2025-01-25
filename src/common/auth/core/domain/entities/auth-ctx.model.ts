@@ -1,7 +1,6 @@
-import { cloneDeep, merge } from 'lodash';
 import { isNotEmpty } from 'class-validator';
 
-import { Role } from './role.enum';
+import { User } from './user.entity';
 
 export enum AgentType {
   person = 'person',
@@ -10,7 +9,6 @@ export enum AgentType {
 
 export interface Person {
   authId: string;
-  userId?: string;
   email?: string;
   phone?: string;
 }
@@ -20,12 +18,13 @@ export interface Service {
 }
 
 export class AuthCtx {
-  agentType: AgentType;
-  roles: Role[];
-  expireAt?: number;
+  private agentType: AgentType;
+  private expireAt?: number;
 
-  person?: Person;
-  service?: Service;
+  private person?: Person;
+  private service?: Service;
+
+  private user?: User;
 
   static fromAuthServiceJwtPayload(obj: any): AuthCtx {
     const authCtx = new AuthCtx();
@@ -37,32 +36,65 @@ export class AuthCtx {
     };
 
     authCtx.agentType = AgentType.person;
-    authCtx.roles = obj.roles || [];
     authCtx.expireAt = obj.exp;
 
     return authCtx;
   }
+
+  static fromJSObject(obj: any): AuthCtx {
+    const authCtx = new AuthCtx();
+
+    authCtx.agentType = obj.agentType;
+    authCtx.expireAt = obj.expireAt;
+
+    if (obj.person) {
+      authCtx.person = obj.person;
+    }
+
+    if (obj.service) {
+      authCtx.service = obj.service;
+    }
+
+    if (obj.user) {
+      authCtx.user = obj.user;
+    }
+
+    return authCtx;
+  }
+
+  isPerson(): boolean {
+    return !!this.person;
+  }
+
+  isService(): boolean {
+    return !!this.service;
+  }
+
+  isUser(): boolean {
+    return !!this.user;
+  }
+
+  setUser(user: User) {
+    this.user = user;
+  }
+
+  getExpireAt(): number | undefined {
+    return this.expireAt;
+  }
+
+  getPerson(): Person | undefined {
+    return this.person;
+  }
+
+  getUser(): User | undefined {
+    return this.user;
+  }
 }
 
 export function shouldCache(authCtx: AuthCtx): boolean {
-  if (authCtx.agentType === AgentType.service) {
+  if (authCtx.isService()) {
     return true;
   }
 
-  return (
-    authCtx.agentType === AgentType.person &&
-    authCtx.person?.userId !== undefined
-  );
-}
-
-export function setUser(
-  authCtx: AuthCtx,
-  user: { id: string; roles: Role[] },
-): AuthCtx {
-  const newAuthCtx = cloneDeep(authCtx);
-
-  newAuthCtx.roles = [...newAuthCtx.roles, ...user.roles];
-  newAuthCtx.person = merge(newAuthCtx.person, { userId: user.id });
-
-  return newAuthCtx;
+  return authCtx.isPerson() && authCtx.isUser();
 }

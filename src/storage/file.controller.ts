@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  AuthContext,
-  AuthCtx,
   RequireAnyRoles,
   AuthGuard,
   RolesGuard,
   Role,
+  User,
+  AuthContextUser,
 } from 'src/common/auth';
 import {
   FormatRestResponseInterceptor,
@@ -21,7 +21,6 @@ import {
   ErrorResponse,
   OkResponse,
 } from 'src/common/presentation/rest';
-import { AppError } from 'src/common/models';
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';
 import { fileErrorMap } from './models/file-error.map';
@@ -36,7 +35,7 @@ import { fileErrorMap } from './models/file-error.map';
 @ApiTags('files')
 @ErrorResponse('common', fileErrorMap)
 export class FileController {
-  constructor(private assetService: FileService) {}
+  constructor(private readonly assetService: FileService) {}
 
   @Get('avatars/upload-url')
   @RequireAnyRoles(Role.USER)
@@ -48,14 +47,10 @@ export class FileController {
   @ErrorResponse('file.getUploadAvatarUrl', fileErrorMap)
   async getUploadAvatarUrl(
     @Query() query: GetImageUploadUrlDto,
-    @AuthContext() authCtx: AuthCtx,
+    @AuthContextUser() user: User,
   ): Promise<UploadUrlDto> {
-    if (!authCtx.person) {
-      throw new AppError('common.requirePerson');
-    }
-
     const data = await this.assetService.generateUploadAvatarUrl(
-      authCtx.person.userId,
+      user.id,
       query.mimeType,
       query.size,
     );

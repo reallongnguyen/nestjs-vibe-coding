@@ -5,7 +5,7 @@ import { Logger } from 'nestjs-pino';
 import { Request } from 'express';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { AppError } from 'src/common/models/AppError';
-import { AuthCtx, setUser } from '../../../core/domain/entities/auth-ctx.model';
+import { AuthCtx } from '../../../core/domain/entities/auth-ctx.model';
 import { AuthCtxRepoPort } from '../../../core/ports/auth-ctx-repo.port';
 
 @Injectable()
@@ -64,14 +64,14 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
         });
     }
 
-    let authCtx = AuthCtx.fromAuthServiceJwtPayload(payload);
+    const authCtx = AuthCtx.fromAuthServiceJwtPayload(payload);
 
     const user = await this.prismaService.user.findUnique({
       where: { authId: payload.sub },
     });
 
     if (user) {
-      authCtx = setUser(authCtx, user);
+      authCtx.setUser(user);
     }
 
     return authCtx;

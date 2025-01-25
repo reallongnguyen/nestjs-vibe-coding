@@ -19,10 +19,7 @@ import { AuthService } from './core/application/services/auth.service';
     AuthService,
     RolesGuard,
     JWTGuard,
-    {
-      provide: 'AuthCtxRepoPort',
-      useClass: JwtAuthCtxRepo,
-    },
+    JwtAuthCtxRepo,
   ],
   exports: [AuthGuard, RolesGuard, JWTGuard],
 })

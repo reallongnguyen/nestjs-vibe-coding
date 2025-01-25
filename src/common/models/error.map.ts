@@ -31,6 +31,10 @@ export const commonErrorMap: ErrorMap = {
       status: HttpStatus.FORBIDDEN,
       message: 'Agent must be a person',
     },
+    requireUser: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'Agent must be a user',
+    },
   },
   validation: {
     validationFailed: {

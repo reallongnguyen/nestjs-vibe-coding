@@ -3,7 +3,6 @@ import { Reflector } from '@nestjs/core';
 import { AppError } from 'src/common/models/AppError';
 import { Role } from '../../../core/domain/entities/role.enum';
 import { ROLES_KEY } from './decorators/require-any-roles.decorator';
-import { AuthCtx } from '../../../core/domain/entities/auth-ctx.model';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -19,14 +18,17 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { authContext } = context.switchToHttp().getRequest();
-    const authCtx = authContext as AuthCtx;
+    const { authCtx } = context.switchToHttp().getRequest();
 
-    if (!authCtx || !Array.isArray(authCtx.roles)) {
+    if (!authCtx) {
       throw new AppError('common.invalidToken');
     }
 
-    if (requiredRoles.find((role) => authCtx.roles.includes(role))) {
+    if (!authCtx.isUser()) {
+      throw new AppError('common.requireUser');
+    }
+
+    if (requiredRoles.find((role) => authCtx.getUser().roles.includes(role))) {
       return true;
     }
 

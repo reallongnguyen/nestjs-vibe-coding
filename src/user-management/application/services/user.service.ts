@@ -1,4 +1,3 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { Collection } from 'src/common/models';
 import { AppError } from 'src/common/models/AppError';
 import { Logger } from 'nestjs-pino';
@@ -22,15 +21,11 @@ import { ActivityFiltersDto } from '../../presentation/rest/input/activity-filte
 import { BulkOperationResultDto } from '../../presentation/rest/output/bulk-user-operation.dto';
 import { PasswordResetResultDto } from '../../presentation/rest/output/password-reset-result.dto';
 
-@Injectable()
 export class UserService {
   constructor(
     private readonly logger: Logger,
-    @Inject('UserRepositoryPort')
     private readonly userRepository: UserRepositoryPort,
-    @Inject('EventBusPort')
     private readonly eventBus: EventBusPort,
-    @Inject('UserActivityRepositoryPort')
     private readonly userActivityRepository: UserActivityRepositoryPort,
   ) {}
 

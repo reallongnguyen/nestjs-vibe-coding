@@ -7,14 +7,14 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AppError, Collection } from 'src/common/models';
+import { Collection } from 'src/common/models';
 import {
-  AuthContext,
-  AuthCtx,
+  AuthContextUser,
   AuthGuard,
   RequireAnyRoles,
   Role,
   RolesGuard,
+  User,
 } from 'src/common/auth';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
@@ -54,15 +54,11 @@ export class NotificationController {
   @PaginatedResponse(NotificationOutput)
   @ErrorResponse('notification.list', notificationErrorMap)
   async list(
-    @AuthContext() authCtx: AuthCtx,
+    @AuthContextUser() user: User,
     @Query() query: NotificationListQuery,
   ): Promise<Collection<NotificationOutput>> {
-    if (!authCtx.person) {
-      throw new AppError('common.requirePerson');
-    }
-
     const notiCollection = await this.notificationService.getManyNotifications({
-      where: { userId: authCtx.person.userId },
+      where: { userId: user.id },
       skip: query.offset,
       take: query.limit,
     });
@@ -80,17 +76,10 @@ export class NotificationController {
   @OkResponse(null)
   @ErrorResponse('notification.markAsRead', notificationErrorMap)
   async markAsRead(
-    @AuthContext() authCtx: AuthCtx,
+    @AuthContextUser() user: User,
     @Query() query: NotificationPatchQuery,
   ): Promise<null> {
-    if (!authCtx.person) {
-      throw new AppError('common.requirePerson');
-    }
-
-    await this.notificationService.markNotificationAsRead(
-      authCtx.person.userId,
-      query.id,
-    );
+    await this.notificationService.markNotificationAsRead(user.id, query.id);
 
     return null;
   }

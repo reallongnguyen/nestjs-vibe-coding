@@ -3,13 +3,14 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
   UseFilters,
   UseGuards,
   UseInterceptors,
   Param,
   Query,
+  Inject,
 } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AppError, Collection } from 'src/common/models';
 import {
@@ -28,18 +29,20 @@ import {
   RestExceptionFilter,
   FormatRestResponseInterceptor,
 } from 'src/common/presentation/rest';
+import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+
 import { UserService } from '../../application/services/user.service';
 import { CreateUserDto } from './input/user.dto';
-import { PatchProfileDto } from './input/profile.dto';
 import { userErrorMap } from '../../domain/entities/user-error.map';
 import { UserDto } from './output/user.dto';
-import { ProfileDto } from './output/profile.dto';
 import { UserSearchFiltersDto } from './input/user-search-filters.dto';
 import { BulkUserOperationDto } from './input/bulk-user-operation.dto';
 import { BulkOperationResultDto } from './output/bulk-user-operation.dto';
 import { UserActivityDto } from './output/user-activity.dto';
 import { ActivityFiltersDto } from './input/activity-filters.dto';
 import { PasswordResetResultDto } from './output/password-reset-result.dto';
+import { UserActivityRepository } from '../../infrastructure/persistence/user-activity.repository';
+import { UserRepository } from '../../infrastructure/persistence/user.repository';
 
 // Common decorator configurations for all endpoints
 const REST_CONFIG = {
@@ -58,10 +61,25 @@ const REST_CONFIG = {
 @ApiTags('users')
 @ErrorResponse('common', userErrorMap)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  private readonly userService: UserService;
+
+  constructor(
+    logger: Logger,
+    userRepository: UserRepository,
+    @Inject('EventBusPort')
+    eventBus: EventBusPort,
+    userActivityRepository: UserActivityRepository,
+  ) {
+    this.userService = new UserService(
+      logger,
+      userRepository,
+      eventBus,
+      userActivityRepository,
+    );
+  }
 
   @Post()
-  @ApiOperation({ summary: 'Create or Update an user' })
+  @ApiOperation({ summary: 'Create user' })
   @CreatedResponse(UserDto)
   @ErrorResponse('user.create', userErrorMap, { hasValidationErr: true })
   async create(
@@ -70,11 +88,13 @@ export class UserController {
   ): Promise<UserDto> {
     this.validatePerson(authCtx);
 
+    const person = authCtx.getPerson();
+
     const userUpsertInput = CreateUserDto.toApplication(
       userData,
-      authCtx.person.authId,
-      authCtx.person.email,
-      authCtx.person.phone,
+      person.authId,
+      person.email,
+      person.phone,
     );
 
     const user = await this.userService.createOrUpdateUser(userUpsertInput);
@@ -84,7 +104,7 @@ export class UserController {
 
   @Get()
   @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'List up users' })
+  @ApiOperation({ summary: 'Get many users' })
   @PaginatedResponse(UserDto)
   @ErrorResponse('user.list', userErrorMap, { hasValidationErr: true })
   async list(
@@ -95,43 +115,11 @@ export class UserController {
     return Collection.transform(userCollection, UserDto.fromApplication);
   }
 
-  @Get('/profile')
-  @RequireAnyRoles(Role.USER)
-  @ApiOperation({ summary: 'Get my profile' })
-  @OkResponse(ProfileDto)
-  @ErrorResponse('user.profile.get', userErrorMap)
-  async getProfile(@AuthContext() authCtx: AuthCtx): Promise<ProfileDto> {
-    this.validatePerson(authCtx);
-
-    const profile = await this.userService.getProfile(authCtx.person.userId);
-
-    return ProfileDto.fromApplication(profile);
-  }
-
-  @Patch('/profile')
-  @RequireAnyRoles(Role.USER)
-  @ApiOperation({ summary: 'Update my profile' })
-  @OkResponse(ProfileDto)
-  @ErrorResponse('user.profile.update', userErrorMap, {
-    hasValidationErr: true,
-  })
-  async updateProfile(
-    @Body() profileData: PatchProfileDto,
-    @AuthContext() authCtx: AuthCtx,
-  ): Promise<ProfileDto> {
-    this.validatePerson(authCtx);
-
-    const updatedProfile = await this.userService.updateProfile(
-      authCtx.person.userId,
-      PatchProfileDto.toApplication(profileData),
-    );
-
-    return ProfileDto.fromApplication(updatedProfile);
-  }
-
   @Post('/bulk')
   @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'Bulk user operations (update/delete/deactivate)' })
+  @ApiOperation({
+    summary: 'Bulk user operations (update/delete/deactivate/activate)',
+  })
   @OkResponse(BulkOperationResultDto)
   @ErrorResponse('user.bulk', userErrorMap, { hasValidationErr: true })
   async bulkOperation(
@@ -176,7 +164,7 @@ export class UserController {
   }
 
   private validatePerson(authCtx: AuthCtx): void {
-    if (!authCtx.person) {
+    if (!authCtx.isPerson()) {
       throw new AppError('common.requirePerson');
     }
   }

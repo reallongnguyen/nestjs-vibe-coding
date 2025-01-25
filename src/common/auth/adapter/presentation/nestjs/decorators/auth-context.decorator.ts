@@ -1,10 +1,37 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { AppError } from 'src/common/models';
+
 import { AuthCtx } from '../../../../core/domain/entities/auth-ctx.model';
+import { User } from '../../../../core/domain/entities/user.entity';
 
 export const AuthContext = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): AuthCtx => {
     const request = ctx.switchToHttp().getRequest();
 
-    return request.authContext;
+    const { authCtx } = request;
+
+    if (!authCtx) {
+      throw new AppError('common.invalidToken');
+    }
+
+    return authCtx;
+  },
+);
+
+export const AuthContextUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): User => {
+    const request = ctx.switchToHttp().getRequest();
+
+    const { authCtx } = request;
+
+    if (!authCtx) {
+      throw new AppError('common.invalidToken');
+    }
+
+    if (!authCtx.isUser()) {
+      throw new AppError('common.requireUser');
+    }
+
+    return authCtx.getUser();
   },
 );
