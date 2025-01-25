@@ -3,6 +3,7 @@ import { IProfileUpdatedEvent } from 'src/common/event-bus/core/domain/events/ev
 
 import { User } from '../entities/user.entity';
 
+const EVENT_NAME = 'user.profile.updated';
 export class ProfileUpdatedEvent
   extends BaseEvent
   implements IProfileUpdatedEvent
@@ -11,8 +12,8 @@ export class ProfileUpdatedEvent
   name: string;
   avatar?: string;
 
-  constructor(public readonly user: User) {
-    super();
+  constructor(user: User) {
+    super(new Date());
 
     this.id = user.id;
     this.name = user.name;
@@ -20,6 +21,10 @@ export class ProfileUpdatedEvent
   }
 
   eventName(): string {
-    return 'profile.updated';
+    return EVENT_NAME;
+  }
+
+  static getEventName(): string {
+    return EVENT_NAME;
   }
 }

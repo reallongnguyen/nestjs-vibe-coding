@@ -4,7 +4,12 @@ import { commonErrorMap, ErrorMap } from 'src/common/models/error.map';
 export const userErrorMap: ErrorMap = {
   ...commonErrorMap,
   user: {
-    bulk: {},
+    bulk: {
+      invalidOperation: {
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Invalid bulk operation',
+      },
+    },
     create: {},
     list: {},
     get: {

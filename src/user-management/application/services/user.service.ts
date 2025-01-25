@@ -20,6 +20,10 @@ import { UserSearchFiltersDto } from '../../presentation/rest/input/user-search-
 import { ActivityFiltersDto } from '../../presentation/rest/input/activity-filters.dto';
 import { BulkOperationResultDto } from '../../presentation/rest/output/bulk-user-operation.dto';
 import { PasswordResetResultDto } from '../../presentation/rest/output/password-reset-result.dto';
+import { RoleChangeEvent } from '../../domain/events/role-change.event';
+import { AccountDeactivatedEvent } from '../../domain/events/account-deactivated.event';
+import { AccountActivatedEvent } from '../../domain/events/account-activated.event';
+import { AccountDeletedEvent } from '../../domain/events/account-deleted.event';
 
 export class UserService {
   constructor(
@@ -102,6 +106,7 @@ export class UserService {
 
   async processBulkOperation(
     operation: BulkUserOperationDto,
+    operatorId: string,
   ): Promise<BulkOperationResultDto> {
     const result: BulkOperationResultDto = {
       successCount: 0,
@@ -114,15 +119,25 @@ export class UserService {
         switch (operation.operation) {
           case BulkOperationType.UPDATE_ROLE:
             await this.userRepository.updateRole(userId, operation.newRoles);
+            this.eventBus.publish(
+              new RoleChangeEvent(userId, operation.newRoles, operatorId),
+            );
             break;
           case BulkOperationType.DEACTIVATE:
             await this.userRepository.deactivate(userId);
+            this.eventBus.publish(
+              new AccountDeactivatedEvent(userId, operatorId),
+            );
             break;
           case BulkOperationType.ACTIVATE:
             await this.userRepository.activate(userId);
+            this.eventBus.publish(
+              new AccountActivatedEvent(userId, operatorId),
+            );
             break;
           case BulkOperationType.DELETE:
             await this.userRepository.delete(userId);
+            this.eventBus.publish(new AccountDeletedEvent(userId, operatorId));
             break;
           default:
             throw new AppError('user.bulk.invalidOperation');

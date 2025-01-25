@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Collection } from 'src/common/models';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { UserActivity as PrismaUserActivity } from '@prisma/client';
 
 import { UserActivityRepositoryPort } from '../../ports/incoming/user-activity.repository.port';
-import {
-  UserActivity,
-  UserActivityType,
-} from '../../domain/entities/user-activity.entity';
+import { UserActivity } from '../../domain/entities/user-activity.entity';
 import { ActivityFiltersDto } from '../../presentation/rest/input/activity-filters.dto';
 import { CreateUserActivityInput } from '../../application/input/activity.input';
 
@@ -68,13 +66,7 @@ export class UserActivityRepository implements UserActivityRepositoryPort {
     });
   }
 
-  private mapToEntity(prismaActivity: any): UserActivity {
-    return new UserActivity({
-      id: prismaActivity.id,
-      userId: prismaActivity.userId,
-      activityType: prismaActivity.activityType as UserActivityType,
-      details: prismaActivity.metadata,
-      timestamp: prismaActivity.timestamp,
-    });
+  private mapToEntity(prismaActivity: PrismaUserActivity): UserActivity {
+    return new UserActivity(prismaActivity);
   }
 }

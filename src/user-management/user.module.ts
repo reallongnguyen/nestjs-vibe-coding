@@ -5,10 +5,16 @@ import { UserService } from './application/services/user.service';
 import { UserRepository } from './infrastructure/persistence/user.repository';
 import { UserActivityRepository } from './infrastructure/persistence/user-activity.repository';
 import { UserProfileController } from './presentation/rest/user-profile.controller';
+import { UserActivityHandler } from './presentation/events/user-activity.handler';
 
 @Module({
   imports: [EventBusModule],
   controllers: [UserProfileController, UserController],
-  providers: [UserService, UserRepository, UserActivityRepository],
+  providers: [
+    UserService,
+    UserRepository,
+    UserActivityRepository,
+    UserActivityHandler,
+  ],
 })
 export class UserModule {}

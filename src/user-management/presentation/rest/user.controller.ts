@@ -20,6 +20,8 @@ import {
   RolesGuard,
   AuthGuard,
   Role,
+  AuthContextUser,
+  User,
 } from 'src/common/auth';
 import {
   ErrorResponse,
@@ -124,8 +126,9 @@ export class UserController {
   @ErrorResponse('user.bulk', userErrorMap, { hasValidationErr: true })
   async bulkOperation(
     @Body() operation: BulkUserOperationDto,
+    @AuthContextUser() user: User,
   ): Promise<BulkOperationResultDto> {
-    return this.userService.processBulkOperation(operation);
+    return this.userService.processBulkOperation(operation, user.id);
   }
 
   @Get('/:id')

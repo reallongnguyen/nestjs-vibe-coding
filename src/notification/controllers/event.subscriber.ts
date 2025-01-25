@@ -17,7 +17,7 @@ export class EventSubscriber {
   ) {}
 
   // demo notification
-  @OnEvent('profile.updated')
+  @OnEvent('user.profile.updated')
   handleProfileUpdatedEvent(payload: IProfileUpdatedEvent) {
     this.logger.debug(
       `notification: event.subscriber: profile.updated: ${JSON.stringify(payload)}`,
