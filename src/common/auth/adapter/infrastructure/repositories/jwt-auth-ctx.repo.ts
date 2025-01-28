@@ -33,6 +33,12 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
     }
 
     const payload = this.jwtService.decode(token);
+
+    if (!payload) {
+      this.logger.warn('auth: jwtGuard: decode token got error');
+      throw new AppError('common.invalidToken');
+    }
+
     return `${payload.sub}:${signature}`;
   }
 
@@ -53,6 +59,11 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
 
     if (!shouldVerifyToken) {
       payload = this.jwtService.decode(token);
+
+      if (!payload) {
+        this.logger.warn('auth: jwtGuard: decode token got error');
+        throw new AppError('common.invalidToken');
+      }
     } else {
       payload = await this.jwtService
         .verifyAsync(token, {

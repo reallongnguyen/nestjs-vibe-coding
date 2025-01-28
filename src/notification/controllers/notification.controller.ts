@@ -5,7 +5,6 @@ import {
   Query,
   UseFilters,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { Collection } from 'src/common/models';
 import {
@@ -18,7 +17,6 @@ import {
 } from 'src/common/auth';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  FormatRestResponseInterceptor,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
@@ -37,7 +35,6 @@ import { notificationErrorMap } from '../entities/notification-error.map';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseInterceptors(new FormatRestResponseInterceptor())
 @UseFilters(new RestExceptionFilter(notificationErrorMap))
 @ApiTags('notifications')
 @ErrorResponse('common', notificationErrorMap)

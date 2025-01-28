@@ -5,7 +5,6 @@ import {
   Post,
   UseFilters,
   UseGuards,
-  UseInterceptors,
   Param,
   Query,
   Inject,
@@ -29,7 +28,6 @@ import {
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-  FormatRestResponseInterceptor,
 } from 'src/common/presentation/rest';
 import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
 
@@ -49,7 +47,6 @@ import { UserRepository } from '../../infrastructure/persistence/user.repository
 // Common decorator configurations for all endpoints
 const REST_CONFIG = {
   guards: [AuthGuard, RolesGuard],
-  interceptors: [new FormatRestResponseInterceptor()],
   filters: [new RestExceptionFilter(userErrorMap)],
 };
 
@@ -58,7 +55,6 @@ const REST_CONFIG = {
   version: '1',
 })
 @UseGuards(...REST_CONFIG.guards)
-@UseInterceptors(...REST_CONFIG.interceptors)
 @UseFilters(...REST_CONFIG.filters)
 @ApiTags('users')
 @ErrorResponse('common', userErrorMap)

@@ -5,86 +5,56 @@ import {
   ApiOkResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import SuccessResponseDto from './success-response.dto';
 import Collection from '../../../models/Collection';
 
 export const OkResponse = <DataDto extends Type<unknown>>(
   dataDto: DataDto | null,
 ) => {
   const opts = {
-    schema: {
-      allOf: [
-        { $ref: getSchemaPath(SuccessResponseDto) },
-        {
-          properties: {
-            data: dataDto
-              ? { $ref: getSchemaPath(dataDto) }
-              : { type: 'string', nullable: true, example: null },
-          },
-        },
-      ],
-    },
+    schema: dataDto ? { $ref: getSchemaPath(dataDto) } : { properties: {} },
     description: 'Successfully',
   };
 
-  return applyDecorators(
-    dataDto
-      ? ApiExtraModels(SuccessResponseDto, dataDto)
-      : ApiExtraModels(SuccessResponseDto),
-    ApiOkResponse(opts),
-  );
+  const decorators = [ApiOkResponse(opts)];
+
+  if (dataDto) {
+    decorators.push(ApiExtraModels(dataDto));
+  }
+
+  return applyDecorators(...decorators);
 };
 
 export const CreatedResponse = <DataDto extends Type<unknown>>(
   dataDto: DataDto | null,
 ) => {
   const opts = {
-    schema: {
-      allOf: [
-        { $ref: getSchemaPath(SuccessResponseDto) },
-        {
-          properties: {
-            data: dataDto
-              ? { $ref: getSchemaPath(dataDto as DataDto) }
-              : { type: 'string', nullable: true, example: null },
-          },
-        },
-      ],
-    },
+    schema: dataDto ? { $ref: getSchemaPath(dataDto) } : { properties: {} },
     description: 'Successfully',
   };
 
-  return applyDecorators(
-    dataDto
-      ? ApiExtraModels(SuccessResponseDto, dataDto)
-      : ApiExtraModels(SuccessResponseDto),
-    ApiCreatedResponse(opts),
-  );
+  const decorators = [ApiCreatedResponse(opts)];
+
+  if (dataDto) {
+    decorators.push(ApiExtraModels(dataDto));
+  }
+
+  return applyDecorators(...decorators);
 };
 
 export const PaginatedResponse = <DataDto extends Type<unknown>>(
   dataDto: DataDto,
 ) =>
   applyDecorators(
-    ApiExtraModels(SuccessResponseDto, Collection, dataDto),
+    ApiExtraModels(Collection, dataDto),
     ApiOkResponse({
       schema: {
         allOf: [
-          { $ref: getSchemaPath(SuccessResponseDto) },
+          { $ref: getSchemaPath(Collection) },
           {
             properties: {
-              data: {
-                allOf: [
-                  { $ref: getSchemaPath(Collection) },
-                  {
-                    properties: {
-                      edges: {
-                        type: 'array',
-                        items: { $ref: getSchemaPath(dataDto) },
-                      },
-                    },
-                  },
-                ],
+              edges: {
+                type: 'array',
+                items: { $ref: getSchemaPath(dataDto) },
               },
             },
           },

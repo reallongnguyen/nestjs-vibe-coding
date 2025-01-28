@@ -47,6 +47,9 @@ export default class RestResponse<T> {
     this.data = data;
   }
 
+  /**
+   * @deprecated
+   */
   static ok<T = any>(data?: T, message?: string): RestResponse<T> {
     return new RestResponse(message || MessageType.SUCCESS, undefined, data);
   }

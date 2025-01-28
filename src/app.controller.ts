@@ -1,14 +1,9 @@
-import { Controller, Get, UseFilters, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, UseFilters } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
-  FormatRestResponseInterceptor,
-  RestExceptionFilter,
-  OkResponse,
-} from 'src/common/presentation/rest';
+import { RestExceptionFilter, OkResponse } from 'src/common/presentation/rest';
 
 @Controller()
-@UseInterceptors(new FormatRestResponseInterceptor())
 @UseFilters(new RestExceptionFilter({}))
 @ApiTags('app')
 export class AppController {

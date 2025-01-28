@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  UseFilters,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseFilters, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   RequireAnyRoles,
@@ -16,7 +9,6 @@ import {
   AuthContextUser,
 } from 'src/common/auth';
 import {
-  FormatRestResponseInterceptor,
   RestExceptionFilter,
   ErrorResponse,
   OkResponse,
@@ -30,7 +22,6 @@ import { fileErrorMap } from './models/file-error.map';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseInterceptors(new FormatRestResponseInterceptor())
 @UseFilters(new RestExceptionFilter(fileErrorMap))
 @ApiTags('files')
 @ErrorResponse('common', fileErrorMap)

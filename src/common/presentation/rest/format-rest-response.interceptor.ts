@@ -8,6 +8,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import RestResponse from './RestResponse';
 
+/**
+ * @deprecated
+ * */
 @Injectable()
 export class FormatRestResponseInterceptor<T>
   implements NestInterceptor<T, RestResponse<T>>

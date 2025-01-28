@@ -6,7 +6,6 @@ import {
   Patch,
   UseFilters,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -22,7 +21,6 @@ import {
   ErrorResponse,
   OkResponse,
   RestExceptionFilter,
-  FormatRestResponseInterceptor,
 } from 'src/common/presentation/rest';
 import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
 
@@ -36,7 +34,6 @@ import { UserActivityRepository } from '../../infrastructure/persistence/user-ac
 // Common decorator configurations for all endpoints
 const REST_CONFIG = {
   guards: [AuthGuard, RolesGuard],
-  interceptors: [new FormatRestResponseInterceptor()],
   filters: [new RestExceptionFilter(userErrorMap)],
 };
 
@@ -45,7 +42,6 @@ const REST_CONFIG = {
   version: '1',
 })
 @UseGuards(...REST_CONFIG.guards)
-@UseInterceptors(...REST_CONFIG.interceptors)
 @UseFilters(...REST_CONFIG.filters)
 @ApiTags('users-profile')
 @ErrorResponse('common', userErrorMap)
