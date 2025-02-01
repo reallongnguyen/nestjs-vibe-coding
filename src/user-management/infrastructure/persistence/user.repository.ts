@@ -50,12 +50,7 @@ export class UserRepository implements UserRepositoryPort {
   async upsert(params: UpsertUserParams): Promise<User> {
     return this.prisma.user.upsert({
       where: params.where,
-      create: {
-        authId: params.create.authId,
-        name: params.create.name,
-        avatar: params.create.avatar,
-        roles: params.create.roles,
-      },
+      create: params.create,
       update: params.update,
     });
   }
@@ -81,7 +76,8 @@ export class UserRepository implements UserRepositoryPort {
       OR: searchTerm
         ? [
             { email: { contains: searchTerm, mode: 'insensitive' } },
-            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { firstName: { contains: searchTerm, mode: 'insensitive' } },
+            { lastName: { contains: searchTerm, mode: 'insensitive' } },
             { phone: { contains: searchTerm } },
           ]
         : undefined,
@@ -96,9 +92,22 @@ export class UserRepository implements UserRepositoryPort {
           : undefined,
     };
 
+    let prismaOrderBy = orderBy ? [{ [orderBy]: orderDirection }] : undefined;
+
+    if (prismaOrderBy && orderBy === 'name') {
+      prismaOrderBy = [
+        {
+          firstName: orderDirection,
+        },
+        {
+          lastName: orderDirection,
+        },
+      ];
+    }
+
     const users = await this.prisma.user.findMany({
       where,
-      orderBy: orderBy ? { [orderBy]: orderDirection } : undefined,
+      orderBy: prismaOrderBy,
       skip: offset,
       take: limit,
     });

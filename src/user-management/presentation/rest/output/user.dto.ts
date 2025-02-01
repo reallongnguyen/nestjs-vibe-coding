@@ -18,7 +18,13 @@ export class UserDto implements User {
     example: 'Luffy',
     required: true,
   })
-  name: string;
+  firstName: string;
+
+  @ApiProperty({
+    example: 'Monkey D.',
+    required: false,
+  })
+  lastName: string;
 
   @ApiProperty({
     example: 'luffy@isling.me',
@@ -65,7 +71,8 @@ export class UserDto implements User {
   static fromApplication(applicationDto: User): UserDto {
     return {
       id: applicationDto.id,
-      name: applicationDto.name,
+      firstName: applicationDto.firstName,
+      lastName: applicationDto.lastName,
       avatar: applicationDto.avatar,
       roles: applicationDto.roles,
       authId: applicationDto.authId,

@@ -14,7 +14,7 @@ import { OrderDirection } from 'src/common/models/order-direction.enum';
 
 import { User } from '../../../domain/entities/user.entity';
 
-const orderByOptions: (keyof User)[] = [
+const orderByOptions: (keyof User | 'name')[] = [
   'id',
   'name',
   'email',
@@ -61,7 +61,7 @@ export class UserSearchFiltersDto {
   @IsOptional()
   @IsString()
   @IsIn(orderByOptions)
-  orderBy?: keyof User;
+  orderBy?: keyof User | 'name';
 
   @ApiPropertyOptional({
     enum: Object.values(OrderDirection),

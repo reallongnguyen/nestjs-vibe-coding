@@ -4,7 +4,8 @@ import { User } from '../../domain/entities/user.entity';
 export class ProfileOutput implements User {
   id: string;
   authId: string;
-  name: string;
+  firstName: string;
+  lastName: string | null;
   avatar: string | null;
   roles: Role[];
   isActive: boolean;
@@ -17,7 +18,8 @@ export class ProfileOutput implements User {
     const po = new ProfileOutput();
     po.id = u.id;
     po.authId = u.authId;
-    po.name = u.name;
+    po.firstName = u.firstName;
+    po.lastName = u.lastName;
     po.avatar = u.avatar;
     po.roles = u.roles;
     po.isActive = u.isActive;

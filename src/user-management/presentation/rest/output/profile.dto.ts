@@ -6,7 +6,8 @@ export class ProfileDto extends UserDto {
     return {
       id: applicationDto.id,
       authId: applicationDto.authId,
-      name: applicationDto.name,
+      firstName: applicationDto.firstName,
+      lastName: applicationDto.lastName,
       avatar: applicationDto.avatar,
       roles: applicationDto.roles,
       isActive: applicationDto.isActive,

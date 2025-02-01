@@ -27,7 +27,8 @@ model User {
   authId       String         @unique @map("auth_id") @db.Uuid
   email        String?
   phone        String?
-  name         String         @db.Text
+  firstName    String         @db.Text @map("first_name")
+  lastName     String?        @db.Text @map("last_name")
   avatar       String?        @db.Text
   roles        UserRole[]
   isActive     Boolean        @default(true) @map("is_active")

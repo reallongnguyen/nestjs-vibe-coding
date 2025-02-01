@@ -2,17 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { GetSignedUrlConfig, Storage } from '@google-cloud/storage';
 import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
-import { AppError } from 'src/common/models/AppError';
+import { AppError } from 'src/common/models';
+import { uuidv7 } from 'uuidv7';
+
 import { UploadUrlDto } from './dto/upload-url.dto';
 import { AvatarMimeType } from './models/file-type.enum';
 
 @Injectable()
 export class FileService {
-  private storage = new Storage();
+  private readonly storage = new Storage();
 
   constructor(
-    private logger: Logger,
-    private configService: ConfigService,
+    private readonly logger: Logger,
+    private readonly configService: ConfigService,
   ) {}
 
   async generateUploadAvatarUrl(
@@ -24,7 +26,7 @@ export class FileService {
       'gcp.bucket.userAsset',
     );
     const fileExtension = mimeType.split('/')[1];
-    const fileName = `${userId}/profile/avatar.${fileExtension}`;
+    const fileName = `images/users/${userId}/profile/${uuidv7()}.${fileExtension}`;
 
     return this.generateUploadUrl(userAssetBucketName, fileName, fileSize);
   }
@@ -55,29 +57,50 @@ export class FileService {
       expires: Date.now() + 15 * 60 * 1000, // 15 minutes
     };
 
-    try {
-      const [uploadUrl] = await this.storage
-        .bucket(bucketName)
-        .file(fileName)
-        .getSignedUrl(writeOptions);
+    const [uploadUrl] = await this.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .getSignedUrl(writeOptions);
 
-      const objectUrl = `gs://${bucketName}/${fileName}`;
+    const objectUrl = `gs://${bucketName}/${fileName}`;
 
-      const [signedUrl] = await this.storage
-        .bucket(bucketName)
-        .file(fileName)
-        .getSignedUrl(readOptions);
+    const [signedUrl] = await this.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .getSignedUrl(readOptions);
 
-      return {
-        uploadUrl,
-        expires,
-        objectUrl,
-        signedUrl,
-      };
-    } catch (err) {
-      this.logger.error(`file: generateUploadUrl: ${err.message}`);
+    return {
+      uploadUrl,
+      expires,
+      objectUrl,
+      signedUrl,
+      uploadHeaders: {
+        'Content-Type': 'application/octet-stream',
+        ...writeOptions.extensionHeaders,
+      },
+    };
+  }
 
-      throw new AppError('common.serverError');
+  async generatePresignedUrl(uri: string): Promise<string> {
+    const userAssetBucketName = this.configService.get<string>(
+      'gcp.bucket.userAsset',
+    );
+
+    if (!uri.startsWith(`gs://${userAssetBucketName}/`)) {
+      throw new AppError('file.common.notFound');
     }
+
+    const filePath = uri.replace(`gs://${userAssetBucketName}/`, '');
+
+    const [url] = await this.storage
+      .bucket(userAssetBucketName)
+      .file(filePath)
+      .getSignedUrl({
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      });
+
+    return url;
   }
 }

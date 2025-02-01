@@ -7,7 +7,7 @@ async function createRootUser(authId: string) {
   return prisma.user.create({
     data: {
       authId,
-      name: 'Root',
+      firstName: 'Root',
       roles: [UserRole.ROOT, UserRole.ADMIN, UserRole.USER],
     },
   });
@@ -16,7 +16,11 @@ async function createRootUser(authId: string) {
 async function main() {
   const authId = process.env.ROOT_USER_AUTH_ID;
 
-  await createRootUser(authId);
+  if (authId) {
+    await createRootUser(authId);
+  } else {
+    console.log('Environment variable ROOT_USER_AUTH_ID not found');
+  }
 }
 
 main()

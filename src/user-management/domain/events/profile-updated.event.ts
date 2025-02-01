@@ -16,7 +16,7 @@ export class ProfileUpdatedEvent
     super(new Date());
 
     this.id = user.id;
-    this.name = user.name;
+    this.name = user.firstName;
     this.avatar = user.avatar;
   }
 

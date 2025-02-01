@@ -37,10 +37,17 @@ export class UserService {
     const user = await this.userRepository.upsert({
       where: { authId: input.authId },
       create: {
-        ...input,
+        authId: input.authId,
+        firstName: input.name,
+        email: input.email,
+        phone: input.phoneNumber,
         roles: [Role.USER],
+        avatar: input.avatar,
       },
-      update: input,
+      update: {
+        firstName: input.name,
+        avatar: input.avatar,
+      },
     });
 
     this.eventBus.publish(new ProfileUpdatedEvent(user));
@@ -78,11 +85,12 @@ export class UserService {
       throw new AppError('user.profile.update.notFound');
     }
 
-    Object.assign(user, input);
-
     const updatedUser = await this.userRepository.update({
       where: { id: userId },
-      data: input,
+      data: {
+        firstName: input.name,
+        avatar: input.avatar,
+      },
     });
 
     this.eventBus.publish(new ProfileUpdatedEvent(updatedUser));

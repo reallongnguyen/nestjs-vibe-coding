@@ -16,24 +16,29 @@ export interface UpdateUserParams {
     id?: string;
     authId?: string;
   };
-  data: Partial<Pick<User, 'name' | 'avatar' | 'roles'>>;
+  data: Partial<Pick<User, 'firstName' | 'lastName' | 'avatar' | 'roles'>>;
 }
 
 export interface UpsertUserParams {
   where: {
     authId: string;
   };
-  create: Pick<User, 'authId' | 'name' | 'roles'> & { avatar?: string };
-  update: Partial<Pick<User, 'name' | 'avatar'>>;
+  create: Pick<User, 'authId' | 'firstName' | 'roles'> & {
+    avatar?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+  };
+  update: Partial<Pick<User, 'firstName' | 'lastName' | 'avatar'>>;
 }
 
 export interface UserRepositoryPort {
   findById(id: string): Promise<User | null>;
-  findUnique(params: { where: any }): Promise<User | null>;
+  findUnique(params: FindUniqueUserParams): Promise<User | null>;
   findMany(filters: UserSearchFiltersDto): Promise<Collection<User>>;
   count(): Promise<number>;
-  upsert(params: any): Promise<User>;
-  update(params: any): Promise<User>;
+  upsert(params: UpsertUserParams): Promise<User>;
+  update(params: UpdateUserParams): Promise<User>;
   search(filters: UserSearchFiltersDto): Promise<Collection<User>>;
   updateRole(userId: string, role: Role[]): Promise<User>;
   deactivate(userId: string): Promise<User>;
