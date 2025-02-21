@@ -24,12 +24,18 @@ export class UserActivity implements PrismaUserActivity {
 
   metadata: Record<string, any> | null;
 
+  success: boolean;
+  location: string;
+  deviceId: string;
+
   constructor(partial: Partial<UserActivity>) {
     Object.assign(this, partial);
 
     this.timestamp = this.timestamp || new Date();
     this.details = this.details || {};
     this.metadata = this.metadata || {};
+    this.success = this.success ?? true;
+    this.location = this.location || 'unknown';
   }
 
   static createLoginActivity(

@@ -9,8 +9,8 @@ import { NotificationOutput } from '../controllers/dto/notification.dto';
 @Injectable()
 export class NotificationService {
   constructor(
-    private logger: Logger,
-    private prismaService: PrismaService,
+    private readonly logger: Logger,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async getManyNotifications(
@@ -50,19 +50,16 @@ export class NotificationService {
     }
   }
 
-  async markNotificationAsRead(
-    userId: string,
-    notificationId?: string,
-  ): Promise<void> {
+  async view(userId: string, notificationId?: string): Promise<void> {
     try {
       await this.prismaService.notification.updateMany({
         where: {
           userId,
           id: notificationId,
-          readAt: null,
+          viewedAt: null,
         },
         data: {
-          readAt: new Date(),
+          viewedAt: new Date(),
           updatedAt: new Date(),
         },
       });

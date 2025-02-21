@@ -59,7 +59,7 @@ export class NotificationConsumerService {
             const existNoti = await this.prismaService.notification.findFirst({
               where: {
                 key: inputClone.key,
-                readAt: null,
+                viewedAt: null,
                 notificationTime: {
                   gte: dayjs()
                     .add(-this.mergeNotificationThreshold, 'seconds')
@@ -122,7 +122,7 @@ export class NotificationConsumerService {
                   decorators: notiCreatedInput.decorators,
                   link: notiCreatedInput.link,
                   notificationTime: new Date(),
-                  readAt: null,
+                  viewedAt: null,
                 },
               });
 

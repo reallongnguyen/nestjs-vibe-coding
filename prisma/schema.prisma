@@ -15,42 +15,83 @@ datasource db {
 }
 
 enum UserRole {
-  USER
-  ADMIN
-  ROOT
+  // Basic roles
+  USER // Regular user with basic permissions
+  MODERATOR // Can moderate content and users
+  EDITOR // Can edit and manage content
+  ADMIN // Full administrative access
+  ROOT // System-level access (super admin)
+
+  // Special roles
+  CONTENT_CREATOR // Special privileges for content creation
+  COMMUNITY_MANAGER // Can manage communities/spaces
+  SUPPORT // Customer support role
+  ANALYST // Access to analytics and reporting
 
   @@map("user_role")
 }
 
 model User {
-  id           String         @id @default(uuid())
-  authId       String         @unique @map("auth_id") @db.Uuid
-  email        String?
-  phone        String?
-  firstName    String         @db.Text @map("first_name")
-  lastName     String?        @db.Text @map("last_name")
-  avatar       String?        @db.Text
-  roles        UserRole[]
-  isActive     Boolean        @default(true) @map("is_active")
-  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
-  userInSpaces UserInSpaces[]
-  activities   UserActivity[]
+  id              String            @id @default(uuid())
+  authId          String            @unique @map("auth_id") @db.Uuid
+  email           String?
+  phone           String?
+  firstName       String            @map("first_name") @db.Text
+  lastName        String?           @map("last_name") @db.Text
+  avatar          String?           @db.Text
+  roles           UserRole[]
+  isActive        Boolean           @default(true) @map("is_active")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
+  userInSpaces    UserInSpaces[]
+  activities      UserActivity[]
+  publishedPosts  PublishedPost[]   @relation("UserAuthorPosts")
+  draftPosts      DraftPost[]
+  comments        Comment[]         @relation("UserAuthorComments")
+  postLikes       PostLike[]
+  commentLikes    CommentLike[]
+  bookmarks       Bookmark[]
+  feeds           Feed[]
+  emotions        UserEmotion[]
+  streak          UserStreak?
+  achievements    UserAchievement[]
+  botInteractions BotInteraction[]
 
   @@map("users")
 }
 
 enum UserActivityType {
+  // Authentication related
   LOGIN
   LOGOUT
-  PROFILE_UPDATE
   PASSWORD_CHANGE
   PASSWORD_RESET_REQUEST
   PASSWORD_RESET_COMPLETE
-  ROLE_CHANGE
+
+  // Profile related
+  PROFILE_UPDATE
+  AVATAR_UPDATE
+  EMAIL_UPDATE
+  PHONE_UPDATE
+
+  // Account status
+  ACCOUNT_CREATED
   ACCOUNT_DEACTIVATED
   ACCOUNT_ACTIVATED
   ACCOUNT_DELETED
+
+  // Security related
+  ROLE_CHANGE
+  SECURITY_ALERT
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
+
+  // Space related
+  SPACE_JOINED
+  SPACE_LEFT
+  SPACE_ROLE_CHANGED
+
+  @@map("user_activity_type")
 }
 
 model UserActivity {
@@ -63,11 +104,15 @@ model UserActivity {
   ipAddress    String?          @map("ip_address")
   userAgent    String?          @map("user_agent")
   metadata     Json?            @default("{}")
+  success      Boolean          @default(true) // Whether the activity was successful
+  location     String? // Geographic location of the activity
+  deviceId     String?          @map("device_id") // Unique identifier for the device
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([timestamp])
+  @@index([activityType])
   @@map("user_activities")
 }
 
@@ -122,12 +167,309 @@ model Notification {
   decorators       Json[]
   link             String?
   notificationTime DateTime  @default(now()) @map("notification_time") @db.Timestamptz()
-  readAt           DateTime? @map("read_at") @db.Timestamptz()
+  viewedAt         DateTime? @map("viewed_at") @db.Timestamptz()
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  @@index([userId], type: Hash)
-  @@index([userId, readAt])
+  @@index([userId, notificationTime(sort: Desc)])
+  @@index([userId, viewedAt])
   @@index([key], type: Hash)
+  @@index([type], type: Hash)
   @@map("notifications")
+}
+
+model UserEmotion {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  emotion   String
+  intensity Int      @default(1) // Scale of 1-5 for emotion intensity
+  note      String?  @db.Text // Optional note about the emotion
+  date      DateTime @db.Date // Store just the date for daily tracking
+  timestamp DateTime @default(now()) @db.Timestamptz() // Exact time of recording
+  metadata  Json?    @default("{}") // Additional data for analytics
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([date])
+  @@index([emotion])
+  @@index([userId, date]) // For querying user's emotions by date
+  @@map("user_emotions")
+}
+
+model Topic {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?     @db.Text
+  postsTopics PostTopic[]
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("topics")
+}
+
+model DraftPost {
+  id          String   @id @default(uuid())
+  title       String   @db.Text
+  subtitle    String?  @db.Text
+  content     Json
+  cover       String?
+  userId      String   @map("user_id")
+  topics      String[] // Store topic IDs for simplicity in drafts
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  publishedId String?  @unique @map("published_id") // Reference to published version
+
+  author User @relation(fields: [userId], references: [id])
+
+  published PublishedPost? @relation(fields: [publishedId], references: [id])
+
+  @@index([userId])
+  @@map("draft_posts")
+}
+
+model PublishedPost {
+  id          String      @id @default(uuid())
+  title       String      @db.Text
+  subtitle    String?     @db.Text
+  slug        String      @unique
+  content     Json
+  excerpt     String      @db.Text
+  cover       String?
+  readingTime Int         @default(0) @map("reading_time")
+  likeCount   Int         @default(0) @map("like_count")
+  replyCount  Int         @default(0) @map("reply_count")
+  viewCount   Int         @default(0) @map("view_count")
+  topics      PostTopic[]
+  comments    Comment[]
+  likes       PostLike[]
+  publishedAt DateTime    @default(now()) @map("published_at") @db.Timestamptz()
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  isArchived  Boolean     @default(false) @map("is_archived")
+  authorId    String      @map("author_id")
+  authorType  String      @default("USER") @map("author_type") // "USER" or "BOT"
+
+  userAuthor User?       @relation("UserAuthorPosts", fields: [authorId], references: [id], map: "published_posts_user_author_fkey") @ignore
+  botAuthor  Bot?        @relation("BotPosts", fields: [authorId], references: [id], map: "published_posts_bot_author_fkey") @ignore
+  DraftPost  DraftPost[]
+
+  @@index([publishedAt])
+  @@index([isArchived])
+  @@index([authorId, authorType])
+  @@map("published_posts")
+}
+
+model PostTopic {
+  post      PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String        @map("post_id")
+  topic     Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId   String        @map("topic_id")
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@id([postId, topicId])
+  @@map("post_topics")
+}
+
+model Comment {
+  id         String    @id @default(uuid())
+  content    String    @db.Text
+  postId     String    @map("post_id")
+  parentId   String?   @map("parent_id")
+  likeCount  Int       @default(0) @map("like_count")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz()
+  authorId   String    @map("author_id")
+  authorType String    @default("USER") @map("author_type") // "USER" or "BOT"
+
+  post       PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userAuthor User?         @relation("UserAuthorComments", fields: [authorId], references: [id], map: "comments_user_author_fkey") @ignore
+  botAuthor  Bot?          @relation("BotComments", fields: [authorId], references: [id], map: "comments_bot_author_fkey") @ignore
+  parent     Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies    Comment[]     @relation("CommentReplies")
+  likes      CommentLike[]
+
+  @@index([postId])
+  @@index([parentId])
+  @@index([authorId, authorType])
+  @@map("comments")
+}
+
+model PostLike {
+  post      PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String        @map("post_id")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String        @map("user_id")
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@id([postId, userId])
+  @@map("post_likes")
+}
+
+model CommentLike {
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String   @map("comment_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@id([commentId, userId])
+  @@map("comment_likes")
+}
+
+enum BookmarkContentType {
+  POST
+  USER_EMOTION
+
+  @@map("bookmark_content_type")
+}
+
+model Bookmark {
+  id          String              @id @default(uuid())
+  contentType BookmarkContentType @map("content_type")
+  contentId   String              @map("content_id")
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String              @map("user_id")
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@unique([userId, contentType, contentId])
+  @@index([userId])
+  @@index([contentType, contentId])
+  @@map("bookmarks")
+}
+
+enum FeedContentType {
+  POST
+  USER_EMOTION
+
+  @@map("feed_content_type")
+}
+
+model Feed {
+  id          String          @id @default(uuid())
+  contentType FeedContentType @map("content_type")
+  contentId   String          @map("content_id")
+  userId      String          @map("user_id")
+  score       Float           @default(0) // For ranking/sorting content
+  viewedAt    DateTime?       @map("viewed_at") @db.Timestamptz()
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([contentType, contentId])
+  @@index([score])
+  @@index([viewedAt])
+  @@map("feeds")
+}
+
+model UserStreak {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  currentStreak Int      @default(0) @map("current_streak")
+  longestStreak Int      @default(0) @map("longest_streak")
+  lastActivity  DateTime @map("last_activity") @db.Timestamptz()
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+  @@map("user_streaks")
+}
+
+enum AchievementType {
+  STREAK // Maintaining activity streaks
+  POST_COUNT // Number of posts published
+  LIKE_COUNT // Number of likes received
+  COMMENT_COUNT // Number of comments made
+  EMOTION_LOG // Logging emotions consistently
+  ENGAGEMENT // Overall platform engagement
+  MILESTONE // Special milestones
+
+  @@map("achievement_type")
+}
+
+model Achievement {
+  id          String          @id @default(uuid())
+  type        AchievementType
+  name        String
+  description String          @db.Text
+  level       Int             @default(1)
+  threshold   Int // Value needed to unlock
+  icon        String? // Icon URL
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+
+  userAchievements UserAchievement[]
+
+  @@unique([type, level])
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  achievementId String    @map("achievement_id")
+  progress      Int       @default(0)
+  unlockedAt    DateTime? @map("unlocked_at") @db.Timestamptz()
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user        User        @relation(fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+enum BotType {
+  CONTENT_CREATOR // Creates original content
+  COMMENTER // Engages with user content
+  MODERATOR // Helps moderate content
+  ASSISTANT // Helps users with tasks
+  EMOTIONAL_SUPPORT // Provides emotional support
+
+  @@map("bot_type")
+}
+
+model Bot {
+  id          String   @id @default(uuid())
+  name        String
+  avatar      String?  @db.Text
+  description String   @db.Text
+  type        BotType
+  isActive    Boolean  @default(true) @map("is_active")
+  metadata    Json     @default("{}") // Store bot-specific configuration
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  authoredPosts    PublishedPost[]  @relation("BotPosts")
+  authoredComments Comment[]        @relation("BotComments")
+  interactions     BotInteraction[]
+
+  @@map("bots")
+}
+
+model BotInteraction {
+  id        String   @id @default(uuid())
+  botId     String   @map("bot_id")
+  userId    String   @map("user_id")
+  type      String // Type of interaction (chat, content creation, moderation, etc.)
+  content   Json // Store the interaction content
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  bot  Bot  @relation(fields: [botId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([botId])
+  @@index([userId])
+  @@index([type])
+  @@map("bot_interactions")
 }

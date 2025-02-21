@@ -4,6 +4,6 @@ export const notificationErrorMap: ErrorMap = {
   ...commonErrorMap,
   notification: {
     list: {},
-    markAsRead: {},
+    view: {},
   },
 };

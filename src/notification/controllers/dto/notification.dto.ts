@@ -110,7 +110,7 @@ export class NotificationOutput
   implements
     Pick<
       Notification,
-      'id' | 'text' | 'decorators' | 'link' | 'notificationTime' | 'readAt'
+      'id' | 'text' | 'decorators' | 'link' | 'notificationTime' | 'viewedAt'
     >
 {
   @ApiProperty({
@@ -159,7 +159,7 @@ export class NotificationOutput
     example: '2024-06-25T03:20:20Z',
     required: false,
   })
-  readAt: Date;
+  viewedAt: Date;
 
   static from(noti: Notification): NotificationOutput {
     const notiOutput = new NotificationOutput();
@@ -169,7 +169,7 @@ export class NotificationOutput
     notiOutput.decorators = noti.decorators;
     notiOutput.link = noti.link;
     notiOutput.notificationTime = noti.notificationTime;
-    notiOutput.readAt = noti.readAt;
+    notiOutput.viewedAt = noti.viewedAt;
 
     return notiOutput;
   }

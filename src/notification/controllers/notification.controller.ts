@@ -63,20 +63,20 @@ export class NotificationController {
     return notiCollection;
   }
 
-  @Patch('read')
+  @Patch('view')
   @RequireAnyRoles(Role.USER)
   @ApiOperation({
-    summary: 'Mark all notifications as read',
+    summary: 'Mark all notifications as viewed',
     description:
-      'Mark all notifications that belong to authenticated user as read. If you want to mask a notification as read, you may add a query "id=<notification id>"',
+      'Mark all notifications that belong to authenticated user as viewed. If you want to mask a notification, you may add a query "id=<notification id>"',
   })
   @OkResponse(null)
-  @ErrorResponse('notification.markAsRead', notificationErrorMap)
-  async markAsRead(
+  @ErrorResponse('notification.view', notificationErrorMap)
+  async view(
     @AuthContextUser() user: User,
     @Query() query: NotificationPatchQuery,
   ): Promise<null> {
-    await this.notificationService.markNotificationAsRead(user.id, query.id);
+    await this.notificationService.view(user.id, query.id);
 
     return null;
   }
