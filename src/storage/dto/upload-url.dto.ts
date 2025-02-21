@@ -39,10 +39,7 @@ export class UploadUrlDto {
     description:
       'headers that must be attached in a request when uploading file',
     type: 'object',
-    properties: {
-      'Content-Type': { type: String },
-      'x-goog-content-length-range': { type: String },
-    },
+    properties: {},
     example: {
       'Content-Type': 'application/octet-stream',
       'x-goog-content-length-range': `0,5000000`,

@@ -277,9 +277,6 @@ export const userErrorMap: ErrorMap = {
 
 ```typescript
 // src/identity/presentation/rest/user.controller.ts
-  @Post()
-  @ApiOperation({ summary: 'Create user' })
-  @CreatedResponse(UserDto)
   @ErrorResponse('user.create', userErrorMap, { hasValidationErr: true })
   async create(
     @Body() userData: CreateUserDto,
@@ -294,6 +291,64 @@ export const userErrorMap: ErrorMap = {
 ```typescript
 // src/identity/services/user.service.ts
 throw new AppError('user.profile.get.notFound');
+```
+
+## Swagger document
+
+Using @nestjs/swagger to create API docs for each API
+
+### API definition
+
+```typescript
+// src/identity/presentation/rest/user.controller.ts
+// 201 response
+  @ApiOperation({ summary: 'Create user' })
+  @CreatedResponse(UserDto)
+  @ErrorResponse('user.create', userErrorMap, { hasValidationErr: true })
+
+// 200 response
+  @ApiOperation({
+    summary: 'Bulk user operations (update/delete/deactivate/activate)',
+  })
+  @OkResponse(BulkOperationResultDto)
+  @ErrorResponse('user.bulk', userErrorMap, { hasValidationErr: true })
+
+// 200 response with pagination
+  @ApiOperation({ summary: 'Get many users' })
+  @PaginatedResponse(UserDto)
+  @ErrorResponse('user.list', userErrorMap, { hasValidationErr: true })
+```
+
+### Model define
+
+```typescript
+// src/identity/presentation/rest/input/activity-filters.dto.ts
+export class ActivityFiltersDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDate()
+  startDate?: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDate()
+  endDate?: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  activityType?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  offset?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  limit?: number;
+}
 ```
 
 ## Deployment Architecture

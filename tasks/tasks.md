@@ -14,6 +14,7 @@ Dependencies: None
 - In case there is an emotion at same hour in day
   - if emotion is difference, replace it by new emotion
   - if emotion is same, increment intensity util 5
+- Publish new event to Event Bus
 
 ### Acceptance Criteria
 
@@ -24,6 +25,7 @@ Dependencies: None
 ### Technical Notes
 
 - Add this API into gamification module
-- Add OpenAPI docs in controller
+- Add Swagger docs in controller, follow code src/identity/presentation/rest/user.controller.ts
 - Follow Error handle from technical.md
-- Follow code style from src/identity/presentation/rest/user.controller.ts
+- Follow code style from src/identity
+- Use upsert to detect an emotion at same hour if possible

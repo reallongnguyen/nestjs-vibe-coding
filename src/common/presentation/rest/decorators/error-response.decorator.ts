@@ -11,7 +11,7 @@ export const ErrorResponse = (
 ) => {
   const errorConfig = lodash.get(errorMap, errorGroup, {});
 
-  if (options?.hasValidationErr) {
+  if (options?.hasValidationErr && errorMap?.validation?.validationFailed) {
     const { validationFailed } = errorMap.validation;
     (errorConfig as any).validationFailed = validationFailed;
   }

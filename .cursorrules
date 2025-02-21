@@ -63,6 +63,7 @@ TASK_WORKFLOW: |
   - tasks/tasks.md: Source of task definitions
   - docs/status.md: Progress tracking
   - docs/technical.md: Implementation guidelines
+  - prisma/schema.prisma: Database schema
   
   Workflow steps:
   1. READ tasks/tasks.md:
@@ -73,7 +74,7 @@ TASK_WORKFLOW: |
   2. VALIDATE against docs/architecture.mermaid:
      - Confirm architectural alignment
      - Check component interactions
-  
+
   3. UPDATE docs/status.md:
      - Mark task as in-progress
      - Track completion of sub-tasks
@@ -83,12 +84,17 @@ TASK_WORKFLOW: |
      - Create test files first
      - Implement to pass tests
      - Implement by order:
-        - Update prisma schema in prisma/schema.prisma and Request run `prisma db push` if needed
+        - Update prisma schema in prisma/schema.prisma if needed
+        - Request run `prisma db push` if needed
         - Create entities files
         - Create repositories files
         - Create services files
         - Create presentation files
      - Update status on test completion
+
+   5. UPDATE docs/architecture.mermaid if needed
+
+   6. UPDATE docs/technical.md if needed
 
 # Error Prevention
 VALIDATION_RULES: |
@@ -96,3 +102,4 @@ VALIDATION_RULES: |
   2. Check for potential null/undefined
   3. Validate against business rules
   4. Ensure error handling
+  5. Validate input of an API
