@@ -1,0 +1,14 @@
+graph TD
+    I[Identity Module] --> ID[(Identity DB)]
+    N[Notification Module] --> ND[(Notification DB)]
+    G[Gamification] --> GD[(Gamification DB)]
+
+    I --> C[Common Module]
+    N --> C
+    G --> C
+
+    E[Event Bus] --> I
+    E --> N
+    E --> G
+
+    style E fill:#FFD700,stroke:#333,stroke-width:2px

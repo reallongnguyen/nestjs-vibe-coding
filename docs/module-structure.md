@@ -109,7 +109,7 @@ export class UserModule {}
 
 The application is divided into the following business domains:
 
-1. **User Management Module** (`src/user-management/`)
+1. **Identity Module** (`src/identity/`)
    - User profile management
    - Activity tracking
 
@@ -184,11 +184,12 @@ src/content/
 │   ├── comment.entity.ts
 │   └── topic.entity.ts
 ├── repositories/
-│   ├── post.repository.interface.ts
 │   ├── post.repository.ts
-│   ├── comment.repository.interface.ts
 │   └── comment.repository.ts
 ├── services/
+│   ├── interfaces/
+│   │   ├── post.repository.interface.ts
+│   │   └── comment.repository.interface.ts
 │   └── content.service.ts
 ├── presentation/
 │   ├── content.controller.ts
