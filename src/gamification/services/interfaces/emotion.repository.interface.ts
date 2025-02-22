@@ -1,9 +1,12 @@
 import { Emotion } from '../../entities/emotion.entity';
 
-export type CreateEmotionInput = Pick<Emotion, 'type' | 'userId'>;
-
 export interface IEmotionRepository {
-  create(emotion: CreateEmotionInput): Promise<Emotion>;
+  create(emotion: Pick<Emotion, 'userId' | 'type' | 'note'>): Promise<Emotion>;
   update(emotion: Emotion): Promise<Emotion>;
   findByUserIdAndHour(userId: string, date: Date): Promise<Emotion | null>;
+  findByUserIdAndDateRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Emotion[]>;
 }

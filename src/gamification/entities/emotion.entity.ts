@@ -12,6 +12,7 @@ export class Emotion {
   intensity: number;
   timestamp: Date;
   userId: string;
+  note?: string;
 
   constructor(data: {
     id: string;
@@ -19,11 +20,13 @@ export class Emotion {
     intensity: number;
     timestamp: Date;
     userId: string;
+    note?: string;
   }) {
     this.id = data.id;
     this.type = data.type;
     this.intensity = data.intensity;
     this.timestamp = data.timestamp;
     this.userId = data.userId;
+    this.note = data.note;
   }
 }

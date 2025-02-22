@@ -4,4 +4,6 @@ export class CreateEmotionDto {
   userId: string;
 
   type: EmotionType;
+
+  note?: string;
 }

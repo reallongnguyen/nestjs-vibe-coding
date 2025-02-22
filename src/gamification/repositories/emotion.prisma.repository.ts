@@ -7,11 +7,14 @@ import { IEmotionRepository } from '../services/interfaces/emotion.repository.in
 export class EmotionPrismaRepository implements IEmotionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(emotion: Pick<Emotion, 'userId' | 'type'>): Promise<Emotion> {
+  async create(
+    emotion: Pick<Emotion, 'userId' | 'type' | 'note'>,
+  ): Promise<Emotion> {
     const created = await this.prisma.userEmotion.create({
       data: {
         userId: emotion.userId,
         emotion: emotion.type,
+        note: emotion.note,
         date: new Date(),
         timestamp: new Date(),
       },
@@ -26,6 +29,7 @@ export class EmotionPrismaRepository implements IEmotionRepository {
       data: {
         emotion: emotion.type,
         intensity: emotion.intensity,
+        note: emotion.note,
       },
     });
     return this.mapToEntity(updated);
@@ -51,6 +55,27 @@ export class EmotionPrismaRepository implements IEmotionRepository {
     return emotion ? this.mapToEntity(emotion) : null;
   }
 
+  async findByUserIdAndDateRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Emotion[]> {
+    const emotions = await this.prisma.userEmotion.findMany({
+      where: {
+        userId,
+        timestamp: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+    });
+
+    return emotions.map(this.mapToEntity);
+  }
+
   private mapToEntity(prismaEmotion: any): Emotion {
     return new Emotion({
       id: prismaEmotion.id,
@@ -58,6 +83,7 @@ export class EmotionPrismaRepository implements IEmotionRepository {
       type: prismaEmotion.emotion as EmotionType,
       intensity: prismaEmotion.intensity,
       timestamp: prismaEmotion.timestamp,
+      note: prismaEmotion.note,
     });
   }
 }

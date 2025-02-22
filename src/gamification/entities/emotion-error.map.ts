@@ -17,4 +17,12 @@ export const emotionErrorMap: ErrorMap = {
       },
     },
   },
+  streak: {
+    get: {
+      notFound: {
+        status: HttpStatus.NOT_FOUND,
+        message: 'User streak not found',
+      },
+    },
+  },
 };

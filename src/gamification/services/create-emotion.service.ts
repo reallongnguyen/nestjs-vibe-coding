@@ -17,30 +17,11 @@ export class CreateEmotionService {
   ) {}
 
   async execute(params: CreateEmotionDto): Promise<Emotion> {
-    const existingEmotion = await this.emotionRepository.findByUserIdAndHour(
-      params.userId,
-      new Date(),
-    );
-
-    let emotion: Emotion;
-
-    if (existingEmotion) {
-      if (existingEmotion.type === params.type) {
-        existingEmotion.intensity = Math.min(existingEmotion.intensity + 1, 5);
-        emotion = await this.emotionRepository.update(existingEmotion);
-      } else {
-        existingEmotion.type = params.type;
-        existingEmotion.intensity = 1;
-        emotion = await this.emotionRepository.update(existingEmotion);
-      }
-    } else {
-      emotion = await this.emotionRepository.create({
-        userId: params.userId,
-        type: params.type,
-      });
-    }
-
-    this.logger.log('Emotion created', { emotionId: emotion.id });
+    const emotion = await this.emotionRepository.create({
+      userId: params.userId,
+      type: params.type,
+      note: params.note,
+    });
 
     this.eventBus.publish(new EmotionCreatedEvent(emotion));
 
