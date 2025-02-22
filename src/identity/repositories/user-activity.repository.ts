@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Collection } from 'src/common/models';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { UserActivity as PrismaUserActivity } from '@prisma/client';
+import {
+  UserActivity as PrismaUserActivity,
+  UserActivityType,
+} from '@prisma/client';
 
-import { UserActivityRepositoryPort } from '../services/interface/user-activity.repository.port';
+import { IUserActivityRepository } from '../services/interfaces/user-activity.repository.interface';
 import { UserActivity } from '../entities/user-activity.entity';
-import { ActivityFiltersDto } from '../presentation/rest/input/activity-filters.dto';
+import { ActivityFiltersDto } from '../presentation/dtos/activity-filters.input';
 import { CreateUserActivityInput } from '../services/dto/activity.input';
 
 @Injectable()
-export class UserActivityRepository implements UserActivityRepositoryPort {
+export class UserActivityRepository implements IUserActivityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(activity: CreateUserActivityInput): Promise<UserActivity> {
@@ -17,8 +20,15 @@ export class UserActivityRepository implements UserActivityRepositoryPort {
       data: {
         userId: activity.userId,
         activityType: activity.activityType,
+        performedBy: activity.performedBy,
+        details: activity.details,
         metadata: activity.metadata,
         timestamp: new Date(),
+        ipAddress: activity.ipAddress,
+        userAgent: activity.userAgent,
+        success: activity.success,
+        location: activity.location,
+        deviceId: activity.deviceId,
       },
     });
 
@@ -29,22 +39,45 @@ export class UserActivityRepository implements UserActivityRepositoryPort {
     userId: string,
     filters: ActivityFiltersDto,
   ): Promise<Collection<UserActivity>> {
-    const { offset = 0, limit = 10 } = filters;
+    const {
+      offset = 0,
+      limit = 10,
+      activityType,
+      startDate,
+      endDate,
+    } = filters;
 
-    const [activities, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prisma.userActivity.findMany({
-        where: { userId },
+        where: {
+          userId,
+          activityType: (activityType as UserActivityType) || undefined,
+          timestamp: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          timestamp: 'desc',
+        },
         skip: offset,
         take: limit,
-        orderBy: { timestamp: 'desc' },
       }),
+
       this.prisma.userActivity.count({
-        where: { userId },
+        where: {
+          userId,
+          activityType: (activityType as UserActivityType) || undefined,
+          timestamp: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
       }),
     ]);
 
     return {
-      edges: activities.map(this.mapToEntity),
+      edges: items.map(this.mapToEntity),
       pagination: {
         total,
         offset,

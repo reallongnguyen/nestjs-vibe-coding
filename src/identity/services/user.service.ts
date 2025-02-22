@@ -8,18 +8,18 @@ import { ProfileOutput } from './dto/profile.output';
 import { Role } from '../entities/role.enum';
 import { PatchProfileInput } from './dto/profile.input';
 import { User } from '../entities/user.entity';
-import { UserRepositoryPort } from './interface/user.repository.port';
+import { IUserRepository } from './interfaces/user.repository.interface';
 import { ProfileUpdatedEvent } from '../entities/events/profile-updated.event';
 import { UserActivity } from '../entities/user-activity.entity';
-import { UserActivityRepositoryPort } from './interface/user-activity.repository.port';
+import { IUserActivityRepository } from './interfaces/user-activity.repository.interface';
 import {
   BulkOperationType,
   BulkUserOperationDto,
-} from '../presentation/rest/input/bulk-user-operation.dto';
-import { UserSearchFiltersDto } from '../presentation/rest/input/user-search-filters.dto';
-import { ActivityFiltersDto } from '../presentation/rest/input/activity-filters.dto';
-import { BulkOperationResultDto } from '../presentation/rest/output/bulk-user-operation.dto';
-import { PasswordResetResultDto } from '../presentation/rest/output/password-reset-result.dto';
+} from '../presentation/dtos/bulk-user-operation.input';
+import { UserSearchFiltersDto } from '../presentation/dtos/user-search-filters.input';
+import { ActivityFiltersDto } from '../presentation/dtos/activity-filters.input';
+import { BulkOperationResultDto } from '../presentation/dtos/bulk-user-operation.output';
+import { PasswordResetResultDto } from '../presentation/dtos/password-reset-result.output';
 import { RoleChangeEvent } from '../entities/events/role-change.event';
 import { AccountDeactivatedEvent } from '../entities/events/account-deactivated.event';
 import { AccountActivatedEvent } from '../entities/events/account-activated.event';
@@ -28,9 +28,9 @@ import { AccountDeletedEvent } from '../entities/events/account-deleted.event';
 export class UserService {
   constructor(
     private readonly logger: Logger,
-    private readonly userRepository: UserRepositoryPort,
+    private readonly userRepository: IUserRepository,
     private readonly eventBus: EventBusPort,
-    private readonly userActivityRepository: UserActivityRepositoryPort,
+    private readonly userActivityRepository: IUserActivityRepository,
   ) {}
 
   async createOrUpdateUser(input: UpsertUserInput): Promise<User> {

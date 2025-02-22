@@ -5,7 +5,6 @@ SYSTEM_CONTEXT: |
   - docs/architecture.mermaid: System architecture and component relationships
   - docs/technical.md: Technical specifications and patterns
   - docs/module-structure.md: Module structure and organization
-  - docs/module-structure-simplified.md: Simplified module structure
   - docs/business-domain.md: Business domain and object relationships
   - tasks/tasks.md: Current development tasks and requirements
   - docs/status.md: Project progress and state
@@ -16,8 +15,6 @@ SYSTEM_CONTEXT: |
   3. Update progress in docs/status.md
   4. Follow technical specifications from docs/technical.md
   5. Follow module structure from docs/module-structure.md and docs/module-structure-simplified.md
-  6. Follow business domain from docs/business-domain.md
-  7. Follow API docs from src/identity/presentation/rest/user.controller.ts
 
 # File Management Rules
 ON_FILE_CHANGE: |
@@ -36,8 +33,12 @@ ON_FILE_CHANGE: |
 TYPESCRIPT_GUIDELINES: |
   - Use strict typing, avoid 'any'
   - Follow SOLID principles
+  - Follow DRY principles
+  - Follow YAGNI principles
+  - Follow KISS principles
   - Write unit tests for all public methods
   - Document with JSDoc
+  - Follow eslint rules
 
 # Architecture Understanding
 READ_ARCHITECTURE: |
@@ -51,7 +52,7 @@ READ_ARCHITECTURE: |
      - Component dependencies
   3. Validate any changes against architectural constraints
   4. Ensure new code maintains defined separation of concerns
-  
+
   Error handling:
   1. If file not found: STOP and notify user
   2. If diagram parse fails: REQUEST clarification
@@ -64,13 +65,13 @@ TASK_WORKFLOW: |
   - docs/status.md: Progress tracking
   - docs/technical.md: Implementation guidelines
   - prisma/schema.prisma: Database schema
-  
+
   Workflow steps:
   1. READ tasks/tasks.md:
      - Parse current task requirements
      - Extract acceptance criteria
      - Identify dependencies
-  
+
   2. VALIDATE against docs/architecture.mermaid:
      - Confirm architectural alignment
      - Check component interactions
@@ -79,22 +80,15 @@ TASK_WORKFLOW: |
      - Mark task as in-progress
      - Track completion of sub-tasks
      - Document any blockers
-  
-  4. IMPLEMENT following TDD:
+
+  4. IMPLEMENT following TDD approach:
      - Create test files first
      - Implement to pass tests
-     - Implement by order:
-        - Update prisma schema in prisma/schema.prisma if needed
-        - Request run `prisma db push` if needed
-        - Create entities files
-        - Create repositories files
-        - Create services files
-        - Create presentation files
      - Update status on test completion
 
-   5. UPDATE docs/architecture.mermaid if needed
+  5. UPDATE docs/architecture.mermaid if needed
 
-   6. UPDATE docs/technical.md if needed
+  6. UPDATE docs/technical.md if needed
 
 # Error Prevention
 VALIDATION_RULES: |
@@ -102,4 +96,3 @@ VALIDATION_RULES: |
   2. Check for potential null/undefined
   3. Validate against business rules
   4. Ensure error handling
-  5. Validate input of an API

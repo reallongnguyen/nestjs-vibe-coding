@@ -11,9 +11,10 @@ import { Notification } from '../entities/notification.model';
 @Injectable()
 export class EventSubscriber {
   constructor(
-    private logger: Logger,
-    private eventService: NotificationProducerService,
-    @Inject('notification_mqtt_client') private mqttClient: ClientProxy,
+    private readonly logger: Logger,
+    private readonly eventService: NotificationProducerService,
+    @Inject('notification_mqtt_client')
+    private readonly mqttClient: ClientProxy,
   ) {}
 
   // demo notification

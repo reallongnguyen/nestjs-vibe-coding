@@ -9,11 +9,26 @@ This application follows a simplified Domain-Driven Design (DDD) inspired archit
 ```plaintext
 src/
 └── {module-name}/
-    ├── entities/          # Domain models and types
-    ├── repositories/      # Data access layer
-    ├── services/          # Business logic
-    ├── presentation/      # Controllers and DTOs
-    └── {module-name}.module.ts
+    ├── entities/               # Domain models and types
+    │   └── events/             # Domain events
+    │
+    ├── repositories/           # Data access layer
+    │   ├── mappers/            # Data mapping logic
+    │   └── models/             # Database models
+    │
+    ├── services/               # Business logic
+    │   ├── interfaces/         # Repository interfaces
+    │   └── dtos/               # Service-layer DTOs
+    │
+    ├── presentation/           # Controllers and DTOs
+    │   ├── controllers/        # HTTP controllers
+    │   ├── handlers/           # Event handlers
+    │   ├── middlewares/        # HTTP middlewares
+    │   ├── decorators/         # Custom decorators
+    │   ├── guards/             # Authentication/Authorization guards
+    │   └── dtos/               # Request/Response DTOs
+    │
+    └── {module-name}.module.ts # Module definition
 ```
 
 ## Directory Responsibilities
@@ -29,25 +44,15 @@ export class User {
   id: string;
   email: string;
   // ... other properties
-
-  validate(): void {
-    // Domain validation logic
-  }
 }
 ```
 
 ### 2. repositories/
 
-- Data access interfaces
 - Repository implementations using Prisma
 - Query and persistence logic
 
 ```typescript
-export interface IUserRepository {
-  findById(id: string): Promise<User>;
-  create(data: CreateUserDto): Promise<User>;
-}
-
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(private prisma: PrismaService) {}
@@ -58,10 +63,18 @@ export class UserRepository implements IUserRepository {
 ### 3. services/
 
 - Business logic implementation
+- Data access interfaces
 - Orchestration of repositories
 - Domain event handling
 
 ```typescript
+// src/identity/services/interfaces/user.repository.interface.ts
+export interface IUserRepository {
+  findById(id: string): Promise<User>;
+  create(data: CreateUserDto): Promise<User>;
+}
+
+// src/identity/services/user.service.ts
 @Injectable()
 export class UserService {
   constructor(
@@ -75,9 +88,9 @@ export class UserService {
 ### 4. presentation/
 
 - HTTP controllers
-- GraphQL resolvers (if applicable)
 - Request/Response DTOs
 - Input validation
+- Output formatters
 
 ```typescript
 @Controller('users')
@@ -104,49 +117,6 @@ export class UserController {
 })
 export class UserModule {}
 ```
-
-## Business Domains
-
-The application is divided into the following business domains:
-
-1. **Identity Module** (`src/identity/`)
-   - User profile management
-   - Activity tracking
-
-2. **Content Module** (`src/content/`)
-   - Post management
-   - Comment system
-   - Content moderation
-
-3. **Engagement Module** (`src/engagement/`)
-   - Likes and reactions
-   - Bookmarks
-   - Feed management
-
-4. **Emotional Module** (`src/emotional/`)
-   - Emotion tracking
-   - Wellness features
-   - Streak management
-
-5. **Gamification Module** (`src/gamification/`)
-   - Achievements
-   - User progress tracking
-   - Rewards system
-
-6. **Notification Module** (`src/notification/`)
-   - Notification management
-   - Delivery system
-   - Preferences
-
-7. **Spaces Module** (`src/spaces/`)
-   - Community management
-   - Member roles
-   - Space settings
-
-8. **Bot Module** (`src/bots/`)
-   - Bot management
-   - Interaction tracking
-   - Automation features
 
 ## Best Practices
 

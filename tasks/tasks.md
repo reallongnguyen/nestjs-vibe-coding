@@ -29,3 +29,23 @@ Dependencies: None
 - Follow Error handle from technical.md
 - Follow code style from src/identity
 - Use upsert to detect an emotion at same hour if possible
+
+## IAM-001: Refactor code in src/identity
+
+Status: To Do
+Priority: High
+Dependencies: None
+
+### Requirements
+
+- Refactor code in repositories. Write readable Interface and implementation
+- Refactor code in src/identity/presentation/user-activity.handler.ts. Write service instead of using prisma directly
+
+### Acceptance Criteria
+
+1. Interface of all APIs are consistent
+2. All APIs are covered by Swagger docs
+
+### Technical Notes
+
+- Follow folder structure from docs/module-structure.md

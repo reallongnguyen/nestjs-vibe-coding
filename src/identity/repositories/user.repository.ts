@@ -6,15 +6,15 @@ import { Collection } from 'src/common/models';
 import { User } from '../entities/user.entity';
 import {
   UpsertUserParams,
-  UserRepositoryPort,
   FindUniqueUserParams,
   UpdateUserParams,
-} from '../services/interface/user.repository.port';
+  IUserRepository,
+} from '../services/interfaces/user.repository.interface';
 import { Role } from '../entities/role.enum';
-import { UserSearchFiltersDto } from '../presentation/rest/input/user-search-filters.dto';
+import { UserSearchFiltersDto } from '../presentation/dtos/user-search-filters.input';
 
 @Injectable()
-export class UserRepository implements UserRepositoryPort {
+export class UserRepository implements IUserRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: Logger,

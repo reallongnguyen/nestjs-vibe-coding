@@ -36,40 +36,17 @@ services:
     environment:
       - 'EMQX_NODE__NAME=emqx@node01.emqx.io'
       - 'EMQX_CLUSTER__DISCOVERY_STRATEGY=static'
-      - 'EMQX_CLUSTER__STATIC__SEEDS=[emqx@node01.emqx.io, emqx@node02.emqx.io]'
+      - 'EMQX_CLUSTER__STATIC__SEEDS=[emqx@node01.emqx.io]'
     networks:
       vpc-bridge:
         aliases:
           - node01.emqx.io
-
-  mqtt02:
-    image: emqx:latest
-    restart: unless-stopped
-    ports:
-      - 28083:18083
-      - 2883:1883
-      - 9883:8883
-      - 9083:8083
-      - 9084:8084
-    volumes:
-      - vol-emqx02-data:/opt/emqx/data
-      - vol-emqx02-log:/opt/emqx/log
-    environment:
-      - 'EMQX_NODE__NAME=emqx@node02.emqx.io'
-      - 'EMQX_CLUSTER__DISCOVERY_STRATEGY=static'
-      - 'EMQX_CLUSTER__STATIC__SEEDS=[emqx@node01.emqx.io, emqx@node02.emqx.io]'
-    networks:
-      vpc-bridge:
-        aliases:
-          - node02.emqx.io
 
 volumes:
   pg-data:
   redis-data:
   vol-emqx01-data:
   vol-emqx01-log:
-  vol-emqx02-data:
-  vol-emqx02-log:
 
 networks:
   vpc-bridge:
