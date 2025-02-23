@@ -7,13 +7,13 @@ import { Mutex } from '../usecases/interfaces/mutex.interface';
 
 @Injectable()
 export class RedlockMutex implements Mutex {
-  private redlock: Redlock;
+  private readonly redlock: Redlock;
   lockDuration = 5000;
 
-  constructor(private config: ConfigService) {
-    const redis1Cfg = config.get<RedisOptions>('mutex.redis1');
-    const redis2Cfg = config.get<RedisOptions>('mutex.redis2');
-    const redis3Cfg = config.get<RedisOptions>('mutex.redis3');
+  constructor(config: ConfigService) {
+    const redis1Cfg = config.get<RedisOptions>('notification.mutex.redis1');
+    const redis2Cfg = config.get<RedisOptions>('notification.mutex.redis2');
+    const redis3Cfg = config.get<RedisOptions>('notification.mutex.redis3');
 
     const redisClients: Client[] = [];
 

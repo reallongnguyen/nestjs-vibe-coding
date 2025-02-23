@@ -5,6 +5,7 @@ import configuration from './configuration';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
       envFilePath: [
         '.env.local',
         '.env.production.local',
@@ -19,4 +20,4 @@ import configuration from './configuration';
   providers: [ConfigService],
   exports: [ConfigService],
 })
-export class LightConfigModule {}
+export class AppConfigModule {}

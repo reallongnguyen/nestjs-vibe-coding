@@ -3,7 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventBusModule } from 'src/common/event-bus/event-bus.module';
-import redisConfig from './configuration/redis.config';
+import moduleConfig from './social.config';
 import { FeedController } from './presentation/feed.controller';
 import { FeedService } from './services/feed.service';
 import { ContentProcessorService } from './services/content-processor.service';
@@ -17,14 +17,14 @@ import { ContentRankingForFeedService } from './services/content-ranking-for-fee
 
 @Module({
   imports: [
+    ConfigModule.forFeature(moduleConfig),
     BullModule.registerQueue({
       name: 'content-processing',
     }),
     EventBusModule,
     RedisModule.forRootAsync({
-      imports: [ConfigModule.forFeature(redisConfig)],
       useFactory: (configService: ConfigService) => ({
-        config: configService.get('redis'),
+        config: configService.get('social.redis'),
       }),
       inject: [ConfigService],
     }),

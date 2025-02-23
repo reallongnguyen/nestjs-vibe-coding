@@ -1,7 +1,11 @@
 import { registerAs } from '@nestjs/config';
 import { RedisOptions } from 'ioredis';
 
-export default registerAs('redis', (): RedisOptions => {
+export interface SocialModuleConfig {
+  redis: RedisOptions;
+}
+
+export default registerAs('social', (): SocialModuleConfig => {
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379/1';
   const url = new URL(redisUrl);
 
@@ -13,10 +17,12 @@ export default registerAs('redis', (): RedisOptions => {
   const username = url.username || undefined;
 
   return {
-    host: url.hostname,
-    port: parseInt(url.port, 10) || 6379,
-    username,
-    password,
-    db,
+    redis: {
+      host: url.hostname,
+      port: parseInt(url.port, 10) || 6379,
+      username,
+      password,
+      db,
+    },
   };
 });

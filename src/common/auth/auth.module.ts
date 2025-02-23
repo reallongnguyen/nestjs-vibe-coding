@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { LightConfigModule } from 'src/common/config/config.module';
+import { AppConfigModule } from 'src/common/configuration/config.module';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './adapter/presentation/nestjs/auth.guard';
@@ -11,7 +11,7 @@ import { AuthService } from './core/application/services/auth.service';
 // TODO: implement loose coupling between the auth module and the PrismaService
 @Global()
 @Module({
-  imports: [LightConfigModule, JwtModule],
+  imports: [AppConfigModule, JwtModule],
   providers: [
     AuthGuard,
     ConfigService,

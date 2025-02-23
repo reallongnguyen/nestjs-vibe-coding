@@ -11,24 +11,26 @@ import { AvatarMimeType } from './models/file-type.enum';
 @Injectable()
 export class FileService {
   private readonly storage = new Storage();
+  private readonly userAssetBucketName: string;
 
   constructor(
     private readonly logger: Logger,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.userAssetBucketName = this.configService.get<string>(
+      'storage.bucket.userAsset',
+    );
+  }
 
   async generateUploadAvatarUrl(
     userId: string,
     mimeType: AvatarMimeType,
     fileSize: number,
   ): Promise<UploadUrlDto> {
-    const userAssetBucketName = this.configService.get<string>(
-      'gcp.bucket.userAsset',
-    );
     const fileExtension = mimeType.split('/')[1];
     const fileName = `images/users/${userId}/profile/${uuidv7()}.${fileExtension}`;
 
-    return this.generateUploadUrl(userAssetBucketName, fileName, fileSize);
+    return this.generateUploadUrl(this.userAssetBucketName, fileName, fileSize);
   }
 
   async generateUploadUrl(
@@ -82,18 +84,14 @@ export class FileService {
   }
 
   async generatePresignedUrl(uri: string): Promise<string> {
-    const userAssetBucketName = this.configService.get<string>(
-      'gcp.bucket.userAsset',
-    );
-
-    if (!uri.startsWith(`gs://${userAssetBucketName}/`)) {
+    if (!uri.startsWith(`gs://${this.userAssetBucketName}/`)) {
       throw new AppError('file.common.notFound');
     }
 
-    const filePath = uri.replace(`gs://${userAssetBucketName}/`, '');
+    const filePath = uri.replace(`gs://${this.userAssetBucketName}/`, '');
 
     const [url] = await this.storage
-      .bucket(userAssetBucketName)
+      .bucket(this.userAssetBucketName)
       .file(filePath)
       .getSignedUrl({
         version: 'v4',

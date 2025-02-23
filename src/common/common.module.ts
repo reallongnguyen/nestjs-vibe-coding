@@ -7,14 +7,14 @@ import KeyvRedis from '@keyv/redis';
 import { BullModule } from '@nestjs/bull';
 
 import { LoggerModule } from './logger/logger.module';
-import { LightConfigModule } from './config/config.module';
+import { AppConfigModule } from './configuration/config.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    LightConfigModule,
+    AppConfigModule,
     LoggerModule,
     CacheModule.registerAsync<RedisClientOptions>({
       inject: [ConfigService],

@@ -6,8 +6,6 @@ import { Options } from 'pino-http';
 import { PrettyOptions } from 'pino-pretty';
 import { ConfigService } from '@nestjs/config';
 
-import { LightConfigModule } from '../config/config.module';
-
 const getPinoHttpOptions = (
   options,
 ):
@@ -56,7 +54,6 @@ const getPinoHttpOptions = (
 @Module({
   imports: [
     PinoLoggerModule.forRootAsync({
-      imports: [LightConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         pinoHttp: getPinoHttpOptions({ level: configService.get('logLevel') }),

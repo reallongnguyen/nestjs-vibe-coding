@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { FileController } from './file.controller';
 import { FileService } from './file.service';
-import { LightConfigModule } from './config/config.module';
 import { ImageProxyController } from './image-proxy.controller';
+import moduleConfig from './storage.config';
 
 @Module({
-  imports: [LightConfigModule],
+  imports: [ConfigModule.forFeature(moduleConfig)],
   controllers: [FileController, ImageProxyController],
   providers: [FileService],
 })
