@@ -10,8 +10,12 @@ export class AccountActivatedEvent
   userId: string;
   performedBy: string;
 
-  constructor(userId: string, operatorId: string) {
-    super(new Date());
+  constructor(
+    userId: string,
+    operatorId: string,
+    params?: ConstructorParameters<typeof BaseEvent>[0],
+  ) {
+    super(params);
 
     this.userId = userId;
     this.performedBy = operatorId;
@@ -23,5 +27,12 @@ export class AccountActivatedEvent
 
   static getEventName(): string {
     return EVENT_NAME;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      userId: this.userId,
+      performedBy: this.performedBy,
+    };
   }
 }

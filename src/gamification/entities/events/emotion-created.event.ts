@@ -10,8 +10,11 @@ export class EmotionCreatedEvent extends BaseEvent {
   intensity: number;
   timestamp: Date;
 
-  constructor(emotion: Emotion) {
-    super();
+  constructor(
+    emotion: Emotion,
+    params?: ConstructorParameters<typeof BaseEvent>[0],
+  ) {
+    super(params);
 
     this.emotionId = emotion.id;
     this.userId = emotion.userId;
@@ -26,5 +29,15 @@ export class EmotionCreatedEvent extends BaseEvent {
 
   static getName(): string {
     return EVENT_NAME;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      emotionId: this.emotionId,
+      userId: this.userId,
+      type: this.type,
+      intensity: this.intensity,
+      timestamp: this.timestamp,
+    };
   }
 }

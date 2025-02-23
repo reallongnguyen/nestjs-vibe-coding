@@ -8,8 +8,13 @@ export class RoleChangeEvent extends BaseEvent implements IRoleChangeEvent {
   newRoles: string[];
   performedBy: string;
 
-  constructor(userId: string, newRoles: string[], operatorId: string) {
-    super(new Date());
+  constructor(
+    userId: string,
+    newRoles: string[],
+    operatorId: string,
+    params?: ConstructorParameters<typeof BaseEvent>[0],
+  ) {
+    super(params);
 
     this.userId = userId;
     this.newRoles = newRoles;
@@ -22,5 +27,13 @@ export class RoleChangeEvent extends BaseEvent implements IRoleChangeEvent {
 
   static getEventName(): string {
     return EVENT_NAME;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      userId: this.userId,
+      newRoles: this.newRoles,
+      performedBy: this.performedBy,
+    };
   }
 }

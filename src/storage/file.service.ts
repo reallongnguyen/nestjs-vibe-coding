@@ -3,7 +3,7 @@ import { GetSignedUrlConfig, Storage } from '@google-cloud/storage';
 import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
 import { AppError } from 'src/common/models';
-import { uuidv7 } from 'uuidv7';
+import { v7 as uuidv7 } from 'uuid';
 
 import { UploadUrlDto } from './dto/upload-url.dto';
 import { AvatarMimeType } from './models/file-type.enum';

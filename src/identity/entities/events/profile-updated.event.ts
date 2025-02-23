@@ -12,8 +12,8 @@ export class ProfileUpdatedEvent
   name: string;
   avatar?: string;
 
-  constructor(user: User) {
-    super(new Date());
+  constructor(user: User, params?: ConstructorParameters<typeof BaseEvent>[0]) {
+    super(params);
 
     this.id = user.id;
     this.name = user.firstName;
@@ -26,5 +26,13 @@ export class ProfileUpdatedEvent
 
   static getEventName(): string {
     return EVENT_NAME;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      id: this.id,
+      name: this.name,
+      avatar: this.avatar,
+    };
   }
 }
