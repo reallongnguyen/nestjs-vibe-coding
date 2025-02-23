@@ -49,10 +49,15 @@
     - ✅ Redis sorted sets implementation
     - ✅ Content distribution logic
     - ✅ Feed retrieval optimization
-  - ⏳ SOC-002.3: Feed Cache Management
-  - ✅ SOC-002.4: Content Events Handlers (Partial)
+  - ✅ SOC-002.3: Feed Cache Management
+    - ✅ Cache service implementation
+    - ✅ Cache invalidation strategy
+    - ✅ Event-based cache updates
+  - ✅ SOC-002.4: Content Events Handlers
     - ✅ New content event handlers
-    - ⏳ Update/delete event handlers
+    - ✅ Update event handlers
+    - ✅ Delete event handlers
+    - ✅ Feed cleanup implementation
 
 ## Pending
 

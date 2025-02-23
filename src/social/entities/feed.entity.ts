@@ -1,54 +1,39 @@
-import { Feed as PrismaFeed, FeedContentType } from '@prisma/client';
+import { FeedContentType, Feed as PrismaFeed } from '@prisma/client';
+import { PostContent, EmotionContent } from './feed-content.entity';
 
-export { FeedContentType };
-
-export interface PostContent {
-  id: string;
-  title: string;
-  subtitle?: string;
-  excerpt: string;
-  cover?: string;
-  readingTime: number;
-  likeCount: number;
-  replyCount: number;
-  viewCount: number;
-  publishedAt: Date;
-  userAuthor?: {
-    id: string;
-    firstName: string;
-    lastName?: string;
-    avatar?: string;
-  };
-  botAuthor?: {
-    id: string;
-    name: string;
-  };
-}
-
-export interface EmotionContent {
-  id: string;
-  emotion: string;
-  intensity: number;
-  note?: string;
-  date: Date;
-  user: {
-    id: string;
-    firstName: string;
-    lastName?: string;
-    avatar?: string;
-  };
-}
+export { FeedContentType } from '@prisma/client';
 
 export interface Feed extends PrismaFeed {
+  publishedPost: PostContent | null;
+  userEmotion: EmotionContent | null;
+}
+
+export interface FeedCreateInput {
   id: string;
-  contentType: FeedContentType;
+  type: FeedContentType;
+  score: number;
   publishedPostId: string | null;
   userEmotionId: string | null;
-  userId: string;
-  score: number;
+  publishedPost: PostContent | null;
+  userEmotion: EmotionContent | null;
   viewedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  publishedPost: PostContent | null;
-  userEmotion: EmotionContent | null;
+  userId: string;
+}
+
+export function createFeed(input: FeedCreateInput): Feed {
+  return {
+    ...input,
+    id: input.id,
+    contentType: input.type,
+    publishedPostId: input.publishedPostId,
+    userEmotionId: input.userEmotionId,
+    score: input.score,
+    viewedAt: input.viewedAt,
+    createdAt: input.createdAt,
+    updatedAt: input.updatedAt,
+    publishedPost: input.publishedPost,
+    userEmotion: input.userEmotion,
+  };
 }

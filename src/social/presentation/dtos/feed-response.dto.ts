@@ -1,10 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Feed, FeedContentType } from '../../entities/feed.entity';
 import {
-  Feed,
-  FeedContentType,
   PostContent,
   EmotionContent,
-} from '../../entities/feed.entity';
+} from '../../entities/feed-content.entity';
 
 class UserDto {
   @ApiProperty({
@@ -143,7 +142,7 @@ class EmotionContentDto implements EmotionContent {
   user: UserDto;
 }
 
-export class FeedItemDto implements Feed {
+export class FeedItemDto implements Omit<Feed, 'userId'> {
   @ApiProperty({
     type: String,
     description: 'Unique identifier of the feed item',
@@ -169,12 +168,6 @@ export class FeedItemDto implements Feed {
     description: 'Identifier of the referenced emotion',
   })
   userEmotionId: string | null;
-
-  @ApiProperty({
-    type: String,
-    description: 'Identifier of the user who owns this feed item',
-  })
-  userId: string;
 
   @ApiProperty({
     type: Number,
@@ -224,7 +217,6 @@ export class FeedItemDto implements Feed {
       contentType: feed.contentType,
       publishedPostId: feed.publishedPostId,
       userEmotionId: feed.userEmotionId,
-      userId: feed.userId,
       score: feed.score,
       viewedAt: feed.viewedAt,
       createdAt: feed.createdAt,

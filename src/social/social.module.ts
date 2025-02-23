@@ -8,8 +8,12 @@ import { FeedController } from './presentation/feed.controller';
 import { FeedService } from './services/feed.service';
 import { ContentProcessorService } from './services/content-processor.service';
 import { ContentProcessor } from './presentation/processors/content.processor';
-import { ContentListener } from './presentation/listeners/content.listener';
+import { ContentHandler } from './presentation/handlers/content.handler';
 import { FeedDistributionService } from './services/feed-distribution.service';
+import { FeedCacheService } from './services/feed-cache.service';
+import { FeedDatabaseProvider } from './services/providers/feed-database.provider';
+import { FeedCacheProvider } from './services/providers/feed-cache.provider';
+import { ContentRankingForFeedService } from './services/content-ranking-for-feed.service';
 
 @Module({
   imports: [
@@ -29,9 +33,13 @@ import { FeedDistributionService } from './services/feed-distribution.service';
   providers: [
     FeedService,
     ContentProcessorService,
+    ContentRankingForFeedService,
     ContentProcessor,
-    ContentListener,
+    ContentHandler,
     FeedDistributionService,
+    FeedCacheService,
+    FeedDatabaseProvider,
+    FeedCacheProvider,
   ],
 })
 export class SocialModule {}

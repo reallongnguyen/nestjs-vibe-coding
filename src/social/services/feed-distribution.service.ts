@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
 import { ContentProcessedEvent } from '../entities/events/content.event';
+import { FeedItem } from '../entities/feed-content.entity';
 
 @Injectable()
 export class FeedDistributionService {
-  private readonly redis: Redis | null;
+  private readonly redis: Redis;
   private readonly GLOBAL_FEED_KEY = 'feed:global';
   private readonly FEED_TTL = 7 * 24 * 60 * 60; // 7 days in seconds
 
@@ -18,42 +18,18 @@ export class FeedDistributionService {
     this.redis = redisService.getOrThrow();
   }
 
-  @OnEvent('content.processed')
-  async handleContentProcessed(event: ContentProcessedEvent): Promise<void> {
-    try {
-      await this.addToGlobalFeed(event);
-      this.logger.log(
-        `Content ${event.id} added to global feed with score ${event.score}`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to distribute content ${event.id}: ${error.message}`,
-      );
-      throw error;
-    }
-  }
-
-  private async addToGlobalFeed(content: ContentProcessedEvent): Promise<void> {
+  async distributeContent(content: ContentProcessedEvent): Promise<void> {
     const contentKey = this.createContentKey(content);
 
-    await Promise.all([
-      // Add to sorted set with score
-      this.redis.zadd(this.GLOBAL_FEED_KEY, content.score, contentKey),
-      // Store content details with TTL
-      this.redis.setex(
-        contentKey,
-        this.FEED_TTL,
-        JSON.stringify({
-          type: content.type,
-          id: content.id,
-          score: content.score,
-          timestamp: content.timestamp,
-        }),
-      ),
-    ]);
+    if (content.score === 0) {
+      await this.removeFromFeed(contentKey);
+      return;
+    }
+
+    await this.addToFeed(content, contentKey);
   }
 
-  async getGlobalFeed(offset: number, limit: number): Promise<any[]> {
+  async getGlobalFeed(offset: number, limit: number): Promise<FeedItem[]> {
     const contentKeys = await this.redis.zrevrange(
       this.GLOBAL_FEED_KEY,
       offset,
@@ -68,11 +44,38 @@ export class FeedDistributionService {
       contentKeys.map((key) => this.redis.get(key).then(JSON.parse)),
     );
 
-    return contents.filter(Boolean); // Remove any null values from expired keys
+    return contents.filter(Boolean) as FeedItem[];
   }
 
   async getTotalFeedCount(): Promise<number> {
     return this.redis.zcard(this.GLOBAL_FEED_KEY);
+  }
+
+  private async removeFromFeed(contentKey: string): Promise<void> {
+    await Promise.all([
+      this.redis.zrem(this.GLOBAL_FEED_KEY, contentKey),
+      this.redis.del(contentKey),
+    ]);
+    this.logger.log(`Removed content ${contentKey} from feed`);
+  }
+
+  private async addToFeed(
+    content: ContentProcessedEvent,
+    contentKey: string,
+  ): Promise<void> {
+    await Promise.all([
+      this.redis.zadd(this.GLOBAL_FEED_KEY, content.score, contentKey),
+      this.redis.setex(
+        contentKey,
+        this.FEED_TTL,
+        JSON.stringify({
+          type: content.type,
+          id: content.id,
+          score: content.score,
+          timestamp: content.timestamp,
+        }),
+      ),
+    ]);
   }
 
   private createContentKey(content: ContentProcessedEvent): string {
