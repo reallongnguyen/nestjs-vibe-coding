@@ -214,3 +214,133 @@ Dependencies: None
 - Follow code style from src/identity
 - API GET /feeds
 - Cache feed data in Redis using @nestjs/cache-manager
+
+## SOC-002: Implement distribute content to feed
+
+Status: To Do
+Priority: High
+Dependencies: SOC-001
+
+### Context
+
+- Need to distribute content (posts and emotions) to users' feeds efficiently
+- Content needs to be pre-processed and distributed to improve feed loading performance
+- Similar to TikTok's feed distribution system but simplified
+
+### Requirements
+
+- Implement a background job system to distribute content
+- Process new content (posts and emotions) and calculate their scores
+- Distribute content to Redis sorted sets for quick feed retrieval
+- Handle content deletion and updates
+- Implement cleanup mechanism for old content
+
+### Architecture Overview
+
+1. Content Processing Pipeline:
+   - New content → Score Calculation → Distribution → Redis Storage
+   - Uses Redis sorted sets for efficient scoring and retrieval
+   - Background jobs for processing and distribution
+
+2. Storage Structure:
+   - Redis Key Pattern: `feed:global:{timestamp}`
+   - Content stored with score as sorting key
+   - TTL set for old content cleanup
+
+### Tasks Breakdown
+
+#### SOC-002.1: Implement Content Processing Service
+
+Status: To Do
+Priority: High
+
+Requirements:
+
+- Create background job system using Bull
+- Implement score calculation service
+- Process new content when created
+- Handle content updates and deletions
+- Emit events for content distribution
+
+Technical Notes:
+
+- Use Bull for job queue
+- Implement in social module
+- Follow existing patterns for event handling
+
+#### SOC-002.2: Implement Feed Distribution Service
+
+Status: To Do
+Priority: High
+
+Requirements:
+
+- Create distribution service to handle content placement
+- Implement Redis sorted set management
+- Handle content scoring and placement
+- Implement cleanup mechanism for old content
+
+Technical Notes:
+
+- Use Redis sorted sets
+- Implement TTL for content cleanup
+- Handle batch processing for efficiency
+
+#### SOC-002.3: Implement Feed Cache Management
+
+Status: To Do
+Priority: High
+
+Requirements:
+
+- Implement cache invalidation strategy
+- Handle content updates and deletions in cache
+- Implement cache warming mechanism
+- Handle cache cleanup for old content
+
+Technical Notes:
+
+- Use Redis for caching
+- Implement cache versioning
+- Handle partial cache updates
+
+#### SOC-002.4: Create Content Events Handlers
+
+Status: To Do
+Priority: High
+
+Requirements:
+
+- Create event handlers for new content
+- Handle content update events
+- Handle content deletion events
+- Implement retry mechanism for failed operations
+
+Technical Notes:
+
+- Use existing event bus
+- Implement idempotent operations
+- Handle event ordering
+
+### Acceptance Criteria
+
+1. New content is automatically processed and distributed
+2. Content updates are reflected in feeds
+3. Deleted content is removed from feeds
+4. Feed retrieval is performant (< 100ms)
+5. System handles high load efficiently
+6. Old content is automatically cleaned up
+7. Cache invalidation works correctly
+
+### Technical Notes
+
+- Implement in social module
+- Use Bull for job queue management
+- Use Redis sorted sets for feed storage
+- Implement proper error handling and logging
+- Add monitoring for job processing
+- Add metrics for performance tracking
+- Follow existing patterns for event handling
+- Implement proper testing for all components
+- Document all Redis key patterns and TTL strategies
+- Implement for post is not published yet

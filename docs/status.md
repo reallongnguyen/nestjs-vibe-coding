@@ -40,7 +40,16 @@
 
 ## In Progress
 
-- None currently
+- SOC-002: Feed Distribution System
+  - ✅ SOC-002.1: Content Processing Service
+    - ✅ Bull queue integration
+    - ✅ Score calculation implementation
+    - ✅ Event emission setup
+  - ⏳ SOC-002.2: Feed Distribution Service
+  - ⏳ SOC-002.3: Feed Cache Management
+  - ✅ SOC-002.4: Content Events Handlers (Partial)
+    - ✅ New content event handlers
+    - ⏳ Update/delete event handlers
 
 ## Pending
 
