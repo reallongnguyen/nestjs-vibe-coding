@@ -1,18 +1,19 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { Job } from 'bull';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { FeedContentType } from '../entities/feed.entity';
-import { ContentProcessedEvent } from '../events/content.event';
+import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+import { Inject } from '@nestjs/common';
+import { FeedContentType } from '../../entities/feed.entity';
+import { ContentProcessedEvent } from '../../entities/events/content.event';
 
 @Processor('content-processing')
 export class ContentProcessor {
-  private readonly logger = new Logger(ContentProcessor.name);
-
   constructor(
     private readonly prisma: PrismaService,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject('EventBusPort')
+    private readonly eventBus: EventBusPort,
+    private readonly logger: Logger,
   ) {}
 
   @Process('process-post')
@@ -36,12 +37,14 @@ export class ContentProcessor {
     const score = this.calculatePostScore(post);
 
     // Emit typed event
-    this.eventEmitter.emit('content.processed', {
-      type: FeedContentType.POST,
-      id: postId,
-      score,
-      timestamp: post.publishedAt,
-    } as ContentProcessedEvent);
+    await this.eventBus.publish(
+      new ContentProcessedEvent(
+        FeedContentType.POST,
+        postId,
+        score,
+        post.publishedAt,
+      ),
+    );
   }
 
   @Process('process-emotion')
@@ -60,15 +63,15 @@ export class ContentProcessor {
     // Calculate emotion score based on intensity
     const score = this.calculateEmotionScore(emotion);
 
-    this.logger.log(`Emotion ${emotionId} processed with score ${score}`);
-
     // Emit typed event
-    this.eventEmitter.emit('content.processed', {
-      type: FeedContentType.USER_EMOTION,
-      id: emotionId,
-      score,
-      timestamp: emotion.createdAt,
-    } as ContentProcessedEvent);
+    await this.eventBus.publish(
+      new ContentProcessedEvent(
+        FeedContentType.USER_EMOTION,
+        emotionId,
+        score,
+        emotion.createdAt,
+      ),
+    );
   }
 
   private calculatePostScore(post: any): number {
