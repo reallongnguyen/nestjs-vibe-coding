@@ -1,6 +1,8 @@
 import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
 import { Emotion } from '../emotion.entity';
 
+const EVENT_NAME = 'emotion.created';
+
 export class EmotionCreatedEvent extends BaseEvent {
   emotionId: string;
   userId: string;
@@ -19,10 +21,10 @@ export class EmotionCreatedEvent extends BaseEvent {
   }
 
   eventName(): string {
-    return 'emotion.created';
+    return EVENT_NAME;
   }
 
   static getName(): string {
-    return 'emotion.created';
+    return EVENT_NAME;
   }
 }

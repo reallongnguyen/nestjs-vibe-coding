@@ -2,7 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
 import { EmotionCreatedEvent } from '../../entities/events/emotion-created.event';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class StreakHandler {
@@ -13,9 +20,11 @@ export class StreakHandler {
 
   @OnEvent(EmotionCreatedEvent.getName())
   async handleEmotionCreated(event: EmotionCreatedEvent) {
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
+    // calculate streak by UTC timezone
+    const now = dayjs().tz('UTC');
+    const yesterday = dayjs().tz('UTC').subtract(1, 'day');
+
+    // TODO: use cache to prevent check streak if user already checked today
 
     // Use transaction to prevent race conditions
     await this.prisma.$transaction(async (tx) => {
@@ -29,16 +38,15 @@ export class StreakHandler {
             userId: event.userId,
             currentStreak: 1,
             longestStreak: 1,
-            lastActivity: now,
+            lastActivity: now.toDate(),
           },
         });
         return;
       }
 
-      const lastActivityDate = new Date(streak.lastActivity);
-      const isYesterday =
-        lastActivityDate.toDateString() === yesterday.toDateString();
-      const isToday = lastActivityDate.toDateString() === now.toDateString();
+      const lastActivityDate = dayjs(streak.lastActivity).tz('UTC');
+      const isYesterday = lastActivityDate.isSame(yesterday, 'D');
+      const isToday = lastActivityDate.isSame(now, 'D');
 
       if (isToday) {
         // Already counted for today
@@ -53,7 +61,7 @@ export class StreakHandler {
         data: {
           currentStreak: newCurrentStreak,
           longestStreak: newLongestStreak,
-          lastActivity: now,
+          lastActivity: now.toDate(),
         },
       });
 
