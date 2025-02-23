@@ -1,9 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
 import { Logger } from 'nestjs-pino';
 import { Retry } from 'src/common/decorators/retry.decorator';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { InjectEventBus, IEventBus } from 'src/common/event-bus';
+
 import { FeedContentType } from '../entities/feed.entity';
 import { ContentProcessedEvent } from '../entities/events/content.event';
 
@@ -11,8 +12,8 @@ import { ContentProcessedEvent } from '../entities/events/content.event';
 export class ContentRankingForFeedService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject('EventBusPort')
-    private readonly eventBus: EventBusPort,
+    @InjectEventBus()
+    private readonly eventBus: IEventBus,
     private readonly logger: Logger,
   ) {}
 

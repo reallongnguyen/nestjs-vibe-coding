@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Inject,
   Patch,
   UseFilters,
   UseGuards,
@@ -22,7 +21,7 @@ import {
   OkResponse,
   RestExceptionFilter,
 } from 'src/common/presentation/rest';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+import { InjectEventBus, IEventBus } from 'src/common/event-bus';
 
 import { UserService } from '../services/user.service';
 import { PatchProfileDto } from './dtos/profile.input';
@@ -51,8 +50,8 @@ export class UserProfileController {
   constructor(
     logger: Logger,
     userRepository: UserRepository,
-    @Inject('EventBusPort')
-    eventBus: EventBusPort,
+    @InjectEventBus()
+    eventBus: IEventBus,
     userActivityRepository: UserActivityRepository,
   ) {
     this.userService = new UserService(

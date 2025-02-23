@@ -165,7 +165,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 Required understanding files:
 
 - tasks/tasks.md: Source of task definitions
-- docs/status.md: Progress tracking
+- tasks/status.md: Progress tracking
 - docs/technical.md: Implementation guidelines
 
 Workflow steps:
@@ -177,7 +177,7 @@ Workflow steps:
 - Validate against docs/architecture.mermaid:
   - Confirm architectural alignment
   - Check component interactions
-- Update task status: UPDATE docs/status.md:
+- Update task status: UPDATE tasks/status.md:
   - Mark task as in-progress
   - Track completion of sub-tasks
   - Document any blockers
@@ -193,7 +193,7 @@ Workflow steps:
 
 Required actions after any task completion:
 
-- UPDATE docs/status.md with:
+- UPDATE tasks/status.md with:
   - Current progress
   - Any new issues encountered
   - Completed items

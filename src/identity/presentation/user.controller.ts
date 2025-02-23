@@ -7,7 +7,6 @@ import {
   UseGuards,
   Param,
   Query,
-  Inject,
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -29,7 +28,7 @@ import {
   PaginatedResponse,
   RestExceptionFilter,
 } from 'src/common/presentation/rest';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+import { InjectEventBus, IEventBus } from 'src/common/event-bus';
 
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from './dtos/user.input';
@@ -64,8 +63,8 @@ export class UserController {
   constructor(
     logger: Logger,
     userRepository: UserRepository,
-    @Inject('EventBusPort')
-    eventBus: EventBusPort,
+    @InjectEventBus()
+    eventBus: IEventBus,
     userActivityRepository: UserActivityRepository,
   ) {
     this.userService = new UserService(

@@ -23,12 +23,14 @@ src/
     ├── presentation/           # Controllers and DTOs
     │   ├── controllers/        # HTTP controllers
     │   ├── handlers/           # Event handlers
+    │   ├── processors/         # Background job processors
     │   ├── middlewares/        # HTTP middlewares
     │   ├── decorators/         # Custom decorators
     │   ├── guards/             # Authentication/Authorization guards
     │   └── dtos/               # Request/Response DTOs
     │
-    └── {module-name}.module.ts # Module definition
+    ├── {module-name}.module.ts # Module definition
+    └── {module-name}.config.ts # Module configuration
 ```
 
 ## Directory Responsibilities
@@ -166,7 +168,8 @@ src/content/
 │   └── dtos/
 │       ├── create-post.dto.ts
 │       └── post-response.dto.ts
-└── content.module.ts
+├── content.module.ts
+└── content.config.ts
 ```
 
 This structure provides:

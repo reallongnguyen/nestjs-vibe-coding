@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+import { IEventBus, InjectEventBus } from 'src/common/event-bus';
+
 import { Emotion } from '../entities/emotion.entity';
 import { IEmotionRepository } from './interfaces/emotion.repository.interface';
 import { CreateEmotionDto } from './dtos/create-emotion.dto';
@@ -12,8 +13,8 @@ export class CreateEmotionService {
     private readonly logger: Logger,
     @Inject('IEmotionRepository')
     private readonly emotionRepository: IEmotionRepository,
-    @Inject('EventBusPort')
-    private readonly eventBus: EventBusPort,
+    @InjectEventBus()
+    private readonly eventBus: IEventBus,
   ) {}
 
   async execute(params: CreateEmotionDto): Promise<Emotion> {

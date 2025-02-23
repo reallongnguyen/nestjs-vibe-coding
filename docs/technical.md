@@ -5,11 +5,16 @@ This document outlines the technical architecture for an AI-based IDE built usin
 ## Technology Stack
 
 - **Backend Framework**: NestJS
-- **Database ORM**: Prisma
 - **Language**: TypeScript
-- **Event Bus**: NestJS Event
+- **API docs**: Swagger
+- **Database ORM**: Prisma
 - **Database**: PostgreSQL
 - **Authentication**: JWT + role-based authorization
+- **Event Bus**: EventBus module powered by NestJS EventEmitter
+- **Caching**: Redis
+- **Queue**: BullMQ
+- **Real-time**: MQTT
+- **Monitoring**: Prometheus, Grafana
 
 ## Core Modules
 
@@ -19,7 +24,7 @@ This document outlines the technical architecture for an AI-based IDE built usin
 // src/common/common.module.ts
 @Module({
   imports: [
-    LightConfigModule,
+    AppConfigModule,
     LoggerModule,
     CacheModule.registerAsync<RedisClientOptions>({
       inject: [ConfigService],
@@ -79,10 +84,6 @@ model User {
 }
 ```
 
-```typescript
-// src/identity/entities/user.entity.ts
-export { User } from '@prisma/client';
-```
 
 ### 3. Notification Module
 
@@ -147,6 +148,8 @@ model UserEmotion {
 
 ## Event-Driven Architecture
 
+Prefer use event bus to communicate between modules. Use event bus instead of EventEmitter.
+
 ### Event Bus Configuration
 
 ```typescript
@@ -155,13 +158,26 @@ model UserEmotion {
   imports: [EventEmitterModule.forRoot()],
   providers: [
     {
-      provide: 'EventBusPort',
+      provide: EVENT_BUS_TOKEN,
       useClass: EventBusAdapter,
     },
   ],
-  exports: ['EventBusPort'],
+  exports: [EVENT_BUS_TOKEN],
 })
 export class EventBusModule {}
+```
+
+### Publish event
+
+```typescript
+// src/identity/presentation/events/user-activity.handler.ts
+@Injectable()
+export class UserActivityHandler {
+  constructor(
+    @InjectEventBus()
+    private readonly eventBus: IEventBus,
+  ) {}
+}
 ```
 
 ### Event Handlers
@@ -185,7 +201,7 @@ export class UserActivityHandler {
 
 ### Prisma Schema
 
-Read prisma/schema.prisma
+Read `prisma/schema.prisma`
 
 ## Security Implementations
 
