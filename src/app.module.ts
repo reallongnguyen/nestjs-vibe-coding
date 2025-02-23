@@ -5,6 +5,7 @@ import { FileModule } from 'src/storage/file.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { IdentityModule } from './identity/identity.module';
 import { GamificationModule } from './gamification/gamification.module';
+import { SocialModule } from './social/social.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { GamificationModule } from './gamification/gamification.module';
     GamificationModule,
     FileModule,
     NotificationModule,
+    SocialModule,
   ],
   controllers: [AppController],
 })

@@ -2,6 +2,7 @@ graph TD
     I[Identity Module] --> ID[(Identity DB)]
     N[Notification Module] --> ND[(Notification DB)]
     G[Gamification] --> GD[(Gamification DB)]
+    S[Social Module] --> SD[(Social DB)]
 
     I --> C[Common Module]
     N --> C
@@ -10,5 +11,8 @@ graph TD
     E[Event Bus] --> I
     E --> N
     E --> G
+
+    S --> R[(Redis Cache)]
+    C --> R
 
     style E fill:#FFD700,stroke:#333,stroke-width:2px

@@ -190,7 +190,8 @@ model UserEmotion {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  user User @relation(fields: [userId], references: [id])
+  user  User   @relation(fields: [userId], references: [id])
+  feeds Feed[] @relation(map: "feeds_user_emotion_fkey")
 
   @@index([userId])
   @@index([date])
@@ -249,16 +250,19 @@ model PublishedPost {
   publishedAt DateTime    @default(now()) @map("published_at") @db.Timestamptz()
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
   isArchived  Boolean     @default(false) @map("is_archived")
-  authorId    String      @map("author_id")
+  userId      String?     @map("user_id")
+  botId       String?     @map("bot_id")
   authorType  String      @default("USER") @map("author_type") // "USER" or "BOT"
 
-  userAuthor User?       @relation("UserAuthorPosts", fields: [authorId], references: [id], map: "published_posts_user_author_fkey") @ignore
-  botAuthor  Bot?        @relation("BotPosts", fields: [authorId], references: [id], map: "published_posts_bot_author_fkey") @ignore
-  DraftPost  DraftPost[]
+  userAuthor User?       @relation("UserAuthorPosts", fields: [userId], references: [id], map: "published_posts_user_author_fkey")
+  botAuthor  Bot?        @relation("BotPosts", fields: [botId], references: [id], map: "published_posts_bot_author_fkey")
+  draftPosts DraftPost[]
+  feeds      Feed[]      @relation(map: "feeds_published_post_fkey")
 
   @@index([publishedAt])
   @@index([isArchived])
-  @@index([authorId, authorType])
+  @@index([userId])
+  @@index([botId])
   @@map("published_posts")
 }
 
@@ -282,19 +286,21 @@ model Comment {
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
   deletedAt  DateTime? @map("deleted_at") @db.Timestamptz()
-  authorId   String    @map("author_id")
+  userId     String?   @map("user_id")
+  botId      String?   @map("bot_id")
   authorType String    @default("USER") @map("author_type") // "USER" or "BOT"
 
   post       PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userAuthor User?         @relation("UserAuthorComments", fields: [authorId], references: [id], map: "comments_user_author_fkey") @ignore
-  botAuthor  Bot?          @relation("BotComments", fields: [authorId], references: [id], map: "comments_bot_author_fkey") @ignore
+  userAuthor User?         @relation("UserAuthorComments", fields: [userId], references: [id], map: "comments_user_author_fkey")
+  botAuthor  Bot?          @relation("BotComments", fields: [botId], references: [id], map: "comments_bot_author_fkey")
   parent     Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
   replies    Comment[]     @relation("CommentReplies")
   likes      CommentLike[]
 
   @@index([postId])
   @@index([parentId])
-  @@index([authorId, authorType])
+  @@index([userId])
+  @@index([botId])
   @@map("comments")
 }
 
@@ -349,19 +355,25 @@ enum FeedContentType {
 }
 
 model Feed {
-  id          String          @id @default(uuid())
-  contentType FeedContentType @map("content_type")
-  contentId   String          @map("content_id")
-  userId      String          @map("user_id")
-  score       Float           @default(0) // For ranking/sorting content
-  viewedAt    DateTime?       @map("viewed_at") @db.Timestamptz()
-  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
+  id              String          @id @default(uuid())
+  contentType     FeedContentType @map("content_type")
+  publishedPostId String?          @map("published_post_id")
+  userEmotionId   String?          @map("user_emotion_id")
+  userId          String          @map("user_id")
+  score           Float           @default(0) // For ranking/sorting content
+  viewedAt        DateTime?       @map("viewed_at") @db.Timestamptz()
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
 
   user User @relation(fields: [userId], references: [id])
 
+  // Use conditional foreign key constraints based on contentType
+  publishedPost PublishedPost? @relation(fields: [publishedPostId], references: [id], map: "feeds_published_post_fkey")
+  userEmotion   UserEmotion?   @relation(fields: [userEmotionId], references: [id], map: "feeds_user_emotion_fkey")
+
   @@index([userId])
-  @@index([contentType, contentId])
+  @@index([contentType, publishedPostId])
+  @@index([contentType, userEmotionId])
   @@index([score])
   @@index([viewedAt])
   @@map("feeds")

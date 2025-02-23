@@ -169,3 +169,48 @@ Dependencies: None
 - Edit these API
   - API POST /emotions
   - API GET /emotions/last-7-days
+
+## SOC-001: Implement get feed API
+
+Status: To Do
+Priority: High
+Dependencies: None
+
+### Context
+
+- Feed is a list of post or user emotion
+- Feed is sorted by score and date
+- Score is a value that calculated from post and user emotion
+- Score is calculated from emotion intensity and time
+- Score is calculated by formula:
+  - Score = (intensity * 1000) / (time_diff + 1)
+  - time_diff = (current_time - post_time) / 1000 / 60 / 60
+  - intensity is the sum of intensity of emotion of post
+
+### Requirements
+
+- Get feed of user
+- Require USER role
+- Should return post data in
+  - descending order of score
+  - descending order of date
+- Pagination:
+  - Default page is 1
+  - Default limit is 16
+  - Should return total of feed
+  - Should return feed data with pagination
+
+### Acceptance Criteria
+
+1. User can get feed successfully
+2. User can see feed data in descending order of score
+3. User can see feed data in descending order of date
+4. User can see pagination of feed
+5. User can see correct feed data with pagination
+
+### Technical Notes
+
+- Add this API into social module
+- Follow code style from src/identity
+- API GET /feeds
+- Cache feed data in Redis using @nestjs/cache-manager

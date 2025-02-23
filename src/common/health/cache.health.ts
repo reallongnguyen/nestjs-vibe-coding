@@ -14,7 +14,7 @@ export interface Dog {
 
 @Injectable()
 export class CacheHealthIndicator extends HealthIndicator {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {
     super();
   }
 

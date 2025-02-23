@@ -158,7 +158,8 @@ CREATE TABLE "published_posts" (
     "published_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
     "is_archived" BOOLEAN NOT NULL DEFAULT false,
-    "author_id" TEXT NOT NULL,
+    "user_id" TEXT,
+    "bot_id" TEXT,
     "author_type" TEXT NOT NULL DEFAULT 'USER',
 
     CONSTRAINT "published_posts_pkey" PRIMARY KEY ("id")
@@ -183,7 +184,8 @@ CREATE TABLE "comments" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
     "deleted_at" TIMESTAMPTZ,
-    "author_id" TEXT NOT NULL,
+    "user_id" TEXT,
+    "bot_id" TEXT,
     "author_type" TEXT NOT NULL DEFAULT 'USER',
 
     CONSTRAINT "comments_pkey" PRIMARY KEY ("id")
@@ -222,7 +224,8 @@ CREATE TABLE "bookmarks" (
 CREATE TABLE "feeds" (
     "id" TEXT NOT NULL,
     "content_type" "feed_content_type" NOT NULL,
-    "content_id" TEXT NOT NULL,
+    "published_post_id" TEXT,
+    "user_emotion_id" TEXT,
     "user_id" TEXT NOT NULL,
     "score" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "viewed_at" TIMESTAMPTZ,
@@ -358,7 +361,10 @@ CREATE INDEX "published_posts_published_at_idx" ON "published_posts"("published_
 CREATE INDEX "published_posts_is_archived_idx" ON "published_posts"("is_archived");
 
 -- CreateIndex
-CREATE INDEX "published_posts_author_id_author_type_idx" ON "published_posts"("author_id", "author_type");
+CREATE INDEX "published_posts_user_id_idx" ON "published_posts"("user_id");
+
+-- CreateIndex
+CREATE INDEX "published_posts_bot_id_idx" ON "published_posts"("bot_id");
 
 -- CreateIndex
 CREATE INDEX "comments_post_id_idx" ON "comments"("post_id");
@@ -367,7 +373,10 @@ CREATE INDEX "comments_post_id_idx" ON "comments"("post_id");
 CREATE INDEX "comments_parent_id_idx" ON "comments"("parent_id");
 
 -- CreateIndex
-CREATE INDEX "comments_author_id_author_type_idx" ON "comments"("author_id", "author_type");
+CREATE INDEX "comments_user_id_idx" ON "comments"("user_id");
+
+-- CreateIndex
+CREATE INDEX "comments_bot_id_idx" ON "comments"("bot_id");
 
 -- CreateIndex
 CREATE INDEX "bookmarks_user_id_idx" ON "bookmarks"("user_id");
@@ -382,7 +391,10 @@ CREATE UNIQUE INDEX "bookmarks_user_id_content_type_content_id_key" ON "bookmark
 CREATE INDEX "feeds_user_id_idx" ON "feeds"("user_id");
 
 -- CreateIndex
-CREATE INDEX "feeds_content_type_content_id_idx" ON "feeds"("content_type", "content_id");
+CREATE INDEX "feeds_content_type_published_post_id_idx" ON "feeds"("content_type", "published_post_id");
+
+-- CreateIndex
+CREATE INDEX "feeds_content_type_user_emotion_id_idx" ON "feeds"("content_type", "user_emotion_id");
 
 -- CreateIndex
 CREATE INDEX "feeds_score_idx" ON "feeds"("score");
@@ -430,10 +442,10 @@ ALTER TABLE "draft_posts" ADD CONSTRAINT "draft_posts_user_id_fkey" FOREIGN KEY 
 ALTER TABLE "draft_posts" ADD CONSTRAINT "draft_posts_published_id_fkey" FOREIGN KEY ("published_id") REFERENCES "published_posts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "published_posts" ADD CONSTRAINT "published_posts_user_author_fkey" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "published_posts" ADD CONSTRAINT "published_posts_user_author_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "published_posts" ADD CONSTRAINT "published_posts_bot_author_fkey" FOREIGN KEY ("author_id") REFERENCES "bots"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "published_posts" ADD CONSTRAINT "published_posts_bot_author_fkey" FOREIGN KEY ("bot_id") REFERENCES "bots"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "post_topics" ADD CONSTRAINT "post_topics_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "published_posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -445,10 +457,10 @@ ALTER TABLE "post_topics" ADD CONSTRAINT "post_topics_topic_id_fkey" FOREIGN KEY
 ALTER TABLE "comments" ADD CONSTRAINT "comments_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "published_posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "comments" ADD CONSTRAINT "comments_user_author_fkey" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "comments" ADD CONSTRAINT "comments_user_author_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "comments" ADD CONSTRAINT "comments_bot_author_fkey" FOREIGN KEY ("author_id") REFERENCES "bots"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "comments" ADD CONSTRAINT "comments_bot_author_fkey" FOREIGN KEY ("bot_id") REFERENCES "bots"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "comments" ADD CONSTRAINT "comments_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "comments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -470,6 +482,12 @@ ALTER TABLE "bookmarks" ADD CONSTRAINT "bookmarks_user_id_fkey" FOREIGN KEY ("us
 
 -- AddForeignKey
 ALTER TABLE "feeds" ADD CONSTRAINT "feeds_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "feeds" ADD CONSTRAINT "feeds_published_post_fkey" FOREIGN KEY ("published_post_id") REFERENCES "published_posts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "feeds" ADD CONSTRAINT "feeds_user_emotion_fkey" FOREIGN KEY ("user_emotion_id") REFERENCES "user_emotions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_streaks" ADD CONSTRAINT "user_streaks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

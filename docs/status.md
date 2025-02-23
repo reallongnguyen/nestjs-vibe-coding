@@ -25,16 +25,17 @@
   - ✅ Input validation
   - ✅ Documentation
 
-- EMO-005: Get Last 7 Days Emotions
-  - ✅ API implementation
-  - ✅ Date handling in UTC
-  - ✅ Emotion aggregation logic
-  - ✅ Documentation
-
-- EMO-006: Change Emotion Creation Logic
+- EMO-005: Emotion History Aggregation
   - ✅ Removed emotion replacement logic
   - ✅ Updated history aggregation to use intensity sums
   - ✅ Maintained note from latest emotion
+  - ✅ Documentation
+
+- SOC-001: Get Feed API
+  - ✅ API implementation with pagination
+  - ✅ Redis caching integration
+  - ✅ Content type handling (posts and emotions)
+  - ✅ Score-based sorting
   - ✅ Documentation
 
 ## In Progress
