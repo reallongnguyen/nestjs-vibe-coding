@@ -3,6 +3,7 @@ import { Redis } from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Retry } from 'src/common/decorators/retry.decorator';
 import { ContentProcessedEvent } from '../entities/events/content.event';
 
 @Injectable()
@@ -18,6 +19,9 @@ export class FeedCacheService {
     this.redis = redisService.getOrThrow();
   }
 
+  @Retry({
+    maxAttempts: 2,
+  })
   async getCachedFeed(
     userId: string,
     offset: number,
@@ -28,6 +32,9 @@ export class FeedCacheService {
     return cached ? JSON.parse(cached) : null;
   }
 
+  @Retry({
+    maxAttempts: 2,
+  })
   async cacheFeed(
     userId: string,
     offset: number,
@@ -52,6 +59,9 @@ export class FeedCacheService {
     }
   }
 
+  @Retry({
+    maxAttempts: 2,
+  })
   async invalidateUserFeeds(): Promise<void> {
     const pattern = `${this.USER_FEED_PREFIX}*`;
     const keys = await this.redis.keys(pattern);

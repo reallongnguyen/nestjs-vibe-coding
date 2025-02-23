@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
+import { Retry } from 'src/common/decorators/retry.decorator';
 import { ContentProcessedEvent } from '../entities/events/content.event';
 import { FeedItem } from '../entities/feed-content.entity';
 
@@ -18,6 +19,9 @@ export class FeedDistributionService {
     this.redis = redisService.getOrThrow();
   }
 
+  @Retry({
+    maxAttempts: 3,
+  })
   async distributeContent(content: ContentProcessedEvent): Promise<void> {
     const contentKey = this.createContentKey(content);
 
@@ -29,6 +33,9 @@ export class FeedDistributionService {
     await this.addToFeed(content, contentKey);
   }
 
+  @Retry({
+    maxAttempts: 2,
+  })
   async getGlobalFeed(offset: number, limit: number): Promise<FeedItem[]> {
     const contentKeys = await this.redis.zrevrange(
       this.GLOBAL_FEED_KEY,

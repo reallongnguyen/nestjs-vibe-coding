@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
 import { Logger } from 'nestjs-pino';
+import { Retry } from 'src/common/decorators/retry.decorator';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { FeedContentType } from '../entities/feed.entity';
 import { ContentProcessedEvent } from '../entities/events/content.event';
 
@@ -14,6 +16,10 @@ export class ContentRankingForFeedService {
     private readonly logger: Logger,
   ) {}
 
+  @Retry({
+    maxAttempts: 3,
+    retryableErrors: [PrismaClientKnownRequestError],
+  })
   async processPost(postId: string): Promise<void> {
     const post = await this.prisma.publishedPost.findUnique({
       where: { id: postId },
@@ -30,7 +36,7 @@ export class ContentRankingForFeedService {
 
     const score = this.calculatePostScore(post);
 
-    await this.eventBus.publish(
+    await this.publishWithRetry(
       new ContentProcessedEvent(
         FeedContentType.POST,
         postId,
@@ -40,6 +46,10 @@ export class ContentRankingForFeedService {
     );
   }
 
+  @Retry({
+    maxAttempts: 3,
+    retryableErrors: [PrismaClientKnownRequestError],
+  })
   async processEmotion(emotionId: string): Promise<void> {
     const emotion = await this.prisma.userEmotion.findUnique({
       where: { id: emotionId },
@@ -52,7 +62,7 @@ export class ContentRankingForFeedService {
 
     const score = this.calculateEmotionScore(emotion);
 
-    await this.eventBus.publish(
+    await this.publishWithRetry(
       new ContentProcessedEvent(
         FeedContentType.USER_EMOTION,
         emotionId,
@@ -60,6 +70,11 @@ export class ContentRankingForFeedService {
         emotion.createdAt,
       ),
     );
+  }
+
+  @Retry()
+  private async publishWithRetry(event: ContentProcessedEvent): Promise<void> {
+    await this.eventBus.publish(event);
   }
 
   async removeContent(type: FeedContentType, contentId: string): Promise<void> {
