@@ -40,3 +40,19 @@ export class NotDraftOwnerError extends AppError {
     });
   }
 }
+
+export class SlugExistsError extends AppError {
+  constructor(slug: string) {
+    super('draft.publish.slugExists', {
+      slug,
+    });
+  }
+}
+
+export class DraftPublishError extends AppError {
+  constructor(cause?: Error) {
+    super('draft.publish.failed', {
+      cause: cause?.message,
+    });
+  }
+}

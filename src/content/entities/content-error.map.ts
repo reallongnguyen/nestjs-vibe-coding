@@ -27,5 +27,15 @@ export const contentErrorMap: ErrorMap = {
       status: HttpStatus.FORBIDDEN,
       message: 'Not authorized to update this draft',
     },
+    publish: {
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to publish draft post',
+      },
+      slugExists: {
+        status: HttpStatus.CONFLICT,
+        message: 'A post with this slug already exists: {{slug}}',
+      },
+    },
   },
 };

@@ -259,86 +259,94 @@ Implement API endpoint to publish draft posts, converting them to published post
 
 ### Requirements
 
-1. Users must be authenticated to publish
-2. Can only publish own drafts
-3. System should:
-   - Generate URL slug
-   - Calculate reading time
-   - Create PublishedPost record
-   - Link draft to published version
-4. Published posts should be publicly accessible
-5. Reading time is calculated based on the content length
+### Functional
 
-### Technical Notes
+- Convert draft post to published post
+- Generate unique URL slug from title
+- Calculate reading time from content
+- Link draft to published version
+- Only owner can publish their drafts
+- Return published post data
 
-1. Database Schema:
-   - Use PublishedPost and DraftPost models
-   - Handle relationships between models
-2. Validation:
-   - Verify draft exists
-   - Validate all required fields present
-   - Generate unique slug
-3. Error Handling:
-   - Draft not found
-   - Unauthorized access
-   - Validation errors
-4. Authentication:
-   - Use existing AuthGuard
-   - Verify ownership
-5. Follow the folder structure in module-structure.md and code style in module `/src/social`
+### Technical
 
-### API Specification
+- Endpoint: POST /posts/drafts/:id/publish
+- Input validation using class-validator
+- Transaction support for data consistency
+- Proper error handling and logging
+- Follow existing patterns from CON-001/002
+
+## Acceptance Criteria
+
+### API Contract
 
 ```typescript
-POST /api/v1/posts/drafts/:id/publish
+// Request
+POST /posts/drafts/:id/publish
+{
+  // Optional overrides for publishing
+  title?: string;
+  subtitle?: string;
+  excerpt?: string; // If not provided, generated from content
+}
 
-Response (201):
+// Response 201
 {
   id: string;
   title: string;
-  subtitle?: string;
+  subtitle: string | null;
   slug: string;
-  content: JsonValue;
-  cover?: string;
-  topics: string[];
+  content: Record<string, any>;
+  excerpt: string;
+  cover: string | null;
   readingTime: number;
-  publishedAt: Date;
-  updatedAt: Date;
+  topics: string[];
+  likeCount: number;
+  replyCount: number;
+  viewCount: number;
+  userId: string;
+  publishedAt: string;
+  updatedAt: string;
 }
 ```
 
-### Sub-tasks
+### Error Cases
 
-1. Create module structure:
-   - Add published-post.dto.ts
-   - Add interfaces for published posts
+- 404: Draft not found
+- 403: Not draft owner
+- 400: Invalid input data
+- 409: Slug already exists
+- 500: Database error
 
-2. Implement data layer:
-   - Create published post repository
-   - Add publish methods
-   - Add repository tests
+### Implementation Steps
 
-3. Implement API layer with mock service:
-   - Add publish endpoint
-   - Add validation
-   - Add mock implementation
-   - Add controller tests
+1. Create module structure
+   - Add PublishDraftDto
+   - Add PublishedPost entity
+   - Add repository interface methods
+   - Add service interface methods
+   - Add controller endpoint
 
-4. Implement business logic:
-   - Add publish logic
-   - Implement slug generation
-   - Calculate reading time
-   - Add service tests
-   - Replace mock implementation
+2. Implement code
 
-5. Add integration tests:
-   - Test publish flow
-   - Test validation
-   - Test error scenarios
+3. Add end to end tests
+   - Success cases
+   - Error cases
+   - Authorization cases
+   - File name: src/content/test/draft-post.controller.e2e-spec.ts
 
-### Dependencies
+## Dependencies
 
-Same as CON-001
+- CON-001: Create Draft Post API ✅
+- CON-002: Update Draft Post API ✅
+
+## Notes
+
+- Slug must be unique across all published posts
+- Reading time calculation based on word count (avg 200 words/min)
+- Excerpt should be max 160 chars from content if not provided
+- Add proper logging for debugging
+- Update documentation
 
 ### Estimated Effort
 

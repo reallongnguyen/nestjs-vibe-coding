@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { BaseRepository } from 'src/common/repositories/base.repository';
 import { DraftPost } from '../entities/draft-post.entity';
+import { PublishedPost } from '../entities/published-post.entity';
 import { IDraftPostRepository } from '../services/interfaces/draft-post.repository.interface';
 import { CreateDraftPostData } from '../services/dtos/create-daft-post.dto';
-import { DraftCreateError } from '../entities/content.error';
+import { DraftCreateError, DraftUpdateError } from '../entities/content.error';
 
 @Injectable()
 export class DraftPostRepository
@@ -58,8 +59,56 @@ export class DraftPostRepository
 
       return result as DraftPost;
     } catch (error) {
-      this.logger.error(`Failed to update draft post ${id}`, error);
-      throw new DraftCreateError(error);
+      this.logger.error(`Failed to update draft post ${id}`, error.message);
+      throw new DraftCreateError(error.message);
+    }
+  }
+
+  async publish(
+    id: string,
+    data: {
+      title?: string;
+      subtitle?: string;
+      excerpt?: string;
+      slug: string;
+      readingTime: number;
+      content: Record<string, any>;
+      userId: string;
+    },
+  ): Promise<{ draft: DraftPost; published: PublishedPost }> {
+    try {
+      const tx = this.prisma as PrismaService;
+      const [published, draft] = await tx.$transaction([
+        tx.publishedPost.create({
+          data: {
+            id,
+            title: data.title,
+            subtitle: data.subtitle,
+            slug: data.slug,
+            excerpt: data.excerpt,
+            readingTime: data.readingTime,
+            content: data.content,
+            userId: data.userId,
+            likeCount: 0,
+            replyCount: 0,
+            viewCount: 0,
+            publishedAt: new Date(),
+          },
+        }),
+        tx.draftPost.update({
+          where: { id },
+          data: { publishedId: id },
+        }),
+      ]);
+
+      return {
+        draft: draft as DraftPost,
+        published: published as unknown as PublishedPost,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to publish draft post ${id}: ${error.message}`);
+
+      throw new DraftUpdateError(error.message);
     }
   }
 }

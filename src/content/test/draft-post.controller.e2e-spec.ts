@@ -8,8 +8,15 @@ import { mockUser } from 'src/common/test/mock-user';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { DatabaseHelper } from 'src/common/test/database.helper';
 import { LoggerHelper } from 'src/common/test/logger.helper';
+import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+import { EventBusAdapter } from 'src/common/event-bus/adapters/infrastructure/event-bus.adapter';
+import { generateSlug } from '../services/utils/content.utils';
 import { ContentModule } from '../content.module';
-import { TEST_TOPIC, TEST_DRAFT_POST } from './content.test-data';
+import {
+  TEST_TOPIC,
+  TEST_DRAFT_POST,
+  EXPECTED_PUBLISHED_POST,
+} from './content.test-data';
 
 describe('DraftPostController (Integration)', () => {
   let app: INestApplication;
@@ -380,6 +387,162 @@ describe('DraftPostController (Integration)', () => {
         await request(app.getHttpServer())
           .patch(`/posts/drafts/${draftId}`)
           .send({ title: 'New Title' })
+          .expect(401);
+      });
+    });
+  });
+
+  describe('POST /posts/drafts/:id/publish', () => {
+    describe('Success cases', () => {
+      it('should publish draft post and emit event', async () => {
+        const eventBus = app.get<EventBusPort>(EventBusAdapter);
+        const publishSpy = jest.spyOn(eventBus, 'publish');
+
+        const publishData = {
+          title: 'Updated Title for Publishing',
+          subtitle: 'Updated Subtitle',
+          excerpt: 'Custom excerpt for the published post',
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/posts/drafts/${draftId}/publish`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(publishData)
+          .expect(201);
+
+        // Verify event was published
+        expect(publishSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            publishedId: response.body.id,
+            draftId,
+            userId: mockUser.id,
+            title: publishData.title,
+            slug: response.body.slug,
+          }),
+        );
+      });
+
+      it('should publish draft post with all fields', async () => {
+        const publishData = {
+          title: 'Updated Title for Publishing',
+          subtitle: 'Updated Subtitle',
+          excerpt: 'Custom excerpt for the published post',
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/posts/drafts/${draftId}/publish`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(publishData)
+          .expect(201);
+
+        // Verify response matches expected structure
+        expect(response.body).toMatchObject({
+          ...EXPECTED_PUBLISHED_POST,
+          title: publishData.title,
+          subtitle: publishData.subtitle,
+          excerpt: publishData.excerpt,
+          slug: expect.stringContaining(generateSlug(publishData.title)),
+          userId: mockUser.id,
+        });
+
+        // Verify database state
+        const publishedPost = await prisma.publishedPost.findUnique({
+          where: { id: response.body.id },
+        });
+        expect(publishedPost).toBeTruthy();
+        expect(publishedPost).toMatchObject({
+          title: publishData.title,
+          content: TEST_DRAFT_POST.content,
+        });
+
+        const updatedDraft = await prisma.draftPost.findUnique({
+          where: { id: draftId },
+        });
+        expect(updatedDraft?.publishedId).toBe(response.body.id);
+
+        // Verify logging
+        const logs = loggerHelper.getLoggerCalls();
+        expect(logs.debug).toEqual(
+          expect.arrayContaining([
+            expect.arrayContaining([
+              expect.stringContaining('Publishing draft post'),
+            ]),
+            expect.arrayContaining([
+              expect.stringContaining('Published draft post'),
+            ]),
+          ]),
+        );
+      });
+
+      it('should publish with minimal data using draft values', async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/posts/drafts/${draftId}/publish`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send({})
+          .expect(201);
+
+        expect(response.body).toMatchObject({
+          ...EXPECTED_PUBLISHED_POST,
+          userId: mockUser.id,
+        });
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should return 404 when draft not found', async () => {
+        const nonExistentId = 'non-existent-id';
+        await request(app.getHttpServer())
+          .post(`/posts/drafts/${nonExistentId}/publish`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send({})
+          .expect(404);
+      });
+
+      it('should return 403 when user is not owner', async () => {
+        const otherUser = { ...mockUser, id: 'other-user-id' };
+        const moduleRef = await Test.createTestingModule({
+          imports: [ContentModule, PrismaModule],
+        })
+          .overrideGuard(AuthGuard)
+          .useValue({
+            canActivate: () => true,
+            getRequest: () => ({
+              user: otherUser,
+            }),
+          })
+          .compile();
+
+        const otherApp = moduleRef.createNestApplication();
+        otherApp.useGlobalPipes(new ValidationPipe());
+        await otherApp.init();
+
+        await request(otherApp.getHttpServer())
+          .post(`/posts/drafts/${draftId}/publish`)
+          .set('Authorization', `Bearer ${otherUser.token}`)
+          .send({})
+          .expect(403);
+
+        await otherApp.close();
+      });
+
+      it('should validate input data', async () => {
+        const invalidData = {
+          title: 123, // Should be string
+          subtitle: true, // Should be string
+          excerpt: {}, // Should be string
+        };
+
+        await request(app.getHttpServer())
+          .post(`/posts/drafts/${draftId}/publish`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(invalidData)
+          .expect(400);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .post(`/posts/drafts/${draftId}/publish`)
+          .send({})
           .expect(401);
       });
     });
