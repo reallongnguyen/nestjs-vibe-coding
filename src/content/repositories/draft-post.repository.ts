@@ -73,31 +73,41 @@ export class DraftPostRepository
       slug: string;
       readingTime: number;
       content: Record<string, any>;
+      cover: string;
       userId: string;
+      topicIds: string[];
     },
   ): Promise<{ draft: DraftPost; published: PublishedPost }> {
     try {
       const tx = this.prisma as PrismaService;
-      const [published, draft] = await tx.$transaction([
-        tx.publishedPost.create({
-          data: {
-            id,
-            title: data.title,
-            subtitle: data.subtitle,
-            slug: data.slug,
-            excerpt: data.excerpt,
-            readingTime: data.readingTime,
-            content: data.content,
-            userId: data.userId,
-            likeCount: 0,
-            replyCount: 0,
-            viewCount: 0,
-            publishedAt: new Date(),
-          },
-        }),
+      const published = await tx.publishedPost.create({
+        data: {
+          id,
+          title: data.title,
+          subtitle: data.subtitle,
+          slug: data.slug,
+          excerpt: data.excerpt,
+          readingTime: data.readingTime,
+          content: data.content,
+          cover: data.cover,
+          userId: data.userId,
+          likeCount: 0,
+          replyCount: 0,
+          viewCount: 0,
+          publishedAt: new Date(),
+        },
+      });
+
+      const [draft] = await Promise.all([
         tx.draftPost.update({
           where: { id },
           data: { publishedId: id },
+        }),
+        tx.postTopic.createMany({
+          data: data.topicIds.map((topicId) => ({
+            postId: id,
+            topicId,
+          })),
         }),
       ]);
 
@@ -110,5 +120,17 @@ export class DraftPostRepository
 
       throw new DraftUpdateError(error.message);
     }
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.draftPost.delete({
+      where: { id },
+    });
+  }
+
+  async findByPublishedId(publishedId: string): Promise<DraftPost | null> {
+    return (await this.prisma.draftPost.findFirst({
+      where: { publishedId },
+    })) as DraftPost | null;
   }
 }

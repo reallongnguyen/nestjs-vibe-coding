@@ -6,8 +6,9 @@ import {
   Patch,
   Param,
   UseFilters,
+  Delete,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -31,7 +32,10 @@ import { PublishDraftDto } from './dtos/publish-draft.dto';
 import { PublishedPost } from '../entities/published-post.entity';
 
 @ApiTags('Posts')
-@Controller('posts/drafts')
+@Controller({
+  path: 'posts/drafts',
+  version: '1',
+})
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(new RestExceptionFilter(contentErrorMap))
 export class DraftPostController {
@@ -73,5 +77,18 @@ export class DraftPostController {
     @Body() dto: PublishDraftDto,
   ): Promise<PublishedPost> {
     return this.draftPostService.publishDraft(user.id, id, dto.toData());
+  }
+
+  @Delete(':id')
+  @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
+  @ApiOperation({ summary: 'Delete a draft post' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Draft post ID' })
+  @OkResponse(null)
+  @ErrorResponse('post.draft.delete', contentErrorMap)
+  async deleteDraft(
+    @Param('id') id: string,
+    @AuthContextUser() user: User,
+  ): Promise<void> {
+    await this.draftPostService.deleteDraft(id, user.id);
   }
 }

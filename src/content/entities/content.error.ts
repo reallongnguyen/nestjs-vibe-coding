@@ -56,3 +56,20 @@ export class DraftPublishError extends AppError {
     });
   }
 }
+
+export class PublishedPostNotFoundError extends AppError {
+  constructor(id: string) {
+    super('published.notFound', {
+      postId: id,
+    });
+  }
+}
+
+export class NotPublishedPostOwnerError extends AppError {
+  constructor(userId: string, postId: string) {
+    super('published.notOwner', {
+      userId,
+      postId,
+    });
+  }
+}

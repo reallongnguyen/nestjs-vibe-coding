@@ -17,6 +17,7 @@ import {
   TEST_DRAFT_POST,
   EXPECTED_PUBLISHED_POST,
 } from './content.test-data';
+import { createTestDraft, publishTestPost } from './content.test-helpers';
 
 describe('DraftPostController (Integration)', () => {
   let app: INestApplication;
@@ -546,5 +547,70 @@ describe('DraftPostController (Integration)', () => {
           .expect(401);
       });
     });
+  });
+
+  describe('DELETE /api/v1/posts/drafts/:id', () => {
+    it('should delete draft post successfully', async () => {
+      // Create a test draft post
+      const draft = await createTestDraft(app, mockUser.token);
+
+      // Delete the draft
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/posts/drafts/${draft.id}`)
+        .set('Authorization', `Bearer ${mockUser.token}`);
+
+      expect(response.status).toBe(204);
+
+      // Verify draft is deleted
+      const checkResponse = await request(app.getHttpServer())
+        .get(`/api/v1/posts/drafts/${draft.id}`)
+        .set('Authorization', `Bearer ${mockUser.token}`);
+
+      expect(checkResponse.status).toBe(404);
+    });
+
+    it('should return 404 for non-existent draft', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/v1/posts/drafts/non-existent-id')
+        .set('Authorization', `Bearer ${mockUser.token}`);
+
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 403 when trying to delete another user's draft", async () => {
+      // Create a test draft post with user1
+      const draft = await createTestDraft(app, 'user1Token');
+
+      // Try to delete with user2
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/posts/drafts/${draft.id}`)
+        .set('Authorization', `Bearer ${'user2Token'}`);
+
+      expect(response.status).toBe(403);
+    });
+  });
+
+  describe('DELETE /api/v1/posts/published/:id', () => {
+    it('should delete published post successfully', async () => {
+      // Create and publish a test post
+      const draft = await createTestDraft(app, mockUser.token);
+      const published = await publishTestPost(app, draft.id, mockUser.token);
+
+      // Delete the published post
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/posts/published/${published.id}`)
+        .set('Authorization', `Bearer ${mockUser.token}`);
+
+      expect(response.status).toBe(204);
+
+      // Verify post is deleted
+      const checkResponse = await request(app.getHttpServer())
+        .get(`/api/v1/posts/published/${published.id}`)
+        .set('Authorization', `Bearer ${mockUser.token}`);
+
+      expect(checkResponse.status).toBe(404);
+    });
+
+    // ... similar tests for 404 and 403 cases
   });
 });

@@ -21,11 +21,17 @@ export const contentErrorMap: ErrorMap = {
     },
     notFound: {
       status: HttpStatus.NOT_FOUND,
-      message: 'Draft post not found: {{draftId}}',
+      message: 'Draft post not found',
     },
     notOwner: {
       status: HttpStatus.FORBIDDEN,
       message: 'Not authorized to update this draft',
+    },
+    delete: {
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to delete draft post',
+      },
     },
     publish: {
       failed: {
@@ -35,6 +41,22 @@ export const contentErrorMap: ErrorMap = {
       slugExists: {
         status: HttpStatus.CONFLICT,
         message: 'A post with this slug already exists: {{slug}}',
+      },
+    },
+  },
+  published: {
+    notFound: {
+      status: HttpStatus.NOT_FOUND,
+      message: 'Published post not found',
+    },
+    notOwner: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'You are not the owner of this published post',
+    },
+    delete: {
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to delete published post',
       },
     },
   },

@@ -101,4 +101,18 @@ export class FileService {
 
     return url;
   }
+
+  async deleteFile(uri: string): Promise<void> {
+    if (!uri.startsWith(`gs://${this.userAssetBucketName}/`)) {
+      this.logger.error(
+        `Delete file failed: ${uri} is not in the user asset bucket`,
+      );
+
+      throw new AppError('file.common.notFound');
+    }
+
+    const filePath = uri.replace(`gs://${this.userAssetBucketName}/`, '');
+
+    await this.storage.bucket(this.userAssetBucketName).file(filePath).delete();
+  }
 }

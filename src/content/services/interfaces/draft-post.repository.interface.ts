@@ -7,6 +7,7 @@ export interface IDraftPostRepository extends IBaseRepository {
   create(data: CreateDraftPostData): Promise<DraftPost>;
   findById(id: string): Promise<DraftPost | null>;
   update(id: string, data: Partial<CreateDraftPostData>): Promise<DraftPost>;
+  delete(id: string): Promise<void>;
   publish(
     id: string,
     data: {
@@ -17,6 +18,9 @@ export interface IDraftPostRepository extends IBaseRepository {
       slug: string;
       readingTime: number;
       userId: string;
+      cover: string;
+      topicIds: string[];
     },
   ): Promise<{ draft: DraftPost; published: PublishedPost }>;
+  findByPublishedId(publishedId: string): Promise<DraftPost | null>;
 }

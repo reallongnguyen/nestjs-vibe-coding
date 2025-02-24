@@ -30,9 +30,10 @@ export class CreateDraftPostDto {
   cover?: string;
 
   @ApiProperty({ description: 'Array of topic IDs', type: [String] })
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  topics: string[];
+  topics?: string[];
 
   toData(userId: string): CreateDraftPostData {
     return {
@@ -40,7 +41,7 @@ export class CreateDraftPostDto {
       subtitle: this.subtitle,
       content: this.content,
       cover: this.cover,
-      topics: this.topics,
+      topics: this.topics ?? [],
       userId,
     };
   }

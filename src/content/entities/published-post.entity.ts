@@ -7,7 +7,7 @@ export class PublishedPost {
   excerpt: string;
   cover: string | null;
   readingTime: number;
-  topics: string[];
+  topics?: string[];
   likeCount: number;
   replyCount: number;
   viewCount: number;

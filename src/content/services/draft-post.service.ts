@@ -1,5 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
+import { IEventBus, InjectEventBus } from 'src/common/event-bus';
+
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
 import { ITopicRepository } from './interfaces/topic.repository.interface';
 import { DraftPost } from '../entities/draft-post.entity';
@@ -20,6 +23,8 @@ import {
   generateExcerpt,
 } from './utils/content.utils';
 import { ContentEvents } from './content.events';
+import { DraftPostDeletedEvent } from '../entities/events/post-deleted.event';
+import { IPublishedPostRepository } from './interfaces/published-post.repository.interface';
 
 @Injectable()
 export class DraftPostService {
@@ -28,10 +33,13 @@ export class DraftPostService {
   constructor(
     @Inject('IDraftPostRepository')
     private readonly draftPostRepository: IDraftPostRepository,
+    @Inject('IPublishedPostRepository')
+    private readonly publishedPostRepository: IPublishedPostRepository,
     @Inject('ITopicRepository')
     private readonly topicRepository: ITopicRepository,
     private readonly prisma: PrismaService,
     private readonly events: ContentEvents,
+    @InjectEventBus() private readonly eventBus: IEventBus,
   ) {}
 
   async createDraft(
@@ -194,6 +202,8 @@ export class DraftPostService {
           readingTime,
           content: draft.content,
           userId,
+          cover: draft.cover,
+          topicIds: draft.topics,
         });
 
         // Emit post published event
@@ -223,5 +233,32 @@ export class DraftPostService {
       this.logger.error(`Failed to publish draft post ${draftId}`, error);
       throw new DraftPublishError(error);
     }
+  }
+
+  async deleteDraft(id: string, userId: string): Promise<void> {
+    const draft = await this.draftPostRepository.findById(id);
+
+    if (!draft) {
+      throw new DraftNotFoundError(id);
+    }
+
+    if (draft.userId !== userId) {
+      throw new NotDraftOwnerError(userId, id);
+    }
+
+    await this.draftPostRepository.delete(id);
+
+    // If draft has a cover image, delete it
+    if (draft.cover) {
+      await this.eventBus.publish(new DeleteImageCommand(draft.cover));
+    }
+
+    // Emit event for tracking/analytics
+    await this.eventBus.publish(
+      new DraftPostDeletedEvent({
+        postId: id,
+        userId,
+      }),
+    );
   }
 }
