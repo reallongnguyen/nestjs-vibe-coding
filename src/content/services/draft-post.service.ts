@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
 import { IEventBus, InjectEventBus } from 'src/common/event-bus';
+import { Collection } from 'src/common/models';
 
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
 import { ITopicRepository } from './interfaces/topic.repository.interface';
@@ -25,6 +26,7 @@ import {
 import { ContentEvents } from './content.events';
 import { DraftPostDeletedEvent } from '../entities/events/post-deleted.event';
 import { IPublishedPostRepository } from './interfaces/published-post.repository.interface';
+import { ListDraftPostsQueryDto } from '../presentation/dtos/list-posts.dto';
 
 @Injectable()
 export class DraftPostService {
@@ -260,5 +262,12 @@ export class DraftPostService {
         userId,
       }),
     );
+  }
+
+  async listDrafts(
+    userId: string,
+    query: ListDraftPostsQueryDto,
+  ): Promise<Collection<DraftPost>> {
+    return this.draftPostRepository.findAll(userId, query);
   }
 }

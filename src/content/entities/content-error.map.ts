@@ -1,7 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
-import { ErrorMap } from 'src/common/models/error.map';
+import { commonErrorMap, ErrorMap } from 'src/common/models';
 
 export const contentErrorMap: ErrorMap = {
+  ...commonErrorMap,
   draft: {
     create: {
       failed: {

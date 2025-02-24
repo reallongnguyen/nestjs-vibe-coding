@@ -1,6 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IEventBus, InjectEventBus } from 'src/common/event-bus';
 import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { Collection } from 'src/common/models';
+
 import { IPublishedPostRepository } from './interfaces/published-post.repository.interface';
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
 import {
@@ -9,6 +13,8 @@ import {
 } from '../entities/content.error';
 import { PublishedPostDeletedEvent } from '../entities/events/post-deleted.event';
 import { DraftPostService } from './draft-post.service';
+import { ListPostsQueryDto } from '../presentation/dtos/list-posts.dto';
+import { PublishedPostWithAuthor } from '../entities/published-post.entity';
 
 @Injectable()
 export class PublishedPostService {
@@ -21,6 +27,7 @@ export class PublishedPostService {
     private readonly draftPostRepository: IDraftPostRepository,
     @InjectEventBus() private readonly eventBus: IEventBus,
     private readonly draftPostService: DraftPostService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async deletePublished(id: string, userId: string): Promise<void> {
@@ -55,5 +62,11 @@ export class PublishedPostService {
         userId,
       }),
     );
+  }
+
+  async listPublished(
+    query: ListPostsQueryDto,
+  ): Promise<Collection<PublishedPostWithAuthor>> {
+    return this.publishedPostRepository.findAll(query);
   }
 }

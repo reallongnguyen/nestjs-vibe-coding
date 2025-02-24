@@ -1,11 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { BaseRepository } from 'src/common/repositories/base.repository';
+import { Collection } from 'src/common/models';
+import { Prisma } from '@prisma/client';
 import { DraftPost } from '../entities/draft-post.entity';
 import { PublishedPost } from '../entities/published-post.entity';
 import { IDraftPostRepository } from '../services/interfaces/draft-post.repository.interface';
 import { CreateDraftPostData } from '../services/dtos/create-daft-post.dto';
 import { DraftCreateError, DraftUpdateError } from '../entities/content.error';
+import {
+  ListDraftPostsQueryDto,
+  DraftPostSortField,
+} from '../presentation/dtos/list-posts.dto';
 
 @Injectable()
 export class DraftPostRepository
@@ -132,5 +138,51 @@ export class DraftPostRepository
     return (await this.prisma.draftPost.findFirst({
       where: { publishedId },
     })) as DraftPost | null;
+  }
+
+  async findAll(
+    userId: string,
+    query: ListDraftPostsQueryDto,
+  ): Promise<Collection<DraftPost>> {
+    const {
+      offset = 0,
+      limit = 10,
+      sortBy = DraftPostSortField.CREATED_AT,
+      search,
+      topics,
+      published,
+    } = query;
+
+    const where: Prisma.DraftPostWhereInput = {
+      userId,
+      ...(published !== undefined && {
+        publishedId: published ? { not: null } : null,
+      }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { content: { path: ['text'], string_contains: search } },
+        ],
+      }),
+      ...(topics?.length && {
+        topics: { hasEvery: topics },
+      }),
+    };
+
+    const [total, items] = await Promise.all([
+      this.prisma.draftPost.count({ where }),
+      this.prisma.draftPost.findMany({
+        where,
+        orderBy: { [sortBy]: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+    ]);
+
+    return new Collection(items as DraftPost[], {
+      total,
+      offset,
+      limit,
+    });
   }
 }

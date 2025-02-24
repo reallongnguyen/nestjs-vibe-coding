@@ -427,97 +427,53 @@ Medium - Required for content management
 
 ### Description
 
-Implement API endpoints to list draft and published posts with filtering and pagination.
+Implement API endpoints to list draft and published posts with filtering, pagination, and sorting capabilities.
 
 ### Requirements
 
-1. Support listing:
-   - User's draft posts (authenticated)
-   - Published posts (public)
-2. Support filtering by:
-   - Topics
-   - Date range
-   - Author
-3. Support pagination
-4. Support sorting. Default sorting is by created date.
+1. Separate endpoints for:
+   - List user's draft posts
+   - List published posts (public)
+   - List user's published posts
+
+2. Common features:
+   - Pagination (page number and size)
+   - Sorting (by creation date, update date, title)
+   - Basic search by title/content
+   - Filter by topics
+
+3. Draft posts endpoint:
+   - Only show user's own drafts
+   - Include publish status
+   - Optional filter by publish status
+
+4. Published posts endpoints:
+   - Public endpoint for all published posts
+   - Authenticated endpoint for user's published posts
+   - Include view/like counts
+   - Optional filter by date range
 
 ### Technical Notes
 
-1. Database Schema:
-   - Efficient querying of posts
-   - Handle relationships for filters
-2. Performance:
-   - Implement pagination
-   - Optimize queries
-3. Error Handling:
-   - Invalid filters
-   - Pagination errors
-4. Authentication:
-   - Use existing AuthGuard for drafts
-5. Follow the folder structure in module-structure.md and code style in module `/src/social`
+1. Use query builder for flexible filtering
+2. Implement caching for published posts list
+3. Use proper pagination metadata
+4. Ensure efficient topic filtering with joins
+5. Add rate limiting for public endpoints
 
-### API Specification
+### Acceptance Criteria
 
-```typescript
-GET /api/v1/posts/drafts
-GET /api/v1/posts/published
-
-Query Parameters:
-{
-  page?: number;
-  limit?: number;
-  topics?: string[];
-  fromDate?: string;
-  toDate?: string;
-  authorId?: string;
-  sortBy?: string;
-  order?: 'asc' | 'desc';
-}
-
-Response (200):
-{
-  edges: Array<DraftPost | PublishedPost>;
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-  };
-}
-```
-
-### Sub-tasks
-
-1. Create module structure:
-   - Add filter DTOs
-   - Add pagination interfaces
-   - Add response DTOs
-
-2. Implement data layer:
-   - Add list methods to repositories
-   - Implement filtering and pagination
-   - Add repository tests
-
-3. Implement API layer with mock service:
-   - Add GET endpoints
-   - Add query validation
-   - Add mock implementation
-   - Add controller tests
-
-4. Implement business logic:
-   - Add list logic with filters
-   - Implement pagination
-   - Add service tests
-   - Replace mock implementation
-
-5. Add integration tests:
-   - Test filtering
-   - Test pagination
-   - Test sorting
-   - Test error scenarios
+1. All endpoints return paginated results with metadata
+2. Search and filters work as expected
+3. Proper error handling for invalid inputs
+4. Cache implementation for published posts
+5. Performance tests for large datasets
+6. Documentation with example requests/responses
 
 ### Dependencies
 
-Same as CON-001
+- CON-001: Create Draft Post API
+- CON-003: Publish Post API
 
 ### Estimated Effort
 

@@ -7,8 +7,11 @@ import {
   Param,
   UseFilters,
   Delete,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Collection } from 'src/common/models';
 import {
   AuthContextUser,
   AuthGuard,
@@ -21,6 +24,7 @@ import {
   CreatedResponse,
   ErrorResponse,
   OkResponse,
+  PaginatedResponse,
   RestExceptionFilter,
 } from 'src/common/presentation/rest';
 import { DraftPost } from '../entities/draft-post.entity';
@@ -30,6 +34,8 @@ import { contentErrorMap } from '../entities/content-error.map';
 import { UpdateDraftPostDto } from './dtos/update-draft-post.dto';
 import { PublishDraftDto } from './dtos/publish-draft.dto';
 import { PublishedPost } from '../entities/published-post.entity';
+import { ListDraftPostsQueryDto } from './dtos/list-posts.dto';
+import { DraftPostListItemDto } from './dtos/post-response.dto';
 
 @ApiTags('Posts')
 @Controller({
@@ -90,5 +96,28 @@ export class DraftPostController {
     @AuthContextUser() user: User,
   ): Promise<void> {
     await this.draftPostService.deleteDraft(id, user.id);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'List user draft posts' })
+  @PaginatedResponse(DraftPostListItemDto)
+  async listDrafts(
+    @Query() query: ListDraftPostsQueryDto,
+    @AuthContextUser() user: User,
+  ): Promise<Collection<DraftPostListItemDto>> {
+    const result = await this.draftPostService.listDrafts(user.id, query);
+
+    return Collection.transform(result, (draft) => ({
+      id: draft.id,
+      title: draft.title,
+      subtitle: draft.subtitle,
+      content: draft.content,
+      cover: draft.cover,
+      topics: draft.topics,
+      createdAt: draft.createdAt,
+      updatedAt: draft.updatedAt,
+      published: !!draft.publishedId,
+      publishedId: draft.publishedId,
+    }));
   }
 }

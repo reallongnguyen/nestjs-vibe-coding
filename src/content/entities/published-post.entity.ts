@@ -1,4 +1,6 @@
-export class PublishedPost {
+import { PublishedPost as PublishedPostPrisma } from '@prisma/client';
+
+export class PublishedPost implements PublishedPostPrisma {
   id: string;
   title: string;
   subtitle: string | null;
@@ -14,4 +16,18 @@ export class PublishedPost {
   userId: string;
   publishedAt: Date;
   updatedAt: Date;
+  isArchived: boolean;
+  botId: string | null;
+  authorType: string;
+}
+
+export class UserAuthor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatar: string;
+}
+
+export class PublishedPostWithAuthor extends PublishedPost {
+  userAuthor: UserAuthor;
 }

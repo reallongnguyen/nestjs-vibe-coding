@@ -28,6 +28,16 @@
   - ✅ End-to-end tests
   - ✅ Documentation
 
+- CON-004: Delete Post API
+  - ✅ Delete draft post endpoint
+  - ✅ Delete published post endpoint
+  - ✅ Cascading deletion (published -> draft)
+  - ✅ Cover image cleanup
+  - ✅ Event emission for tracking
+  - ✅ Error handling and logging
+  - ✅ End-to-end tests
+  - ✅ Documentation
+
 - EMO-001: Create User Emotion API
   - ✅ Database schema
   - ✅ API implementation
@@ -94,3 +104,41 @@
 ## Known Issues
 
 - None currently
+
+# Content Module Implementation Status
+
+## CON-001: Create Draft Posts ✅
+
+- [x] Create module structure
+- [x] Implement data layer (entities, repositories)
+- [x] Implement presentation layer (DTOs, controllers)
+- [x] Implement business logic (services)
+- [x] Add end-to-end tests
+
+## CON-002: Update Draft Posts ✅
+
+- [x] Implement update endpoint
+- [x] Add validation
+- [x] Add error handling
+- [x] Add end-to-end tests
+
+## CON-003: List Posts ✅
+
+- [x] Implement pagination with offset/limit
+- [x] Add filtering (by topics, status, date range)
+- [x] Add search functionality
+- [x] Implement caching for published posts
+- [x] Add Collection response type
+- [x] Add end-to-end tests
+
+## Next Steps
+
+- [ ] CON-004: Implement post reactions
+- [ ] CON-005: Add post comments
+- [ ] CON-006: Add post analytics
+
+## Technical Debt
+
+- Consider adding rate limiting for search queries
+- Add performance monitoring for list endpoints
+- Consider implementing cursor-based pagination for large datasets
