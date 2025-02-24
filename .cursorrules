@@ -170,21 +170,16 @@ Required understanding files:
 
 Workflow steps:
 
-- Regathering requirements: READ tasks/tasks.md:
-  - Parse current task requirements
-  - Extract acceptance criteria
-  - Identify dependencies
-- Validate against docs/architecture.mermaid:
-  - Confirm architectural alignment
-  - Check component interactions
-- Update task status: UPDATE tasks/status.md:
+- Update task status: tasks/status.md:
   - Mark task as in-progress
   - Track completion of sub-tasks
   - Document any blockers
-- Development following TDD approach:
-  - Create test files first
-  - Implement to pass tests
-  - Update status on test completion
+- Programming following steps:
+  - Create module structure. Just create empty files for now.
+  - Implement data layer
+  - Implement API layer with mock business logic
+  - Implement business logic
+  - Add integration tests
 - Update documentation:
   - UPDATE docs/architecture.mermaid if needed
   - UPDATE docs/technical.md if needed
@@ -200,3 +195,28 @@ Required actions after any task completion:
 - Update docs/architecture.mermaid if needed
 - Update docs/technical.md specifications if needed
 - Update prisma/schema.prisma if needed
+
+## Feature design process
+
+### STEP 1: Read context
+
+- Read data model in prisma/schema.prisma
+- Read technical notes in docs/technical.md
+- Read old tasks requirements in tasks/sprint-XXX.md
+- Read status in tasks/status.md
+
+### STEP 2: Design the feature
+
+- Design the feature, ask for confirmation
+- Update prisma/schema.prisma if needed
+- Update docs/technical.md if needed
+
+### STEP 3: Create task specification
+
+- Write feature specification in tasks/tasks.md
+- Create sub-tasks in tasks/tasks.md following steps:
+  - Create module structure. Just create empty files for now.
+  - Implement data layer
+  - Implement API layer with mock business logic
+  - Implement business logic
+  - Add integration tests

@@ -2,6 +2,15 @@
 
 ## Completed Features
 
+- CON-001: Create Draft Post API
+  - ✅ Database schema and migrations
+  - ✅ Repository with transaction support
+  - ✅ Service with topic validation
+  - ✅ Controller implementation
+  - ✅ Error handling and logging
+  - ✅ Integration tests
+  - ✅ Documentation
+
 - EMO-001: Create User Emotion API
   - ✅ Database schema
   - ✅ API implementation
@@ -38,8 +47,6 @@
   - ✅ Score-based sorting
   - ✅ Documentation
 
-## In Progress
-
 - SOC-002: Feed Distribution System
   - ✅ SOC-002.1: Content Processing Service
     - ✅ Bull queue integration
@@ -59,9 +66,13 @@
     - ✅ Delete event handlers
     - ✅ Feed cleanup implementation
 
+## In Progress
+
+- None currently
+
 ## Pending
 
-- Additional features and improvements
+- None currently
 
 ## Known Issues
 

@@ -213,23 +213,26 @@ model Topic {
 }
 
 model DraftPost {
-  id          String   @id @default(uuid())
-  title       String   @db.Text
-  subtitle    String?  @db.Text
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String    @db.Text
+  subtitle    String?   @db.Text
   content     Json
-  cover       String?
-  userId      String   @map("user_id")
-  topics      String[] // Store topic IDs for simplicity in drafts
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
-  publishedId String?  @unique @map("published_id") // Reference to published version
+  cover       String?   @db.Text
+  topics      String[]
+  userId      String    @map("user_id")
+  publishedId String?   @map("published_id")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  author User @relation(fields: [userId], references: [id])
+  // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  published   PublishedPost? @relation(fields: [publishedId], references: [id])
 
-  published PublishedPost? @relation(fields: [publishedId], references: [id])
-
-  @@index([userId])
   @@map("draft_posts")
+  @@index([userId])
+  @@index([publishedId])
+  @@index([topics], type: Gin)
+  @@index([createdAt])
 }
 
 model PublishedPost {
