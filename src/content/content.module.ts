@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DraftPostController } from './presentation/controllers/draft-post.controller';
+import { DraftPostController } from './presentation/draft-post.controller';
 import { DraftPostService } from './services/draft-post.service';
 import { DraftPostRepository } from './repositories/draft-post.repository';
 import { TopicRepository } from './repositories/topic.repository';

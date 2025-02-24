@@ -11,6 +11,14 @@
   - ✅ Integration tests
   - ✅ Documentation
 
+- CON-002: Update Draft Post API
+  - ✅ Repository methods
+  - ✅ Service with validation
+  - ✅ Controller endpoint
+  - ✅ Error handling and logging
+  - ✅ End-to-end tests
+  - ✅ Documentation
+
 - EMO-001: Create User Emotion API
   - ✅ Database schema
   - ✅ API implementation

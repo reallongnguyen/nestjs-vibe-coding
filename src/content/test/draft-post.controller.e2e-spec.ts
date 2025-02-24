@@ -16,6 +16,7 @@ describe('DraftPostController (Integration)', () => {
   let dbHelper: DatabaseHelper;
   let prisma: PrismaService;
   let loggerHelper: LoggerHelper;
+  let draftId: string;
 
   beforeAll(async () => {
     loggerHelper = new LoggerHelper();
@@ -45,6 +46,14 @@ describe('DraftPostController (Integration)', () => {
   beforeEach(async () => {
     await dbHelper.cleanDatabase();
     await dbHelper.createTestTopic(TEST_TOPIC);
+
+    // Create a test draft post
+    const response = await request(app.getHttpServer())
+      .post('/posts/drafts')
+      .set('Authorization', `Bearer ${mockUser.token}`)
+      .send(TEST_DRAFT_POST);
+
+    draftId = response.body.id;
   });
 
   afterAll(async () => {
@@ -231,6 +240,146 @@ describe('DraftPostController (Integration)', () => {
         await request(app.getHttpServer())
           .post('/posts/drafts')
           .send(TEST_DRAFT_POST)
+          .expect(401);
+      });
+    });
+  });
+
+  describe('PATCH /posts/drafts/:id', () => {
+    describe('Success cases', () => {
+      it('should update draft post with all fields', async () => {
+        const updateData = {
+          title: 'Updated Title',
+          subtitle: 'Updated Subtitle',
+          content: { blocks: [{ type: 'text', text: 'Updated content' }] },
+          cover: 'https://example.com/new-image.jpg',
+          topics: [TEST_TOPIC.id],
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/posts/drafts/${draftId}`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(updateData)
+          .expect(200);
+
+        // Verify response
+        expect(response.body).toMatchObject({
+          id: draftId,
+          ...updateData,
+          userId: mockUser.id,
+        });
+
+        // Verify database state
+        const savedDraft = await prisma.draftPost.findUnique({
+          where: { id: draftId },
+        });
+        expect(savedDraft).toMatchObject(updateData);
+
+        // Verify logging
+        const logs = loggerHelper.getLoggerCalls();
+        expect(logs.debug).toEqual(
+          expect.arrayContaining([
+            expect.arrayContaining([
+              expect.stringContaining('Updating draft post'),
+            ]),
+            expect.arrayContaining([
+              expect.stringContaining('Updated draft post'),
+            ]),
+          ]),
+        );
+      });
+
+      it('should support partial updates', async () => {
+        const updateData = {
+          title: 'Updated Title',
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/posts/drafts/${draftId}`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(updateData)
+          .expect(200);
+
+        expect(response.body).toMatchObject({
+          ...TEST_DRAFT_POST,
+          ...updateData,
+          id: draftId,
+          userId: mockUser.id,
+        });
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should return 404 when draft not found', async () => {
+        const nonExistentId = 'non-existent-id';
+        await request(app.getHttpServer())
+          .patch(`/posts/drafts/${nonExistentId}`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send({ title: 'New Title' })
+          .expect(404);
+      });
+
+      it('should return 403 when user is not owner', async () => {
+        const otherUser = { ...mockUser, id: 'other-user-id' };
+        const moduleRef = await Test.createTestingModule({
+          imports: [ContentModule, PrismaModule],
+        })
+          .overrideGuard(AuthGuard)
+          .useValue({
+            canActivate: () => true,
+            getRequest: () => ({
+              user: otherUser,
+            }),
+          })
+          .compile();
+
+        const otherApp = moduleRef.createNestApplication();
+        otherApp.useGlobalPipes(new ValidationPipe());
+        await otherApp.init();
+
+        await request(otherApp.getHttpServer())
+          .patch(`/posts/drafts/${draftId}`)
+          .set('Authorization', `Bearer ${otherUser.token}`)
+          .send({ title: 'New Title' })
+          .expect(403);
+
+        await otherApp.close();
+      });
+
+      it('should return 404 when topic not found', async () => {
+        const updateData = {
+          topics: ['non-existent-topic'],
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/posts/drafts/${draftId}`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(updateData)
+          .expect(404);
+
+        expect(response.body.message).toBe(
+          'One or more topics not found: non-existent-topic',
+        );
+      });
+
+      it('should validate input data', async () => {
+        const invalidData = {
+          title: 123, // Should be string
+          content: 'not-an-object', // Should be object
+          topics: 'not-an-array', // Should be array
+        };
+
+        await request(app.getHttpServer())
+          .patch(`/posts/drafts/${draftId}`)
+          .set('Authorization', `Bearer ${mockUser.token}`)
+          .send(invalidData)
+          .expect(400);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .patch(`/posts/drafts/${draftId}`)
+          .send({ title: 'New Title' })
           .expect(401);
       });
     });

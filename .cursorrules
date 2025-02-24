@@ -172,14 +172,18 @@ Workflow steps:
 
 - Update task status: tasks/status.md:
   - Mark task as in-progress
-  - Track completion of sub-tasks
+  - Define Implementation Steps in tasks/status.md following:
+    - If task is complex, programming following steps:
+      - Create module structure. Just create empty files for now.
+      - Implement data layer
+      - Implement presentation layer with mock business logic
+      - Implement business logic in services
+      - Add end to end tests
+    - If task is simple, programming following steps:
+      - Implement code
+      - Add end to end tests
   - Document any blockers
-- Programming following steps:
-  - Create module structure. Just create empty files for now.
-  - Implement data layer
-  - Implement API layer with mock business logic
-  - Implement business logic
-  - Add integration tests
+- Implement following implementation steps in tasks/status.md
 - Update documentation:
   - UPDATE docs/architecture.mermaid if needed
   - UPDATE docs/technical.md if needed
@@ -214,9 +218,4 @@ Required actions after any task completion:
 ### STEP 3: Create task specification
 
 - Write feature specification in tasks/tasks.md
-- Create sub-tasks in tasks/tasks.md following steps:
-  - Create module structure. Just create empty files for now.
-  - Implement data layer
-  - Implement API layer with mock business logic
-  - Implement business logic
-  - Add integration tests
+- Create sub-tasks in tasks/tasks.md if task is complex

@@ -13,5 +13,19 @@ export const contentErrorMap: ErrorMap = {
         message: 'One or more topics not found: {{missingTopicIds}}',
       },
     },
+    update: {
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to update draft post',
+      },
+    },
+    notFound: {
+      status: HttpStatus.NOT_FOUND,
+      message: 'Draft post not found: {{draftId}}',
+    },
+    notOwner: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'Not authorized to update this draft',
+    },
   },
 };

@@ -39,4 +39,27 @@ export class DraftPostRepository
       throw new DraftCreateError(error);
     }
   }
+
+  async findById(id: string): Promise<DraftPost | null> {
+    return (await this.prisma.draftPost.findUnique({
+      where: { id },
+    })) as DraftPost | null;
+  }
+
+  async update(
+    id: string,
+    data: Partial<CreateDraftPostData>,
+  ): Promise<DraftPost> {
+    try {
+      const result = await this.prisma.draftPost.update({
+        where: { id },
+        data,
+      });
+
+      return result as DraftPost;
+    } catch (error) {
+      this.logger.error(`Failed to update draft post ${id}`, error);
+      throw new DraftCreateError(error);
+    }
+  }
 }

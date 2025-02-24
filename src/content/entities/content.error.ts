@@ -15,3 +15,28 @@ export class DraftCreateError extends AppError {
     });
   }
 }
+
+export class DraftNotFoundError extends AppError {
+  constructor(id: string) {
+    super('draft.notFound', {
+      draftId: id,
+    });
+  }
+}
+
+export class DraftUpdateError extends AppError {
+  constructor(cause?: Error) {
+    super('draft.update.failed', {
+      cause: cause?.message,
+    });
+  }
+}
+
+export class NotDraftOwnerError extends AppError {
+  constructor(userId: string, draftId: string) {
+    super('draft.notOwner', {
+      userId,
+      draftId,
+    });
+  }
+}

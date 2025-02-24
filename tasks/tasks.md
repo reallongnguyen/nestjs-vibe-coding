@@ -144,98 +144,103 @@ High - Required for basic content creation functionality
 
 ### Description
 
-Implement API endpoint to allow users to update their existing draft posts.
+Implement API endpoint to update an existing draft post.
 
 ### Requirements
 
-1. Users must be authenticated to update drafts
-2. Users can only update their own drafts
-3. All fields can be updated:
-   - Title
-   - Subtitle
-   - Content
-   - Cover image
-   - Topics
-4. System should track update timestamp
-5. Request remove cover image from storage if it is removed from the draft by publish command DeleteImageCommand
+### Functional
 
-### Technical Notes
+- Allow updating an existing draft post
+- Support partial updates (only changed fields)
+- Validate topic existence
+- Only owner can update their drafts
+- Maintain created date, update modified date
+- Return updated draft post
 
-1. Database Schema:
-   - Use DraftPost model from Prisma schema
-   - Maintain existing relationships
-2. Input Validation:
-   - Same validation rules as creation
-   - Draft must exist
-3. Error Handling:
-   - Invalid input format
-   - Draft not found
-   - Unauthorized access
-4. Authentication:
-   - Use existing AuthGuard
-   - Verify user ownership
-5. Follow the folder structure in module-structure.md and code style in module `/src/social`
+### Technical
 
-### API Specification
+- Endpoint: PATCH /posts/drafts/:id
+- Input validation using class-validator
+- Transaction support for data consistency
+- Proper error handling and logging
+- Follow existing patterns from CON-001
+
+## Acceptance Criteria
+
+### API Contract
 
 ```typescript
-PATCH /api/v1/posts/drafts/:id
-
-Request:
+// Request
+PATCH /posts/drafts/:id
 {
   title?: string;
-  subtitle?: string;
-  content?: JsonValue;
-  cover?: string;
+  subtitle?: string | null;
+  content?: Record<string, any>;
+  cover?: string | null;
   topics?: string[];
 }
 
-Response (200):
+// Response 200
 {
   id: string;
   title: string;
-  subtitle?: string;
-  content: JsonValue;
-  cover?: string;
+  subtitle: string | null;
+  content: Record<string, any>;
+  cover: string | null;
   topics: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  userId: string;
+  publishedId: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
-### Sub-tasks
+### Error Cases
 
-1. Create module structure:
-   - Add update-draft.dto.ts
-   - Update interfaces for update operation
+- 404: Draft not found
+- 404: Topic not found
+- 403: Not draft owner
+- 400: Invalid input data
+- 500: Database error
 
-2. Implement data layer:
-   - Add update method to repository interface
-   - Implement update in Prisma repository
-   - Add repository tests for update
+### Implementation Steps
 
-3. Implement API layer with mock service:
-   - Add PATCH endpoint to controller
-   - Add validation decorators
-   - Add ownership guard
-   - Add mock update implementation
-   - Add controller tests
+1. Create module structure
+   - Update DTO
+   - Repository interface method
+   - Service interface method
+   - Controller endpoint
 
-4. Implement business logic:
-   - Add update logic to service
-   - Add ownership validation
-   - Add error handling
-   - Add service tests
-   - Replace mock with real implementation
+2. Implement data layer
+   - Add update method to repository
+   - Add findById method to repository
 
-5. Add integration tests:
-   - Test update scenarios
-   - Test ownership validation
-   - Test error cases
+3. Implement API layer with mock business logic
+   - Add update endpoint to controller
+   - Add input validation
+   - Add ownership check
 
-### Dependencies
+4. Implement business logic
+   - Add update method to service
+   - Add topic validation
+   - Add transaction support
 
-Same as CON-001
+5. Add end to end tests
+   - Success cases
+   - Error cases
+   - Authorization cases
+   - File name: src/content/test/draft-post.controller.e2e-spec.ts
+
+## Dependencies
+
+- CON-001: Create Draft Post API ✅
+
+## Notes
+
+- Follow existing error handling pattern
+- Use transactions for data consistency
+- Add proper logging
+- Update documentation
 
 ### Estimated Effort
 
@@ -390,24 +395,9 @@ Response (204)
 1. Create module structure:
    - Update interfaces for delete operations
 
-2. Implement data layer:
-   - Add delete methods to repositories
-   - Handle cascading deletes
-   - Add repository tests
+2. Implement code
 
-3. Implement API layer with mock service:
-   - Add DELETE endpoints
-   - Add validation
-   - Add mock implementation
-   - Add controller tests
-
-4. Implement business logic:
-   - Add delete logic
-   - Handle cascading deletes
-   - Add service tests
-   - Replace mock implementation
-
-5. Add integration tests:
+3. Add integration tests:
    - Test delete operations
    - Test cascade effects
    - Test error scenarios
