@@ -38,7 +38,7 @@
     "@nestjs/event-emitter": "^3.0.0",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/microservices": "^11.0.5",
-    "@nestjs/platform-express": "^11.0.5",
+    "@nestjs/platform-express": "^11.0.10",
     "@nestjs/schedule": "^5.0.1",
     "@nestjs/swagger": "^11.0.3",
     "@nestjs/terminus": "^10.3.0",
