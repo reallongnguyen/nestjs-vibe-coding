@@ -246,7 +246,7 @@ Implementation Steps
 1. Redis Keys Structure:
 
    ```
-   post:{postId}:views:total -> HyperLogLog (unique viewers)
+   post:{postId}:views:increment -> HyperLogLog (unique viewers)
    post:{postId}:views:recent -> Set with TTL (30min deduplication)
    post:{postId}:views:count -> String (cached total count)
    ```

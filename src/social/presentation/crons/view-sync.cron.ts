@@ -1,25 +1,31 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 import { PostViewRepository } from '../../repositories/post-view.repository';
 
 @Injectable()
 export class ViewSyncCron {
   private readonly logger = new Logger(ViewSyncCron.name);
   private readonly batchSize = 100; // Increased batch size since we're using transactions
+  private readonly redis: Redis;
 
   constructor(
-    private readonly prisma: PrismaService,
     private readonly postViewRepository: PostViewRepository,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redis = this.redisService.getOrThrow();
+  }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async syncViewCounts() {
-    this.logger.log('Starting view count sync');
+    this.logger.debug('Starting view count sync');
     try {
-      const posts = await this.prisma.publishedPost.findMany({
-        select: { id: true },
-      });
+      const keys = await this.redis.keys('post:*:views:increment');
+
+      const posts = keys.map((k) => ({
+        id: k.split(':')[1],
+      }));
 
       for (let i = 0; i < posts.length; i += this.batchSize) {
         const batch = posts.slice(i, i + this.batchSize);
@@ -27,7 +33,9 @@ export class ViewSyncCron {
         await this.postViewRepository.syncViewsFromRedis(
           batch.map((p) => p.id),
         );
-        this.logger.debug(`Processed batch ${i / this.batchSize + 1}`);
+        this.logger.debug(
+          `syncViewCounts: Processed batch ${i / this.batchSize + 1}`,
+        );
       }
 
       this.logger.log(`Synced view counts for ${posts.length} posts`);

@@ -553,7 +553,7 @@ networks:
    {module}:{entity}:{id}:{purpose}
    ```
 
-   Example: `post:123:views:total`
+   Example: `post:123:views:increment`
 
 2. Common Patterns:
    - Cache: `{entity}:{id}:cache`
@@ -570,9 +570,9 @@ networks:
 
    ```typescript
    // Add to HyperLogLog
-   await redis.pfadd('post:123:views:total', viewerHash);
+   await redis.pfadd('post:123:views:increment', viewerHash);
    // Get count
-   const count = await redis.pfcount('post:123:views:total');
+   const count = await redis.pfcount('post:123:views:increment');
    ```
 
 2. Lists
@@ -656,6 +656,16 @@ networks:
 
 ### View Tracking Implementation
 
+A viewer can view a post multiple times, each time should be counted as 1 view. A viewer can only view a post once in a period of 10 minutes.
+
+Post view count is near real-time, but not 100% accurate. It will be updated every 1 minute.
+
+```mermaid
+graph TD
+    A[Viewer: view a post] --> B[Redis: store increment view count]
+    B --> D[Database: store total view count]
+```
+
 1. Architecture:
    - HyperLogLog for unique view counting
    - List for batching view records
@@ -665,7 +675,7 @@ networks:
 2. Key Structure:
 
    ```
-   post:{postId}:views:total     -> HyperLogLog (unique viewers)
+   post:{postId}:views:increment     -> HyperLogLog (unique viewers)
    post:{postId}:views:recent    -> String with TTL (deduplication)
    post-views-batch             -> List (pending records)
    post-views-batch:start      -> String (batch start time)
@@ -686,8 +696,8 @@ networks:
    ```typescript
    const VIEW_BATCH_SIZE = 100;
    const VIEW_BATCH_TIMEOUT = 1000; // ms
-   const VIEW_RECENT_TTL = 1800; // 30 minutes
-   const VIEW_SYNC_INTERVAL = 600; // 10 minutes
+   const VIEW_RECENT_TTL = 600; // 10 minutes
+   const VIEW_SYNC_INTERVAL = 60; // 1 minutes
    ```
 
 ## Known Issues and Considerations
