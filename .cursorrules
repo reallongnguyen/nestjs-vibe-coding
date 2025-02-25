@@ -121,6 +121,8 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 ## Development process
 
+As a senior developer, do CON-007 in @tasks.md follow development process. Add task description and technical note to @status.md if needed
+
 ### STEP 1: Confirm task requirements
 
 - Read the file: tasks/tasks.md
@@ -201,6 +203,9 @@ Required actions after any task completion:
 - Update prisma/schema.prisma if needed
 
 ## Feature design process
+
+As a PO, design Post react feature and add to @tasks.md follow Feature design process. Check data schema in @schema.prisma and module structure in @module-structure.md . Refer exist module @identity .
+Just need create feature design and task description. Do not yet code.
 
 ### STEP 1: Read context
 

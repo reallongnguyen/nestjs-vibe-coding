@@ -542,3 +542,167 @@ networks:
    - Interactive documentation
    - Developer portal
    - API playground
+
+## Redis Usage Guidelines
+
+### Keys and Patterns
+
+1. Key Naming Convention:
+
+   ```
+   {module}:{entity}:{id}:{purpose}
+   ```
+
+   Example: `post:123:views:total`
+
+2. Common Patterns:
+   - Cache: `{entity}:{id}:cache`
+   - List: `{entity}:list:{filter}`
+   - Counter: `{entity}:{id}:count`
+   - Lock: `{entity}:{id}:lock`
+   - Batch: `{entity}:batch`
+
+### Data Structures
+
+1. HyperLogLog
+   - Use for unique counting (views, visitors)
+   - Commands: `pfadd`, `pfcount`
+
+   ```typescript
+   // Add to HyperLogLog
+   await redis.pfadd('post:123:views:total', viewerHash);
+   // Get count
+   const count = await redis.pfcount('post:123:views:total');
+   ```
+
+2. Lists
+   - Use for queues and batching
+   - Commands: `rpush`, `lrange`, `llen`, `del`
+
+   ```typescript
+   // Add to batch
+   await redis.rpush('post-views-batch', JSON.stringify(data));
+   // Get batch size
+   const size = await redis.llen('post-views-batch');
+   // Get all items
+   const items = await redis.lrange('post-views-batch', 0, -1);
+   ```
+
+3. Strings with TTL
+   - Use for temporary flags and caching
+   - Commands: `setex`, `get`
+
+   ```typescript
+   // Set with TTL
+   await redis.setex('post:123:views:recent', 1800, '1');
+   // Check existence
+   const exists = await redis.get('post:123:views:recent');
+   ```
+
+### Performance Optimization
+
+1. Pipelining
+
+   ```typescript
+   const pipeline = redis.pipeline();
+   keys.forEach(key => pipeline.pfcount(key));
+   const results = await pipeline.exec();
+   ```
+
+2. Batching
+
+   ```typescript
+   // Batch configuration
+   const BATCH_SIZE = 100;
+   const BATCH_TIMEOUT = 1000; // ms
+
+   // Process when batch is full or timeout reached
+   if (batchSize >= BATCH_SIZE || timeSinceStart >= BATCH_TIMEOUT) {
+     await processBatch();
+   }
+   ```
+
+3. Transaction
+
+   ```typescript
+   await redis.multi()
+     .set('key1', 'value1')
+     .set('key2', 'value2')
+     .exec();
+   ```
+
+### Best Practices
+
+1. Memory Management
+   - Always set TTL for temporary data
+   - Use HyperLogLog for large sets
+   - Implement cleanup jobs for expired data
+
+2. Error Handling
+
+   ```typescript
+   try {
+     await redis.set('key', 'value');
+   } catch (error) {
+     logger.error('Redis operation failed:', error);
+     throw new AppError('redis.operation.failed');
+   }
+   ```
+
+3. Monitoring
+   - Track Redis memory usage
+   - Monitor operation latency
+   - Set up alerts for connection issues
+
+### View Tracking Implementation
+
+1. Architecture:
+   - HyperLogLog for unique view counting
+   - List for batching view records
+   - Periodic sync to database
+   - Configurable batch size and timeout
+
+2. Key Structure:
+
+   ```
+   post:{postId}:views:total     -> HyperLogLog (unique viewers)
+   post:{postId}:views:recent    -> String with TTL (deduplication)
+   post-views-batch             -> List (pending records)
+   post-views-batch:start      -> String (batch start time)
+   ```
+
+3. Flow:
+
+   ```
+   1. Check recent views (deduplication)
+   2. Add to HyperLogLog if unique
+   3. Add to batch list
+   4. Process batch if full or timeout reached
+   5. Periodic sync to database
+   ```
+
+4. Configuration:
+
+   ```typescript
+   const VIEW_BATCH_SIZE = 100;
+   const VIEW_BATCH_TIMEOUT = 1000; // ms
+   const VIEW_RECENT_TTL = 1800; // 30 minutes
+   const VIEW_SYNC_INTERVAL = 600; // 10 minutes
+   ```
+
+## Known Issues and Considerations
+
+1. Performance
+   - Add rate limiting for search queries
+   - Add performance monitoring for list endpoints
+   - Consider implementing cursor-based pagination for large datasets
+
+2. View Tracking
+   - Redis memory usage needs monitoring for HyperLogLog growth
+   - View batching could lose data on service restart
+   - Need cleanup strategy for old view records
+
+3. Like System
+   - Race conditions possible on concurrent like/unlike
+   - Like count might become inconsistent under high load
+   - Consider implementing optimistic locking

@@ -213,26 +213,26 @@ model Topic {
 }
 
 model DraftPost {
-  id          String    @id @default(uuid()) @db.Uuid
-  title       String    @db.Text
-  subtitle    String?   @db.Text
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.Text
+  subtitle    String?  @db.Text
   content     Json
-  cover       String?   @db.Text
+  cover       String?  @db.Text
   topics      String[]
-  userId      String    @map("user_id")
-  publishedId String?   @map("published_id")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  userId      String   @map("user_id")
+  publishedId String?  @map("published_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   // Relations
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  published   PublishedPost? @relation(fields: [publishedId], references: [id])
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  published PublishedPost? @relation(fields: [publishedId], references: [id])
 
-  @@map("draft_posts")
   @@index([userId])
   @@index([publishedId])
   @@index([topics], type: Gin)
   @@index([createdAt])
+  @@map("draft_posts")
 }
 
 model PublishedPost {
@@ -261,6 +261,7 @@ model PublishedPost {
   botAuthor  Bot?        @relation("BotPosts", fields: [botId], references: [id], map: "published_posts_bot_author_fkey")
   draftPosts DraftPost[]
   feeds      Feed[]      @relation(map: "feeds_published_post_fkey")
+  postViews  PostView[]
 
   @@index([publishedAt])
   @@index([isArchived])
@@ -307,15 +308,33 @@ model Comment {
   @@map("comments")
 }
 
+// For likes
 model PostLike {
-  post      PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id        String        @id @default(uuid())
   postId    String        @map("post_id")
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String        @map("user_id")
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  post      PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([postId, userId])
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
   @@map("post_likes")
+}
+
+// For view tracking
+model PostView {
+  id         String        @id @default(uuid())
+  postId     String        @map("post_id")
+  viewerId   String?       @map("viewer_id") // userId if logged in, null if anonymous
+  viewerHash String        @map("viewer_hash") // Hash of IP + UserAgent for anonymous users
+  timestamp  DateTime      @default(now()) @db.Timestamptz()
+  post       PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([viewerHash])
+  @@index([timestamp])
 }
 
 model CommentLike {
@@ -360,8 +379,8 @@ enum FeedContentType {
 model Feed {
   id              String          @id @default(uuid())
   contentType     FeedContentType @map("content_type")
-  publishedPostId String?          @map("published_post_id")
-  userEmotionId   String?          @map("user_emotion_id")
+  publishedPostId String?         @map("published_post_id")
+  userEmotionId   String?         @map("user_emotion_id")
   userId          String          @map("user_id")
   score           Float           @default(0) // For ranking/sorting content
   viewedAt        DateTime?       @map("viewed_at") @db.Timestamptz()
