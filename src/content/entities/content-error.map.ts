@@ -44,6 +44,10 @@ export const contentErrorMap: ErrorMap = {
         message: 'A post with this slug already exists: {{slug}}',
       },
     },
+    notLinkedToPublished: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Draft is not linked to a published post',
+    },
   },
   published: {
     notFound: {

@@ -483,3 +483,144 @@ Implement API endpoints to list draft and published posts with filtering, pagina
 ### Priority
 
 High - Required for content discovery
+
+## CON-006: Improve Post Features
+
+### Description
+
+Enhance the post management workflow by implementing a structured approach for editing published content and improving the publishing process with clear differentiation between initial publishing and updates.
+
+### Requirements
+
+#### Functional Requirements
+
+1. **Create Draft from Published Post**
+   - Allow users to create a draft based on an existing published post
+   - Link the draft to the original published post via the `publishedId` field
+   - Only the post owner can create drafts from their published posts
+   - If a draft already exists for a published post, return the existing draft
+
+2. **Delete Draft After Publishing**
+   - Automatically delete draft posts after successful publishing
+   - Update the publish service to handle this cleanup
+   - Ensure this happens within the same transaction
+
+3. **Differentiate Publishing Workflows**
+   - Initial publish: Create new published post (existing API)
+   - Update publish: Update existing published post (new API)
+   - System should detect which workflow to use based on draft's publishedId
+
+#### Technical Requirements
+
+1. **Create Draft from Published Post**
+   - Create a new endpoint: `POST /api/v1/posts/published/:id/draft`
+   - Copy all content from the published post to the new draft
+   - Set the `publishedId` field in the draft to link to the original (to be no need)
+   - Handle the case where a draft already exists
+
+2. **Update Published Post API**
+   - Create a new endpoint: `POST /api/v1/posts/drafts/:id/apply`
+   - Only for drafts with an existing publishedId
+   - Update the existing published post instead of creating a new one
+   - Maintain the original published date and slug
+   - Update the modification timestamp
+
+3. **Delete Draft After Publishing**
+   - Modify both publish services to delete the draft after successful publishing
+   - Ensure this happens within the same transaction
+
+### API Specifications
+
+#### Create Draft from Published Post
+
+```typescript
+// Request
+POST /api/v1/posts/published/:id/draft
+
+// Response 201
+{
+  id: string;
+  title: string;
+  subtitle?: string;
+  content: JsonValue;
+  cover?: string;
+  topics: string[];
+  userId: string;
+  publishedId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+#### Apply Draft Changes to Published Post
+
+```typescript
+// Request
+POST /api/v1/posts/drafts/:id/apply
+
+// Response 200
+{
+  id: string;
+  title: string;
+  subtitle: string | null;
+  slug: string;
+  content: Record<string, any>;
+  excerpt: string;
+  cover: string | null;
+  readingTime: number;
+  topics: string[];
+  likeCount: number;
+  replyCount: number;
+  viewCount: number;
+  userId: string;
+  publishedAt: string;
+  updatedAt: string;
+}
+```
+
+### Workflow
+
+1. **Creating New Content**:
+   - User creates a draft post using existing API
+   - User publishes the draft using existing publish API (`POST /api/v1/posts/drafts/:id/publish`)
+   - System creates a new published post and deletes the draft
+
+2. **Editing Published Content**:
+   - User calls `POST /api/v1/posts/published/:id/draft` to create a draft from a published post
+   - User edits the draft using existing draft APIs (`PATCH /api/v1/posts/drafts/:id`)
+   - User applies changes using new API (`POST /api/v1/posts/drafts/:id/apply`)
+   - System updates the published post and deletes the draft
+
+### Error Cases
+
+- 404: Published post not found
+- 404: Draft post not found
+- 403: Not post owner
+- 400: Invalid input data
+- 400: Draft not linked to published post (for apply endpoint)
+- 500: Database error
+
+### Implementation Steps
+
+1. Update repository interface to support finding drafts by published ID
+2. Implement service method to create a draft from a published post
+3. Create controller endpoint for creating a draft from a published post
+4. Implement service method to apply draft changes to published post
+5. Create controller endpoint for applying draft changes
+6. Update both publish services to delete drafts after publishing
+7. Add end-to-end tests
+
+### Dependencies
+
+- CON-001: Create Draft Post API ✅
+- CON-002: Update Draft Post API ✅
+- CON-003: Publish Post API ✅
+
+### Estimated Effort
+
+- Story Points: 4
+- Time Estimate: 2-3 days
+
+### Priority
+
+Medium - Improves user experience and content management workflow

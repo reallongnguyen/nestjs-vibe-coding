@@ -1,9 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IEventBus, InjectEventBus } from 'src/common/event-bus';
 import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { Collection } from 'src/common/models';
+import { PrismaService } from 'src/common/prisma/prisma.service';
 
 import { IPublishedPostRepository } from './interfaces/published-post.repository.interface';
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
@@ -15,6 +14,7 @@ import { PublishedPostDeletedEvent } from '../entities/events/post-deleted.event
 import { DraftPostService } from './draft-post.service';
 import { ListPostsQueryDto } from '../presentation/dtos/list-posts.dto';
 import { PublishedPostWithAuthor } from '../entities/published-post.entity';
+import { DraftPost } from '../entities/draft-post.entity';
 
 @Injectable()
 export class PublishedPostService {
@@ -27,7 +27,7 @@ export class PublishedPostService {
     private readonly draftPostRepository: IDraftPostRepository,
     @InjectEventBus() private readonly eventBus: IEventBus,
     private readonly draftPostService: DraftPostService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly prisma: PrismaService,
   ) {}
 
   async deletePublished(id: string, userId: string): Promise<void> {
@@ -68,5 +68,50 @@ export class PublishedPostService {
     query: ListPostsQueryDto,
   ): Promise<Collection<PublishedPostWithAuthor>> {
     return this.publishedPostRepository.findAll(query);
+  }
+
+  async createDraftFromPublished(
+    publishedId: string,
+    userId: string,
+  ): Promise<DraftPost> {
+    const published = await this.publishedPostRepository.findById(publishedId);
+
+    if (!published) {
+      throw new PublishedPostNotFoundError(publishedId);
+    }
+
+    if (published.userId !== userId) {
+      throw new NotPublishedPostOwnerError(userId, publishedId);
+    }
+
+    // Check if a draft already exists for this published post
+    const existingDraft =
+      await this.draftPostRepository.findByPublishedId(publishedId);
+    if (existingDraft) {
+      this.logger.debug(
+        `Draft already exists for published post ${publishedId}`,
+      );
+      return existingDraft;
+    }
+
+    // Get topics for the published post
+    const topicIds = await this.prisma.postTopic.findMany({
+      where: { postId: publishedId },
+      select: { topicId: true },
+    });
+
+    // Create a new draft from the published post
+    const draftData = {
+      title: published.title,
+      subtitle: published.subtitle,
+      content: published.content,
+      cover: published.cover,
+      topics: topicIds.map((t) => t.topicId),
+      userId,
+      publishedId,
+    };
+
+    this.logger.debug(`Creating draft from published post ${publishedId}`);
+    return this.draftPostRepository.create(draftData);
   }
 }

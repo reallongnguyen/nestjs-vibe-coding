@@ -27,15 +27,18 @@ import {
   PaginatedResponse,
   RestExceptionFilter,
 } from 'src/common/presentation/rest';
-import { DraftPost } from '../entities/draft-post.entity';
 import { CreateDraftPostDto } from './dtos/create-draft-post.dto';
 import { DraftPostService } from '../services/draft-post.service';
 import { contentErrorMap } from '../entities/content-error.map';
 import { UpdateDraftPostDto } from './dtos/update-draft-post.dto';
 import { PublishDraftDto } from './dtos/publish-draft.dto';
-import { PublishedPost } from '../entities/published-post.entity';
 import { ListDraftPostsQueryDto } from './dtos/list-posts.dto';
-import { DraftPostListItemDto } from './dtos/post-response.dto';
+import {
+  DraftPostListItemDto,
+  DraftPostResponseDto,
+  PublishedPostResponseDto,
+} from './dtos/post-response.dto';
+import { ApplyDraftDto } from './dtos/apply-draft.dto';
 
 @ApiTags('Posts')
 @Controller({
@@ -50,38 +53,38 @@ export class DraftPostController {
   @Post()
   @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
   @ApiOperation({ summary: 'Create a draft post' })
-  @CreatedResponse(DraftPost)
+  @CreatedResponse(DraftPostResponseDto)
   @ErrorResponse('draft.create', contentErrorMap, { hasValidationErr: true })
   async createDraft(
     @AuthContextUser() user: User,
     @Body() dto: CreateDraftPostDto,
-  ): Promise<DraftPost> {
+  ): Promise<DraftPostResponseDto> {
     return this.draftPostService.createDraft(user.id, dto.toData(user.id));
   }
 
   @Patch(':id')
   @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
   @ApiOperation({ summary: 'Update a draft post' })
-  @OkResponse(DraftPost)
+  @OkResponse(DraftPostResponseDto)
   @ErrorResponse('draft.update', contentErrorMap, { hasValidationErr: true })
   async updateDraft(
     @AuthContextUser() user: User,
     @Param('id') id: string,
     @Body() dto: UpdateDraftPostDto,
-  ): Promise<DraftPost> {
+  ): Promise<DraftPostResponseDto> {
     return this.draftPostService.updateDraft(user.id, id, dto.toData());
   }
 
   @Post(':id/publish')
   @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
   @ApiOperation({ summary: 'Publish a draft post' })
-  @OkResponse(PublishedPost)
+  @OkResponse(PublishedPostResponseDto)
   @ErrorResponse('draft.publish', contentErrorMap, { hasValidationErr: true })
   async publishDraft(
     @AuthContextUser() user: User,
     @Param('id') id: string,
     @Body() dto: PublishDraftDto,
-  ): Promise<PublishedPost> {
+  ): Promise<PublishedPostResponseDto> {
     return this.draftPostService.publishDraft(user.id, id, dto.toData());
   }
 
@@ -119,5 +122,18 @@ export class DraftPostController {
       published: !!draft.publishedId,
       publishedId: draft.publishedId,
     }));
+  }
+
+  @Post(':id/apply')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Apply draft changes to published post' })
+  @OkResponse(PublishedPostResponseDto)
+  @ErrorResponse('post.applyDraft', contentErrorMap)
+  async applyDraft(
+    @Param('id') id: string,
+    @Body() dto: ApplyDraftDto,
+    @AuthContextUser() user: User,
+  ): Promise<PublishedPostResponseDto> {
+    return this.draftPostService.applyDraft(user.id, id, dto);
   }
 }

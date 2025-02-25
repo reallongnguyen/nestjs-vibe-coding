@@ -7,7 +7,7 @@ import { DraftPost } from '../entities/draft-post.entity';
 import { PublishedPost } from '../entities/published-post.entity';
 import { IDraftPostRepository } from '../services/interfaces/draft-post.repository.interface';
 import { CreateDraftPostData } from '../services/dtos/create-daft-post.dto';
-import { DraftCreateError, DraftUpdateError } from '../entities/content.error';
+import { DraftCreateError } from '../entities/content.error';
 import {
   ListDraftPostsQueryDto,
   DraftPostSortField,
@@ -83,7 +83,7 @@ export class DraftPostRepository
       userId: string;
       topicIds: string[];
     },
-  ): Promise<{ draft: DraftPost; published: PublishedPost }> {
+  ): Promise<{ published: PublishedPost }> {
     try {
       const tx = this.prisma as PrismaService;
       const published = await tx.publishedPost.create({
@@ -104,27 +104,25 @@ export class DraftPostRepository
         },
       });
 
-      const [draft] = await Promise.all([
-        tx.draftPost.update({
-          where: { id },
-          data: { publishedId: id },
-        }),
-        tx.postTopic.createMany({
-          data: data.topicIds.map((topicId) => ({
-            postId: id,
-            topicId,
-          })),
-        }),
-      ]);
+      await Promise.all(
+        data.topicIds.map((topicId) =>
+          tx.postTopic.create({
+            data: {
+              postId: id,
+              topicId,
+            },
+          }),
+        ),
+      );
 
-      return {
-        draft: draft as DraftPost,
-        published: published as unknown as PublishedPost,
-      };
+      await tx.draftPost.delete({
+        where: { id },
+      });
+
+      return { published: published as unknown as PublishedPost };
     } catch (error) {
       this.logger.error(`Failed to publish draft post ${id}: ${error.message}`);
-
-      throw new DraftUpdateError(error.message);
+      throw error;
     }
   }
 
@@ -135,9 +133,9 @@ export class DraftPostRepository
   }
 
   async findByPublishedId(publishedId: string): Promise<DraftPost | null> {
-    return (await this.prisma.draftPost.findFirst({
+    return this.prisma.draftPost.findFirst({
       where: { publishedId },
-    })) as DraftPost | null;
+    });
   }
 
   async findAll(
@@ -184,5 +182,50 @@ export class DraftPostRepository
       offset,
       limit,
     });
+  }
+
+  async applyToPublished(
+    id: string,
+    publishedId: string,
+    data: {
+      title?: string;
+      subtitle?: string;
+      content: Record<string, any>;
+      excerpt?: string;
+      readingTime: number;
+      userId: string;
+      cover: string;
+      topicIds: string[];
+    },
+  ): Promise<{ published: PublishedPost }> {
+    const published = await this.prisma.publishedPost.update({
+      where: { id: publishedId },
+      data: {
+        title: data.title,
+        subtitle: data.subtitle,
+        content: data.content,
+        excerpt: data.excerpt,
+        readingTime: data.readingTime,
+        cover: data.cover,
+        updatedAt: new Date(),
+      },
+    });
+
+    await this.prisma.postTopic.deleteMany({
+      where: { postId: publishedId },
+    });
+
+    await this.prisma.postTopic.createMany({
+      data: data.topicIds.map((topicId) => ({
+        postId: publishedId,
+        topicId,
+      })),
+    });
+
+    await this.prisma.draftPost.delete({
+      where: { id },
+    });
+
+    return { published };
   }
 }

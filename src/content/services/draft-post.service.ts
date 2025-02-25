@@ -17,6 +17,7 @@ import {
   NotDraftOwnerError,
   SlugExistsError,
   DraftPublishError,
+  DraftNotLinkedToPublishedError,
 } from '../entities/content.error';
 import {
   generateSlug,
@@ -269,5 +270,85 @@ export class DraftPostService {
     query: ListDraftPostsQueryDto,
   ): Promise<Collection<DraftPost>> {
     return this.draftPostRepository.findAll(userId, query);
+  }
+
+  async applyDraft(
+    userId: string,
+    draftId: string,
+    data?: { excerpt?: string },
+  ): Promise<PublishedPost> {
+    this.logger.debug(
+      `Applying draft post ${draftId} to published post for user ${userId}`,
+    );
+
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const draftRepo = this.draftPostRepository.withTransaction(tx as any);
+
+        // Check draft exists and ownership
+        const draft = await draftRepo.findById(draftId);
+        if (!draft) {
+          throw new DraftNotFoundError(draftId);
+        }
+        if (draft.userId !== userId) {
+          throw new NotDraftOwnerError(userId, draftId);
+        }
+
+        // Check if draft is linked to a published post
+        if (!draft.publishedId) {
+          throw new DraftNotLinkedToPublishedError(draftId);
+        }
+
+        // Calculate reading time
+        const readingTime = calculateReadingTime(draft.content);
+
+        // Generate excerpt if not provided
+        const excerpt = data?.excerpt || generateExcerpt(draft.content);
+
+        // Apply the draft changes to the published post
+        const { published } = await draftRepo.applyToPublished(
+          draftId,
+          draft.publishedId,
+          {
+            title: draft.title,
+            subtitle: draft.subtitle,
+            excerpt,
+            readingTime,
+            content: draft.content,
+            userId,
+            cover: draft.cover,
+            topicIds: draft.topics,
+          },
+        );
+
+        // Emit post updated event
+        this.events.emitPostUpdated(
+          published.id,
+          draftId,
+          userId,
+          published.title,
+          published.slug,
+        );
+
+        this.logger.debug(
+          `Applied draft post ${draftId} to published post ${published.id}`,
+        );
+
+        return published;
+      });
+    } catch (error) {
+      // If it's our custom error, rethrow it
+      if (
+        error instanceof DraftNotFoundError ||
+        error instanceof NotDraftOwnerError ||
+        error instanceof DraftNotLinkedToPublishedError
+      ) {
+        this.logger.warn('error is instance of AppError');
+        throw error;
+      }
+
+      this.logger.error(`Failed to apply draft post ${draftId}`, error);
+      throw new DraftPublishError(error);
+    }
   }
 }

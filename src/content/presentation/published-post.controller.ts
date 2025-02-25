@@ -7,11 +7,13 @@ import {
   Get,
   Query,
   UseInterceptors,
+  Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthContextUser, AuthGuard, User, RolesGuard } from 'src/common/auth';
 import { Collection } from 'src/common/models';
 import {
+  CreatedResponse,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
@@ -21,7 +23,10 @@ import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
 import { contentErrorMap } from '../entities/content-error.map';
 import { PublishedPostService } from '../services/published-post.service';
 import { ListPostsQueryDto } from './dtos/list-posts.dto';
-import { PublishedPostListItemDto } from './dtos/post-response.dto';
+import {
+  PublishedPostListItemDto,
+  DraftPostResponseDto,
+} from './dtos/post-response.dto';
 
 @ApiTags('Posts')
 @Controller({
@@ -76,5 +81,21 @@ export class PublishedPostController {
         avatar: post.userAuthor?.avatar,
       },
     }));
+  }
+
+  @Post(':id/draft')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Create a draft from a published post' })
+  @CreatedResponse(DraftPostResponseDto)
+  @ErrorResponse('post.createDraftFromPublished', contentErrorMap)
+  async createDraftFromPublished(
+    @Param('id') id: string,
+    @AuthContextUser() user: User,
+  ): Promise<DraftPostResponseDto> {
+    const draft = await this.publishedPostService.createDraftFromPublished(
+      id,
+      user.id,
+    );
+    return DraftPostResponseDto.fromDomain(draft);
   }
 }

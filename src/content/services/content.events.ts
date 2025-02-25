@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
 import { InjectEventBus } from 'src/common/event-bus';
 import { PostPublishedEvent } from '../entities/events/post-published.event';
+import { PostUpdatedEvent } from '../entities/events/post-updated.event';
 
 @Injectable()
 export class ContentEvents {
@@ -23,5 +24,17 @@ export class ContentEvents {
     );
 
     await this.eventBus.publish(event);
+  }
+
+  emitPostUpdated(
+    postId: string,
+    draftId: string,
+    userId: string,
+    title: string,
+    slug: string,
+  ): void {
+    this.eventBus.publish(
+      new PostUpdatedEvent(postId, draftId, userId, title, slug),
+    );
   }
 }

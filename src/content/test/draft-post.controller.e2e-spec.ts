@@ -18,6 +18,7 @@ import {
   EXPECTED_PUBLISHED_POST,
 } from './content.test-data';
 import { createTestDraft, publishTestPost } from './content.test-helpers';
+import { createPublishedPost } from './helpers/create-published-post';
 
 describe('DraftPostController (Integration)', () => {
   let app: INestApplication;
@@ -612,5 +613,146 @@ describe('DraftPostController (Integration)', () => {
     });
 
     // ... similar tests for 404 and 403 cases
+  });
+
+  describe('POST /posts/drafts/:id/apply', () => {
+    it('should apply draft changes to published post', async () => {
+      // Create a published post
+      const publishedPost = await createPublishedPost(app, mockUser.token);
+
+      // Create a draft from the published post
+      const draftResponse = await request(app.getHttpServer())
+        .post(`/api/v1/posts/published/${publishedPost.id}/draft`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(201);
+
+      const xDraftId = draftResponse.body.id;
+
+      // Update the draft
+      const updatedTitle = 'Updated Title';
+      await request(app.getHttpServer())
+        .patch(`/api/v1/posts/drafts/${xDraftId}`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .send({ title: updatedTitle })
+        .expect(200);
+
+      // Apply the draft changes
+      const applyResponse = await request(app.getHttpServer())
+        .post(`/api/v1/posts/drafts/${draftId}/apply`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(200);
+
+      // Verify the published post was updated
+      expect(applyResponse.body.title).toBe(updatedTitle);
+      expect(applyResponse.body.id).toBe(publishedPost.id);
+
+      // Verify the draft was deleted
+      await request(app.getHttpServer())
+        .get(`/api/v1/posts/drafts/${draftId}`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(404);
+    });
+
+    it('should return 404 if draft not found', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/posts/drafts/non-existent-id/apply')
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(404);
+    });
+
+    it('should return 403 if user is not the owner', async () => {
+      // Create a published post
+      const publishedPost = await createPublishedPost(app, mockUser.token);
+
+      // Create a draft from the published post
+      const draftResponse = await request(app.getHttpServer())
+        .post(`/api/v1/posts/published/${publishedPost.id}/draft`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(201);
+
+      const xDraftId = draftResponse.body.id;
+
+      // Try to apply with different user
+      await request(app.getHttpServer())
+        .post(`/api/v1/posts/drafts/${xDraftId}/apply`)
+        .set('Authorization', `Bearer ${'other-user-token'}`)
+        .expect(403);
+    });
+
+    it('should return 400 if draft is not linked to a published post', async () => {
+      // Create a regular draft
+      const draftResponse = await request(app.getHttpServer())
+        .post('/api/v1/posts/drafts')
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .send({
+          title: 'Test Draft',
+          content: { text: 'Test content' },
+          topics: [],
+        })
+        .expect(201);
+
+      const xDraftId = draftResponse.body.id;
+
+      // Try to apply the draft
+      await request(app.getHttpServer())
+        .post(`/api/v1/posts/drafts/${xDraftId}/apply`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(400);
+    });
+  });
+
+  describe('POST /posts/published/:id/draft', () => {
+    it('should create a draft from a published post', async () => {
+      // Create a published post
+      const publishedPost = await createPublishedPost(app, mockUser.token);
+
+      // Create a draft from the published post
+      const response = await request(app.getHttpServer())
+        .post(`/api/v1/posts/published/${publishedPost.id}/draft`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(201);
+
+      // Verify the draft was created with the correct data
+      expect(response.body.title).toBe(publishedPost.title);
+      expect(response.body.publishedId).toBe(publishedPost.id);
+    });
+
+    it('should return existing draft if one already exists', async () => {
+      // Create a published post
+      const publishedPost = await createPublishedPost(app, mockUser.token);
+
+      // Create a draft from the published post
+      const firstResponse = await request(app.getHttpServer())
+        .post(`/api/v1/posts/published/${publishedPost.id}/draft`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(201);
+
+      // Try to create another draft
+      const secondResponse = await request(app.getHttpServer())
+        .post(`/api/v1/posts/published/${publishedPost.id}/draft`)
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(201);
+
+      // Verify the same draft was returned
+      expect(secondResponse.body.id).toBe(firstResponse.body.id);
+    });
+
+    it('should return 404 if published post not found', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/posts/published/non-existent-id/draft')
+        .set('Authorization', `Bearer ${mockUser.token}`)
+        .expect(404);
+    });
+
+    it('should return 403 if user is not the owner', async () => {
+      // Create a published post
+      const publishedPost = await createPublishedPost(app, mockUser.token);
+
+      // Try to create a draft with different user
+      await request(app.getHttpServer())
+        .post(`/api/v1/posts/published/${publishedPost.id}/draft`)
+        .set('Authorization', `Bearer ${'other-user-token'}`)
+        .expect(403);
+    });
   });
 });

@@ -23,7 +23,21 @@ export interface IDraftPostRepository extends IBaseRepository {
       cover: string;
       topicIds: string[];
     },
-  ): Promise<{ draft: DraftPost; published: PublishedPost }>;
+  ): Promise<{ published: PublishedPost }>;
+  applyToPublished(
+    id: string,
+    publishedId: string,
+    data: {
+      title?: string;
+      subtitle?: string;
+      content: Record<string, any>;
+      excerpt?: string;
+      readingTime: number;
+      userId: string;
+      cover: string;
+      topicIds: string[];
+    },
+  ): Promise<{ published: PublishedPost }>;
   findByPublishedId(publishedId: string): Promise<DraftPost | null>;
   findAll(
     userId: string,

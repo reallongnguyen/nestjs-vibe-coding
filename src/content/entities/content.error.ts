@@ -73,3 +73,11 @@ export class NotPublishedPostOwnerError extends AppError {
     });
   }
 }
+
+export class DraftNotLinkedToPublishedError extends AppError {
+  constructor(draftId: string) {
+    super('draft.notLinkedToPublished', {
+      draftId,
+    });
+  }
+}

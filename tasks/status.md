@@ -38,6 +38,31 @@
   - ✅ End-to-end tests
   - ✅ Documentation
 
+- CON-005: List Posts API
+  - ✅ API implementation with pagination
+  - ✅ Redis caching integration
+  - ✅ Content type handling (posts and emotions)
+  - ✅ Score-based sorting
+  - ✅ Documentation
+
+- CON-006: Improve Post Features
+  - ✅ Create module structure
+  - ✅ Update repository interfaces
+  - ✅ Create DTOs for new endpoints
+  - ✅ Update service interfaces
+  - ✅ Implement repository methods
+  - ✅ Add findByPublishedId to DraftPostRepository
+  - ✅ Update publish method to delete draft after publishing
+  - ✅ Add applyToPublished method to DraftPostRepository
+  - ✅ Implement service methods
+  - ✅ Add createDraftFromPublished to PublishedPostService
+  - ✅ Update publishDraft in DraftPostService to delete draft after publishing
+  - ✅ Add applyDraft method to DraftPostService
+  - ✅ Create controller endpoints
+  - ✅ Add createDraftFromPublished endpoint to PublishedPostController
+  - ✅ Add applyDraft endpoint to DraftPostController
+  - ✅ Add end-to-end tests
+
 - EMO-001: Create User Emotion API
   - ✅ Database schema
   - ✅ API implementation
@@ -103,42 +128,10 @@
 
 ## Known Issues
 
-- None currently
-
-# Content Module Implementation Status
-
-## CON-001: Create Draft Posts ✅
-
-- [x] Create module structure
-- [x] Implement data layer (entities, repositories)
-- [x] Implement presentation layer (DTOs, controllers)
-- [x] Implement business logic (services)
-- [x] Add end-to-end tests
-
-## CON-002: Update Draft Posts ✅
-
-- [x] Implement update endpoint
-- [x] Add validation
-- [x] Add error handling
-- [x] Add end-to-end tests
-
-## CON-003: List Posts ✅
-
-- [x] Implement pagination with offset/limit
-- [x] Add filtering (by topics, status, date range)
-- [x] Add search functionality
-- [x] Implement caching for published posts
-- [x] Add Collection response type
-- [x] Add end-to-end tests
-
-## Next Steps
-
-- [ ] CON-004: Implement post reactions
-- [ ] CON-005: Add post comments
-- [ ] CON-006: Add post analytics
-
-## Technical Debt
-
 - Consider adding rate limiting for search queries
 - Add performance monitoring for list endpoints
 - Consider implementing cursor-based pagination for large datasets
+
+## Technical Debt
+
+- None currently
