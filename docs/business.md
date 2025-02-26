@@ -191,3 +191,69 @@ stateDiagram-v2
    - Validation failure rate
    - System error rate
    - Recovery success rate
+
+### 7. Comment System Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Create: User writes comment
+    Create --> Validate: System validates
+    Validate --> Store: Valid comment
+    Validate --> Error: Invalid comment
+    Store --> Notify: Notify mentioned users
+    Store --> UpdateCounts: Update post counts
+    Store --> [*]
+```
+
+1. Comment Creation
+   - Process:
+     - User writes comment
+     - System validates content
+     - Stores in database
+     - Updates post metrics
+   - Features:
+     - Markdown support
+     - Mention notifications
+     - Thread management
+
+2. Comment Engagement
+   - Features:
+     - Like/unlike comments
+     - Reply threading
+     - Sort options
+   - Constraints:
+     - One like per user
+     - Thread depth limits
+     - Rate limiting
+
+### 8. Emotion Social Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> View: User views emotion
+    [*] --> Like: User likes emotion
+    [*] --> Comment: User comments
+    View --> Track: Record view
+    Like --> Update: Update counts
+    Comment --> Notify: Notify author
+```
+
+1. Emotion Engagement
+   - Process:
+     - View tracking
+     - Like management
+     - Comment integration
+   - Features:
+     - Privacy controls
+     - Engagement metrics
+     - Support responses
+
+2. Distribution
+   - Features:
+     - Feed integration
+     - Notification system
+     - Analytics tracking
+   - Privacy:
+     - Respect user settings
+     - Selective sharing
+     - View restrictions

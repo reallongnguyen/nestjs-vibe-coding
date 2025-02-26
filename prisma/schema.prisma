@@ -56,6 +56,7 @@ model User {
   streak          UserStreak?
   achievements    UserAchievement[]
   botInteractions BotInteraction[]
+  likes           Like[]
 
   @@map("users")
 }
@@ -506,4 +507,49 @@ model BotInteraction {
   @@index([userId])
   @@index([type])
   @@map("bot_interactions")
+}
+
+// Add interface support tables for social engagement
+model Engageable {
+  id           String   @id @default(uuid())
+  type         String // "POST" or "EMOTION"
+  contentId    String   @map("content_id")
+  likeCount    Int      @default(0) @map("like_count")
+  viewCount    Int      @default(0) @map("view_count")
+  commentCount Int      @default(0) @map("comment_count")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([type, contentId])
+  @@index([type, contentId])
+  @@map("engageables")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  type      String // "POST" or "EMOTION"
+  contentId String   @map("content_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([type, contentId, userId])
+  @@index([type, contentId])
+  @@index([userId])
+  @@map("likes")
+}
+
+model View {
+  id         String   @id @default(uuid())
+  type       String // "POST" or "EMOTION"
+  contentId  String   @map("content_id")
+  viewerId   String?  @map("viewer_id")
+  viewerHash String   @map("viewer_hash")
+  timestamp  DateTime @default(now()) @db.Timestamptz()
+
+  @@index([type, contentId])
+  @@index([viewerHash])
+  @@index([timestamp])
+  @@map("views")
 }

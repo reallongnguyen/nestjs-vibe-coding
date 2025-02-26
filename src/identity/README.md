@@ -39,8 +39,9 @@ identity/
 
 - HTTP controllers
 - Request/Response DTOs
-- Input validation
+- Input validation via class-validator
 - Error handling
+- Swagger documentation
 
 ## Best Practices
 

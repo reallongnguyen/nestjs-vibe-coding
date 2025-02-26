@@ -22,6 +22,10 @@ import { PostViewService } from './services/post-view.service';
 import { PostLikeRepository } from './repositories/post-like.repository';
 import { PostViewRepository } from './repositories/post-view.repository';
 import { ViewSyncCron } from './presentation/crons/view-sync.cron';
+import { CommentController } from './presentation/comment.controller';
+import { CommentService } from './services/comment.service';
+import { CommentLikeService } from './services/comment-like.service';
+import { CommentRepository } from './repositories/comment.repository';
 
 @Module({
   imports: [
@@ -38,7 +42,12 @@ import { ViewSyncCron } from './presentation/crons/view-sync.cron';
     }),
     ScheduleModule.forRoot(),
   ],
-  controllers: [FeedController, PostLikeController, PostViewController],
+  controllers: [
+    FeedController,
+    PostLikeController,
+    PostViewController,
+    CommentController,
+  ],
   providers: [
     FeedService,
     ContentProcessorService,
@@ -62,6 +71,9 @@ import { ViewSyncCron } from './presentation/crons/view-sync.cron';
       useClass: PostViewRepository,
     },
     ViewSyncCron,
+    CommentService,
+    CommentLikeService,
+    CommentRepository,
   ],
 })
 export class SocialModule {}

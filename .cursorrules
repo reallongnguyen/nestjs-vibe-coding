@@ -121,11 +121,9 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 ## Development process
 
-As a senior developer, do CON-007 in @tasks.md follow development process. Add task description and technical note to @status.md if needed
-
 ### STEP 1: Confirm task requirements
 
-- Read the file: tasks/tasks.md
+- Read the file: /tasks/tasks.md
 - Extract and understand:
   - Task requirements
   - Acceptance criteria
@@ -136,45 +134,34 @@ As a senior developer, do CON-007 in @tasks.md follow development process. Add t
 
 ### STEP 2: Confirm current context
 
-#### Read the file: docs/architecture.mermaid
-
-- Extract and understand:
-  - Module boundaries and relationships
-  - Data flow patterns
-  - System interfaces
-  - Component dependencies
-- Validate any changes against architectural constraints
-- Ensure new code maintains defined separation of concerns
-
-#### Read the file: prisma/schema.prisma
-
-- Understand the data model
-- Understand the constraints
-
-#### Read the file: docs/technical.md
-
-- Understand the technical notes
-
-#### Error handling
-
-- If file not found: STOP and notify user
-- If diagram parse fails: REQUEST clarification
-- If architectural violation detected: WARN user
-- If data model is not aligned with the task: STOP and notify user
+- Read the file: /docs/architecture.mermaid
+  - Extract and understand:
+    - Module boundaries and relationships
+    - Data flow patterns
+    - System interfaces
+    - Component dependencies
+  - Validate any changes against architectural constraints
+  - Ensure new code maintains defined separation of concerns
+- Read the file: /prisma/schema.prisma
+  - Understand the data model
+  - Understand the constraints
+- Read the file: /docs/technical.md
+  - Understand folder structure
+  - Understand code conventions
 
 ### STEP 3: Task Workflow
 
 Required understanding files:
 
-- tasks/tasks.md: Source of task definitions
-- tasks/status.md: Progress tracking
-- docs/technical.md: Implementation guidelines
+- `/tasks/tasks.md`: Source of task definitions
+- `/tasks/status.md`: Progress tracking
+- `/docs/technical.md`: Implementation guidelines
 
 Workflow steps:
 
-- Update task status: tasks/status.md:
+- Update task status `/tasks/status.md`:
   - Mark task as in-progress
-  - Define Implementation Steps in tasks/status.md following:
+  - Define Implementation Steps in `/tasks/status.md` following:
     - If task is complex, programming following steps:
       - Create module structure. Just create empty files for now.
       - Implement data layer
@@ -185,42 +172,55 @@ Workflow steps:
       - Implement code
       - Add end to end tests
   - Document any blockers
-- Implement following implementation steps in tasks/status.md
-- Update documentation:
-  - UPDATE docs/architecture.mermaid if needed
-  - UPDATE docs/technical.md if needed
+- Implement following implementation steps in `/tasks/status.md`
 
 ### STEP 4: Keep documentation updated
 
-Required actions after any task completion:
-
-- UPDATE tasks/status.md with:
+- UPDATE `/tasks/status.md` with:
   - Current progress
   - Any new issues encountered
   - Completed items
-- Update docs/architecture.mermaid if needed
-- Update docs/technical.md specifications if needed
-- Update prisma/schema.prisma if needed
+- Update `/docs/architecture.mermaid` if needed
+- Add notes to `/docs/technical.md` if needed
+- Add tech debt notes to `/docs/technical.md` if needed
 
 ## Feature design process
 
-As a PO, design Post react feature and add to @tasks.md follow Feature design process. Check data schema in @schema.prisma and module structure in @module-structure.md . Refer exist module @identity .
-Just need create feature design and task description. Do not yet code.
+As a Product Owner, follow these feature design principles:
+
+- User-Centric Design
+- Simplicity and Clarity
+- Consistency
+- Scalability
+- Data-Driven Decisions
+- Security and Privacy
 
 ### STEP 1: Read context
 
-- Read data model in prisma/schema.prisma
-- Read technical notes in docs/technical.md
-- Read old tasks requirements in tasks/sprint-XXX.md
-- Read status in tasks/status.md
+- Read data model in `/prisma/schema.prisma`
+- Read technical notes in `/docs/technical.md`
+- Read business notes in `/docs/business.md`
+- Read status in `/tasks/status.md`
 
 ### STEP 2: Design the feature
 
 - Design the feature, ask for confirmation
-- Update prisma/schema.prisma if needed
-- Update docs/technical.md if needed
+- Update `/prisma/schema.prisma` if needed
+- Update `/docs/business.md` if needed
 
 ### STEP 3: Create task specification
 
-- Write feature specification in tasks/tasks.md
-- Create sub-tasks in tasks/tasks.md if task is complex
+- Write task specification in `/tasks/tasks.md`
+- Define Implementation Steps following:
+  - If task is complex, programming following steps:
+    - Create module structure. Just create empty files for now.
+    - Implement entities layer
+    - Implement presentation layer with mockup services
+    - Implement business logic in services
+    - Implement repository layer
+    - Add end to end tests
+  - If task is simple, programming following steps:
+    - Implement code
+    - Add end to end tests
+- Define entities and API interfaces to be used in the feature
+- Remind developer follow the folder structure in `/docs/module-structure.md` and code style in module `/src/content`

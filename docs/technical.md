@@ -543,117 +543,6 @@ networks:
    - Developer portal
    - API playground
 
-## Redis Usage Guidelines
-
-### Keys and Patterns
-
-1. Key Naming Convention:
-
-   ```
-   {module}:{entity}:{id}:{purpose}
-   ```
-
-   Example: `post:123:views:increment`
-
-2. Common Patterns:
-   - Cache: `{entity}:{id}:cache`
-   - List: `{entity}:list:{filter}`
-   - Counter: `{entity}:{id}:count`
-   - Lock: `{entity}:{id}:lock`
-   - Batch: `{entity}:batch`
-
-### Data Structures
-
-1. HyperLogLog
-   - Use for unique counting (views, visitors)
-   - Commands: `pfadd`, `pfcount`
-
-   ```typescript
-   // Add to HyperLogLog
-   await redis.pfadd('post:123:views:increment', viewerHash);
-   // Get count
-   const count = await redis.pfcount('post:123:views:increment');
-   ```
-
-2. Lists
-   - Use for queues and batching
-   - Commands: `rpush`, `lrange`, `llen`, `del`
-
-   ```typescript
-   // Add to batch
-   await redis.rpush('post-views-batch', JSON.stringify(data));
-   // Get batch size
-   const size = await redis.llen('post-views-batch');
-   // Get all items
-   const items = await redis.lrange('post-views-batch', 0, -1);
-   ```
-
-3. Strings with TTL
-   - Use for temporary flags and caching
-   - Commands: `setex`, `get`
-
-   ```typescript
-   // Set with TTL
-   await redis.setex('post:123:views:recent', 1800, '1');
-   // Check existence
-   const exists = await redis.get('post:123:views:recent');
-   ```
-
-### Performance Optimization
-
-1. Pipelining
-
-   ```typescript
-   const pipeline = redis.pipeline();
-   keys.forEach(key => pipeline.pfcount(key));
-   const results = await pipeline.exec();
-   ```
-
-2. Batching
-
-   ```typescript
-   // Batch configuration
-   const BATCH_SIZE = 100;
-   const BATCH_TIMEOUT = 1000; // ms
-
-   // Process when batch is full or timeout reached
-   if (batchSize >= BATCH_SIZE || timeSinceStart >= BATCH_TIMEOUT) {
-     await processBatch();
-   }
-   ```
-
-3. Transaction
-
-   ```typescript
-   await redis.multi()
-     .set('key1', 'value1')
-     .set('key2', 'value2')
-     .exec();
-   ```
-
-### Best Practices
-
-1. Memory Management
-   - Always set TTL for temporary data
-   - Use HyperLogLog for large sets
-   - Implement cleanup jobs for expired data
-
-2. Error Handling
-
-   ```typescript
-   try {
-     await redis.set('key', 'value');
-   } catch (error) {
-     logger.error('Redis operation failed:', error);
-     throw new AppError('redis.operation.failed');
-   }
-   ```
-
-3. Monitoring
-   - Track Redis memory usage
-   - Monitor operation latency
-   - Set up alerts for connection issues
-
 ### View Tracking Implementation
 
 A viewer can view a post multiple times, each time should be counted as 1 view. A viewer can only view a post once in a period of 10 minutes.
@@ -716,3 +605,69 @@ graph TD
    - Race conditions possible on concurrent like/unlike
    - Like count might become inconsistent under high load
    - Consider implementing optimistic locking
+
+## Social Engagement System
+
+### Interface Definitions
+
+```typescript
+interface ILikeable {
+  like(userId: string): Promise<void>;
+  unlike(userId: string): Promise<void>;
+  getLikeCount(): Promise<number>;
+  isLikedBy(userId: string): Promise<boolean>;
+}
+
+interface IViewable {
+  view(viewerHash: string, viewerId?: string): Promise<void>;
+  getViewCount(): Promise<number>;
+}
+
+interface ICommentable {
+  comment(userId: string, content: any): Promise<Comment>;
+  getComments(options: PaginationOptions): Promise<Comment[]>;
+  getCommentCount(): Promise<number>;
+}
+```
+
+### Redis Implementation
+
+#### Key Patterns
+
+```
+{type}:{id}:likes:set          // Set of user IDs who liked
+{type}:{id}:views:hll          // HyperLogLog of viewer hashes
+{type}:{id}:views:recent:{hash} // Recent view tracking with TTL
+{type}:likes:batch             // List of pending like updates
+{type}:views:batch             // List of pending view updates
+```
+
+#### Batch Processing
+
+```typescript
+export interface BatchProcessorConfig<T> {
+  // Function to process the batch
+  processBatch: (items: T[]) => Promise<void>;
+  // Redis key for the batch list
+  batchKey?: string;
+  // Maximum size of a batch before processing
+  batchSize?: number;
+  // Maximum time (ms) to wait before processing an incomplete batch
+  batchTimeout?: number;
+  // Optional function to validate item before adding to batch
+  validateItem?: (item: T) => boolean | Promise<boolean>;
+  // Optional custom logger
+  logger?: Logger;
+  // Optional timer interval (ms) to check if batch should be processed
+  timerInterval?: number;
+}
+
+export class RedisBatchProcessor<T> {
+  constructor(redis: Redis, config: BatchProcessorConfig<T>) {
+    // ...
+  }
+
+  async add(item: T): Promise<void> {
+    // ...
+  }
+```
