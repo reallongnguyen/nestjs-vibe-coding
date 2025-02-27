@@ -1,26 +1,43 @@
 import { HttpStatus } from '@nestjs/common';
-import { ErrorMap, commonErrorMap } from 'src/common/models';
+import { commonErrorMap, ErrorMap } from 'src/common/models/error.map';
 
 export const socialErrorMap: ErrorMap = {
   ...commonErrorMap,
-  post: {
+  social: {
     like: {
-      notFound: {
-        message: 'Post not found',
-        status: HttpStatus.NOT_FOUND,
+      alreadyLiked: {
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Content already liked',
+      },
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to like content',
       },
     },
-    likeStatus: {
-      notFound: {
-        message: 'Post not found',
-        status: HttpStatus.NOT_FOUND,
+    unlike: {
+      notLiked: {
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Content not liked',
+      },
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to unlike content',
       },
     },
     view: {
-      notFound: {
-        message: 'Post not found',
-        status: HttpStatus.NOT_FOUND,
+      failed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to record view',
       },
+    },
+    engageable: {
+      notFound: {
+        status: HttpStatus.NOT_FOUND,
+        message: 'Engageable content not found',
+      },
+    },
+    engagement: {
+      get: {},
     },
   },
 };

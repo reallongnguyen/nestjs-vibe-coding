@@ -31,6 +31,20 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - ctx for contexts
   - req, res, next for middleware function parameters
 
+### Modules
+
+- Module relationship:
+  - Each module has a single responsibility.
+  - Each module does not call other modules directly. Use event bus to communicate between modules. However, each module can use `/src/common` module.
+- Module's code style:
+  - Clear separation of entities, repositories, services, and presentation layers
+  - Specific error classes for better error handling
+  - Consistent DTO patterns with fromDomain static methods
+  - Proper use of decorators for API documentation
+  - Consistent error mapping
+  - Proper use of dependency injection
+- Module's folder structure follows `/docs/module-structure.md`
+
 ### Functions
 
 - In this context, what is understood as a function will also apply to a method.
@@ -134,7 +148,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 ### STEP 2: Confirm current context
 
-- Read the file: /docs/architecture.mermaid
+- Read the file: `/docs/architecture.mermaid`
   - Extract and understand:
     - Module boundaries and relationships
     - Data flow patterns
@@ -142,12 +156,19 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
     - Component dependencies
   - Validate any changes against architectural constraints
   - Ensure new code maintains defined separation of concerns
-- Read the file: /prisma/schema.prisma
+- Read the file: `/prisma/schema.prisma`
   - Understand the data model
   - Understand the constraints
-- Read the file: /docs/technical.md
+- Read the file: `/docs/technical.md`
   - Understand folder structure
   - Understand code conventions
+- Understand the module's style:
+  - Clear separation of entities, repositories, services, and presentation layers
+  - Specific error classes for better error handling
+  - Consistent DTO patterns with fromDomain static methods
+  - Proper use of decorators for API documentation
+  - Consistent error mapping
+  - Proper use of dependency injection
 
 ### STEP 3: Task Workflow
 
