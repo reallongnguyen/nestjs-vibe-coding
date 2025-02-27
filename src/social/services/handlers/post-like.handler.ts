@@ -1,16 +1,56 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { IEventBus } from 'src/common/event-bus';
 import { BaseLikeHandler, LikeOperation } from './base-like.handler';
+import { PostLikedEvent } from '../../entities/events/post-liked.event';
+import { PostUnlikedEvent } from '../../entities/events/post-unliked.event';
 
 @Injectable()
 export class PostLikeHandler extends BaseLikeHandler {
   constructor(
     protected readonly prisma: PrismaService,
     protected readonly redisService: RedisService,
+    private readonly eventBus: IEventBus,
     postId: string,
   ) {
     super(prisma, redisService, postId, 'POST');
+  }
+
+  async like(userId: string): Promise<void> {
+    await super.like(userId);
+
+    // Emit post liked event
+    await this.eventBus.publish(
+      new PostLikedEvent(
+        {
+          postId: this.contentId,
+          userId,
+          timestamp: new Date(),
+        },
+        {
+          occurredOn: new Date(),
+        },
+      ),
+    );
+  }
+
+  async unlike(userId: string): Promise<void> {
+    await super.unlike(userId);
+
+    // Emit post unliked event
+    await this.eventBus.publish(
+      new PostUnlikedEvent(
+        {
+          postId: this.contentId,
+          userId,
+          timestamp: new Date(),
+        },
+        {
+          occurredOn: new Date(),
+        },
+      ),
+    );
   }
 
   protected async checkLikeExists(userId: string): Promise<boolean> {

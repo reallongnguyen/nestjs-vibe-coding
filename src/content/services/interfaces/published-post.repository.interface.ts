@@ -12,4 +12,11 @@ export interface IPublishedPostRepository extends IBaseRepository {
   findAll(
     query: ListPostsQueryDto,
   ): Promise<Collection<PublishedPostWithAuthor>>;
+  updateMetadata(
+    id: string,
+    metadata: {
+      lastEngagementAt?: Date;
+      lastViewedAt?: Date;
+    },
+  ): Promise<void>;
 }

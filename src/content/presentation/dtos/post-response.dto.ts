@@ -47,26 +47,6 @@ export class PostAuthorDto {
   avatar?: string;
 }
 
-export class PublishedPostListItemDto extends PostListItemDto {
-  @ApiProperty()
-  publishedAt: Date;
-
-  @ApiProperty()
-  slug: string;
-
-  @ApiProperty()
-  excerpt: string;
-
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
-  author: PostAuthorDto;
-}
-
 export class DraftPostResponseDto {
   @ApiProperty()
   id: string;

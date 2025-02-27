@@ -19,6 +19,7 @@ export class PublishedPost implements PublishedPostPrisma {
   isArchived: boolean;
   botId: string | null;
   authorType: string;
+  metadata: Record<string, any>;
 }
 
 export class UserAuthor {
@@ -30,4 +31,5 @@ export class UserAuthor {
 
 export class PublishedPostWithAuthor extends PublishedPost {
   userAuthor: UserAuthor;
+  topics: string[];
 }

@@ -98,4 +98,34 @@ export class PublishedPostRepository
       limit,
     });
   }
+
+  /**
+   * Update metadata for a post
+   * @param id Post ID
+   * @param metadata Metadata to update
+   */
+  async updateMetadata(
+    id: string,
+    metadata: {
+      lastEngagementAt?: Date;
+      lastViewedAt?: Date;
+    },
+  ): Promise<void> {
+    const post = await this.prisma.publishedPost.findUnique({
+      where: { id },
+      select: { metadata: true },
+    });
+
+    const currentMetadata = (post?.metadata as Record<string, unknown>) || {};
+
+    await this.prisma.publishedPost.update({
+      where: { id },
+      data: {
+        metadata: {
+          ...currentMetadata,
+          ...metadata,
+        },
+      },
+    });
+  }
 }
