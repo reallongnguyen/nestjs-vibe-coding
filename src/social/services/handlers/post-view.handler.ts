@@ -1,16 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { IEventBus } from 'src/common/event-bus';
 import { BaseViewHandler, ViewOperation } from './base-view.handler';
+import { PostViewedEvent } from '../../entities/events/post-viewed.event';
 
 @Injectable()
 export class PostViewHandler extends BaseViewHandler {
   constructor(
     protected readonly prisma: PrismaService,
     protected readonly redisService: RedisService,
+    private readonly eventBus: IEventBus,
     postId: string,
   ) {
     super(prisma, redisService, postId, 'POST');
+  }
+
+  async view(viewerHash: string, viewerId?: string): Promise<void> {
+    await super.view(viewerHash, viewerId);
+
+    // Emit post viewed event
+    await this.eventBus.publish(
+      new PostViewedEvent(
+        {
+          postId: this.contentId,
+          viewerHash,
+          viewerId,
+          timestamp: new Date(),
+        },
+        {
+          occurredOn: new Date(),
+        },
+      ),
+    );
   }
 
   protected async processBatch(items: ViewOperation[]): Promise<void> {

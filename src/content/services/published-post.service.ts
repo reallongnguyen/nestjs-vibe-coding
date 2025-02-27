@@ -9,6 +9,7 @@ import { IDraftPostRepository } from './interfaces/draft-post.repository.interfa
 import {
   PublishedPostNotFoundError,
   NotPublishedPostOwnerError,
+  PostUpdateError,
 } from '../entities/content.error';
 import { PublishedPostDeletedEvent } from '../entities/events/post-deleted.event';
 import { DraftPostService } from './draft-post.service';
@@ -113,5 +114,28 @@ export class PublishedPostService {
 
     this.logger.debug(`Creating draft from published post ${publishedId}`);
     return this.draftPostRepository.create(draftData);
+  }
+
+  /**
+   * Update engagement metadata for a post
+   * @param id Post ID
+   * @param metadata Metadata to update
+   */
+  async updateEngagementMetadata(
+    id: string,
+    metadata: {
+      lastEngagementAt?: Date;
+      lastViewedAt?: Date;
+    },
+  ): Promise<void> {
+    try {
+      await this.publishedPostRepository.updateMetadata(id, metadata);
+    } catch (error) {
+      this.logger.error(
+        `Failed to update engagement metadata for post ${id}`,
+        error,
+      );
+      throw new PostUpdateError(error);
+    }
   }
 }

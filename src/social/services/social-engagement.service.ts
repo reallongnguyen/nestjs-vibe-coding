@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { IEventBus, InjectEventBus } from 'src/common/event-bus';
 import { ILikeable } from '../entities/interfaces/likeable.interface';
 import { IViewable } from '../entities/interfaces/viewable.interface';
 import { PostLikeHandler } from './handlers/post-like.handler';
@@ -11,6 +12,8 @@ export class SocialEngagementService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
+    @InjectEventBus()
+    private readonly eventBus: IEventBus,
   ) {}
 
   /**
@@ -18,7 +21,12 @@ export class SocialEngagementService {
    * @param postId Post ID
    */
   getLikeableForPost(postId: string): ILikeable {
-    return new PostLikeHandler(this.prisma, this.redisService, postId);
+    return new PostLikeHandler(
+      this.prisma,
+      this.redisService,
+      this.eventBus,
+      postId,
+    );
   }
 
   /**
@@ -26,7 +34,12 @@ export class SocialEngagementService {
    * @param postId Post ID
    */
   getViewableForPost(postId: string): IViewable {
-    return new PostViewHandler(this.prisma, this.redisService, postId);
+    return new PostViewHandler(
+      this.prisma,
+      this.redisService,
+      this.eventBus,
+      postId,
+    );
   }
 
   /**

@@ -11,7 +11,15 @@
 ### Upcoming Tasks
 
 - Implement Post Social Features (SOC-004)
+  Status: Completed
+  - Added event handlers for post engagement
+  - Integrated with content module
+  - Added tests for post social features
+
 - Implement Emotion Social Features (SOC-005)
+  - Create EmotionLikeHandler and EmotionViewHandler
+  - Integrate with emotion module
+  - Add tests for emotion social features
 
 ### Completed Tasks
 

@@ -237,26 +237,27 @@ model DraftPost {
 }
 
 model PublishedPost {
-  id          String      @id @default(uuid())
-  title       String      @db.Text
-  subtitle    String?     @db.Text
-  slug        String      @unique
-  content     Json
-  excerpt     String      @db.Text
-  cover       String?
-  readingTime Int         @default(0) @map("reading_time")
-  likeCount   Int         @default(0) @map("like_count")
-  replyCount  Int         @default(0) @map("reply_count")
-  viewCount   Int         @default(0) @map("view_count")
-  topics      PostTopic[]
-  comments    Comment[]
-  likes       PostLike[]
-  publishedAt DateTime    @default(now()) @map("published_at") @db.Timestamptz()
-  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
-  isArchived  Boolean     @default(false) @map("is_archived")
-  userId      String?     @map("user_id")
-  botId       String?     @map("bot_id")
-  authorType  String      @default("USER") @map("author_type") // "USER" or "BOT"
+  id               String      @id @default(uuid())
+  title            String      @db.Text
+  subtitle         String?     @db.Text
+  slug             String      @unique
+  content          Json
+  excerpt          String      @db.Text
+  cover            String?
+  readingTime      Int         @default(0) @map("reading_time")
+  likeCount        Int         @default(0) @map("like_count")
+  replyCount       Int         @default(0) @map("reply_count")
+  viewCount        Int         @default(0) @map("view_count")
+  topics           PostTopic[]
+  comments         Comment[]
+  likes            PostLike[]
+  publishedAt      DateTime    @default(now()) @map("published_at") @db.Timestamptz()
+  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  isArchived       Boolean     @default(false) @map("is_archived")
+  userId           String?     @map("user_id")
+  botId            String?     @map("bot_id")
+  authorType       String      @default("USER") @map("author_type") // "USER" or "BOT"
+  metadata         Json        @default("{}")
 
   userAuthor User?       @relation("UserAuthorPosts", fields: [userId], references: [id], map: "published_posts_user_author_fkey")
   botAuthor  Bot?        @relation("BotPosts", fields: [botId], references: [id], map: "published_posts_bot_author_fkey")

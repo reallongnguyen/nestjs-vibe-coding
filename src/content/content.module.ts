@@ -9,6 +9,7 @@ import { ContentEvents } from './services/content.events';
 import { PublishedPostController } from './presentation/published-post.controller';
 import { PublishedPostRepository } from './repositories/published-post.repository';
 import { PublishedPostService } from './services/published-post.service';
+import { SocialEngagementHandler } from './presentation/handlers/social-engagement.handler';
 
 @Module({
   imports: [EventBusModule, CqrsModule],
@@ -29,6 +30,7 @@ import { PublishedPostService } from './services/published-post.service';
       provide: 'ITopicRepository',
       useClass: TopicRepository,
     },
+    SocialEngagementHandler,
   ],
   exports: [DraftPostService],
 })

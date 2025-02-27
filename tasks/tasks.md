@@ -205,34 +205,34 @@ interface ICommentable {
 ### SOC-004: Implement Post Social Features
 
 Status: To Do
-Priority: High
+Priority: Medium
 Dependencies: SOC-003
 
 ### Context
 
-- Need to implement social features for posts
-- Should use the core social engagement system
+- Core social engagement system is implemented
+- Need to implement post-specific social features
 
 ### Requirements
 
-- Implement ILikeable for posts
-- Implement IViewable for posts
-- Implement ICommentable for posts
-- Support Yoopta-Editor in comments
+- Implement post-specific social engagement features
+- Integrate with existing post system
+- Ensure proper event handling for social actions
 
 ### Acceptance Criteria
 
-1. Users can like posts
-2. View counts are tracked
-3. Users can comment on posts
-4. Comment threading works
-5. Rich text formatting works in comments
+1. Posts can be liked and unliked
+2. Post views are tracked
+3. Post engagement statistics are available
+4. Events are emitted for social actions
+5. Batch processing works correctly
 
 ### Technical Notes
 
-- Use core social engagement system
-- Extend base implementations as needed
-- Add post-specific business logic
+- Use the core social engagement system from SOC-003
+- Implement any post-specific handlers not covered in SOC-003
+- Add event handlers for post engagement events
+- Ensure proper integration with the content module
 
 ### API Specification
 
@@ -298,35 +298,34 @@ Response: CommentDto
 ### SOC-005: Implement Emotion Social Features
 
 Status: To Do
-Priority: High
+Priority: Medium
 Dependencies: SOC-003
 
 ### Context
 
-- Need to implement social features for emotions
-- Should use the core social engagement system
-- Must respect emotion privacy settings
+- Core social engagement system is implemented
+- Need to implement emotion-specific social features
 
 ### Requirements
 
-- Implement ILikeable for emotions
-- Implement IViewable for emotions
-- Implement ICommentable for emotions
-- Add privacy checks
+- Implement emotion-specific social engagement features
+- Integrate with existing emotion system
+- Ensure proper event handling for social actions
 
 ### Acceptance Criteria
 
-1. Users can like emotions
-2. View counts are tracked
-3. Users can comment on emotions
-4. Privacy settings are respected
-5. Engagement metrics are tracked
+1. Emotions can be liked and unliked
+2. Emotion views are tracked
+3. Emotion engagement statistics are available
+4. Events are emitted for social actions
+5. Batch processing works correctly
 
 ### Technical Notes
 
-- Use core social engagement system
-- Add emotion-specific privacy checks
-- Extend base implementations as needed
+- Use the core social engagement system from SOC-003
+- Create EmotionLikeHandler and EmotionViewHandler classes
+- Add event handlers for emotion engagement events
+- Ensure proper integration with the emotion module
 
 ### API Specification
 

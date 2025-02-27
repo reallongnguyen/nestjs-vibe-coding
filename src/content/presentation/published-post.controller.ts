@@ -23,10 +23,8 @@ import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
 import { contentErrorMap } from '../entities/content-error.map';
 import { PublishedPostService } from '../services/published-post.service';
 import { ListPostsQueryDto } from './dtos/list-posts.dto';
-import {
-  PublishedPostListItemDto,
-  DraftPostResponseDto,
-} from './dtos/post-response.dto';
+import { DraftPostResponseDto } from './dtos/post-response.dto';
+import { PublishedPostDto } from './dtos/published-post.dto';
 
 @ApiTags('Posts')
 @Controller({
@@ -52,35 +50,17 @@ export class PublishedPostController {
 
   @Get()
   @ApiOperation({ summary: 'List published posts' })
-  @PaginatedResponse(PublishedPostListItemDto)
+  @PaginatedResponse(PublishedPostDto)
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(5000)
   async listPublished(
     @Query() query: ListPostsQueryDto,
-  ): Promise<Collection<PublishedPostListItemDto>> {
+  ): Promise<Collection<PublishedPostDto>> {
     const result = await this.publishedPostService.listPublished(query);
 
-    return Collection.transform(result, (post) => ({
-      id: post.id,
-      title: post.title,
-      subtitle: post.subtitle,
-      content: post.content,
-      cover: post.cover,
-      slug: post.slug,
-      excerpt: post.excerpt,
-      topics: post.topics,
-      publishedAt: post.publishedAt,
-      updatedAt: post.updatedAt,
-      viewCount: post.viewCount,
-      likeCount: post.likeCount,
-      author: {
-        id: post.userAuthor?.id,
-        name: [post.userAuthor?.firstName, post.userAuthor?.lastName]
-          .filter(Boolean)
-          .join(' '),
-        avatar: post.userAuthor?.avatar,
-      },
-    }));
+    return Collection.transform(result, (post) =>
+      PublishedPostDto.fromDomain(post),
+    );
   }
 
   @Post(':id/draft')

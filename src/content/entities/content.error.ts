@@ -81,3 +81,11 @@ export class DraftNotLinkedToPublishedError extends AppError {
     });
   }
 }
+
+export class PostUpdateError extends AppError {
+  constructor(cause?: unknown) {
+    super('post.update.failed', {
+      cause: cause instanceof Error ? cause.message : JSON.stringify(cause),
+    });
+  }
+}
