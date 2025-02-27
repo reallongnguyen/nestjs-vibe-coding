@@ -492,7 +492,7 @@ Response: 204 No Content
 
 ### TECH-001: Migrate Post Likes to Redis
 
-Status: To Do
+Status: Cancelled
 Priority: High
 Dependencies: None
 
@@ -558,7 +558,7 @@ Dependencies: None
 
 ### TECH-002: Implement Redis Data Cleanup
 
-Status: To Do
+Status: Cancelled
 Priority: Medium
 Dependencies: TECH-001
 

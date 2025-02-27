@@ -80,8 +80,10 @@ export class SocialEngagementController {
     if (type === 'POST') {
       const likeable = this.socialEngagementService.getLikeableForPost(id);
       await likeable.like(user.id);
+    } else if (type === 'EMOTION') {
+      const likeable = this.socialEngagementService.getLikeableForEmotion(id);
+      await likeable.like(user.id);
     } else {
-      // Handle other content types in the future
       throw new Error(`Unsupported content type: ${type}`);
     }
   }
@@ -106,8 +108,10 @@ export class SocialEngagementController {
     if (type === 'POST') {
       const likeable = this.socialEngagementService.getLikeableForPost(id);
       await likeable.unlike(user.id);
+    } else if (type === 'EMOTION') {
+      const likeable = this.socialEngagementService.getLikeableForEmotion(id);
+      await likeable.unlike(user.id);
     } else {
-      // Handle other content types in the future
       throw new Error(`Unsupported content type: ${type}`);
     }
   }
@@ -130,8 +134,10 @@ export class SocialEngagementController {
     if (type === 'POST') {
       const viewable = this.socialEngagementService.getViewableForPost(id);
       await viewable.view(query.viewerHash, query.viewerId);
+    } else if (type === 'EMOTION') {
+      const viewable = this.socialEngagementService.getViewableForEmotion(id);
+      await viewable.view(query.viewerHash, query.viewerId);
     } else {
-      // Handle other content types in the future
       throw new Error(`Unsupported content type: ${type}`);
     }
   }

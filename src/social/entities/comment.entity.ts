@@ -12,6 +12,7 @@ export class Comment implements CommentPrisma {
   deletedAt: Date | null;
   botId: string | null;
   authorType: string;
+  emotionId: string | null;
 }
 
 export class CommentWithAuthor extends Comment {

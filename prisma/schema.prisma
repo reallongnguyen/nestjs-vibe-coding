@@ -187,12 +187,14 @@ model UserEmotion {
   note      String?  @db.Text // Optional note about the emotion
   date      DateTime @db.Date // Store just the date for daily tracking
   timestamp DateTime @default(now()) @db.Timestamptz() // Exact time of recording
-  metadata  Json?    @default("{}") // Additional data for analytics
+  /// [EmotionMetadataType]
+  metadata  Json?    @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  user  User   @relation(fields: [userId], references: [id])
-  feeds Feed[] @relation(map: "feeds_user_emotion_fkey")
+  user     User      @relation(fields: [userId], references: [id])
+  feeds    Feed[]    @relation(map: "feeds_user_emotion_fkey")
+  comments Comment[]
 
   @@index([userId])
   @@index([date])
@@ -237,27 +239,28 @@ model DraftPost {
 }
 
 model PublishedPost {
-  id               String      @id @default(uuid())
-  title            String      @db.Text
-  subtitle         String?     @db.Text
-  slug             String      @unique
-  content          Json
-  excerpt          String      @db.Text
-  cover            String?
-  readingTime      Int         @default(0) @map("reading_time")
-  likeCount        Int         @default(0) @map("like_count")
-  replyCount       Int         @default(0) @map("reply_count")
-  viewCount        Int         @default(0) @map("view_count")
-  topics           PostTopic[]
-  comments         Comment[]
-  likes            PostLike[]
-  publishedAt      DateTime    @default(now()) @map("published_at") @db.Timestamptz()
-  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
-  isArchived       Boolean     @default(false) @map("is_archived")
-  userId           String?     @map("user_id")
-  botId            String?     @map("bot_id")
-  authorType       String      @default("USER") @map("author_type") // "USER" or "BOT"
-  metadata         Json        @default("{}")
+  id          String      @id @default(uuid())
+  title       String      @db.Text
+  subtitle    String?     @db.Text
+  slug        String      @unique
+  content     Json
+  excerpt     String      @db.Text
+  cover       String?
+  readingTime Int         @default(0) @map("reading_time")
+  likeCount   Int         @default(0) @map("like_count")
+  replyCount  Int         @default(0) @map("reply_count")
+  viewCount   Int         @default(0) @map("view_count")
+  topics      PostTopic[]
+  comments    Comment[]
+  likes       PostLike[]
+  publishedAt DateTime    @default(now()) @map("published_at") @db.Timestamptz()
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  isArchived  Boolean     @default(false) @map("is_archived")
+  userId      String?     @map("user_id")
+  botId       String?     @map("bot_id")
+  authorType  String      @default("USER") @map("author_type") // "USER" or "BOT"
+  /// [PostMetadataType]
+  metadata    Json        @default("{}")
 
   userAuthor User?       @relation("UserAuthorPosts", fields: [userId], references: [id], map: "published_posts_user_author_fkey")
   botAuthor  Bot?        @relation("BotPosts", fields: [botId], references: [id], map: "published_posts_bot_author_fkey")
@@ -286,24 +289,28 @@ model PostTopic {
 model Comment {
   id         String    @id @default(uuid())
   content    String    @db.Text
-  postId     String    @map("post_id")
+  postId     String?   @map("post_id")
+  emotionId  String?   @map("emotion_id")
   parentId   String?   @map("parent_id")
+  userId     String?   @map("user_id")
+  botId      String?   @map("bot_id")
+  authorType String    @default("USER") @map("author_type")
   likeCount  Int       @default(0) @map("like_count")
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
   deletedAt  DateTime? @map("deleted_at") @db.Timestamptz()
-  userId     String?   @map("user_id")
-  botId      String?   @map("bot_id")
-  authorType String    @default("USER") @map("author_type") // "USER" or "BOT"
 
-  post       PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userAuthor User?         @relation("UserAuthorComments", fields: [userId], references: [id], map: "comments_user_author_fkey")
-  botAuthor  Bot?          @relation("BotComments", fields: [botId], references: [id], map: "comments_bot_author_fkey")
-  parent     Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
-  replies    Comment[]     @relation("CommentReplies")
+  // Relations
+  post       PublishedPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  emotion    UserEmotion?   @relation(fields: [emotionId], references: [id], onDelete: Cascade)
+  parent     Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[]      @relation("CommentReplies")
+  userAuthor User?          @relation("UserAuthorComments", fields: [userId], references: [id], onDelete: Cascade)
+  botAuthor  Bot?           @relation("BotComments", fields: [botId], references: [id], onDelete: Cascade)
   likes      CommentLike[]
 
   @@index([postId])
+  @@index([emotionId])
   @@index([parentId])
   @@index([userId])
   @@index([botId])

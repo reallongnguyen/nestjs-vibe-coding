@@ -6,6 +6,9 @@ import { ILikeable } from '../entities/interfaces/likeable.interface';
 import { IViewable } from '../entities/interfaces/viewable.interface';
 import { PostLikeHandler } from './handlers/post-like.handler';
 import { PostViewHandler } from './handlers/post-view.handler';
+import { EmotionLikeHandler } from './handlers/emotion-like.handler';
+import { EmotionViewHandler } from './handlers/emotion-view.handler';
+import { EngagementStatsDto } from '../presentation/dtos/engagement-stats.dto';
 
 @Injectable()
 export class SocialEngagementService {
@@ -42,6 +45,24 @@ export class SocialEngagementService {
     );
   }
 
+  getLikeableForEmotion(emotionId: string): ILikeable {
+    return new EmotionLikeHandler(
+      this.prisma,
+      this.redisService,
+      this.eventBus,
+      emotionId,
+    );
+  }
+
+  getViewableForEmotion(emotionId: string): IViewable {
+    return new EmotionViewHandler(
+      this.prisma,
+      this.redisService,
+      this.eventBus,
+      emotionId,
+    );
+  }
+
   /**
    * Get engagement statistics for content
    * @param contentId Content ID
@@ -50,11 +71,7 @@ export class SocialEngagementService {
   async getEngagementStats(
     contentId: string,
     contentType: string,
-  ): Promise<{
-    likeCount: number;
-    viewCount: number;
-    commentCount: number;
-  }> {
+  ): Promise<EngagementStatsDto> {
     const engageable = await this.prisma.engageable.findUnique({
       where: {
         type_contentId: {
@@ -72,10 +89,25 @@ export class SocialEngagementService {
       };
     }
 
+    let commentCount = 0;
+    if (contentType === 'POST') {
+      commentCount = await this.prisma.comment.count({
+        where: {
+          postId: contentId,
+        },
+      });
+    } else if (contentType === 'EMOTION') {
+      commentCount = await this.prisma.comment.count({
+        where: {
+          emotionId: contentId,
+        },
+      });
+    }
+
     return {
       likeCount: engageable.likeCount,
       viewCount: engageable.viewCount,
-      commentCount: engageable.commentCount,
+      commentCount,
     };
   }
 

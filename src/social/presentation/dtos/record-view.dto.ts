@@ -1,13 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class RecordViewDto {
-  @ApiProperty({ description: 'Hash identifying the viewer' })
+  @ApiProperty()
   @IsString()
   viewerHash: string;
 
-  @ApiPropertyOptional({ description: 'ID of the authenticated viewer' })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID()
+  @IsString()
   viewerId?: string;
 }

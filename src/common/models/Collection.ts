@@ -36,6 +36,14 @@ export default class Collection<T> {
     this.pagination = pagination;
   }
 
+  static empty<T>(): Collection<T> {
+    return new Collection<T>([], {
+      limit: 0,
+      offset: 0,
+      total: 0,
+    });
+  }
+
   static transform<T, U>(
     collection: Collection<T>,
     transformer: (item: T) => U,

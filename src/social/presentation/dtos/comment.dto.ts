@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Comment } from '../../entities/comment.entity';
-import { CommentOutput } from '../../services/dtos/comment.output';
 
 export class CommentAuthorDto {
   @ApiProperty()
@@ -67,9 +66,23 @@ export class CommentDto implements Comment {
   @ApiPropertyOptional()
   botAuthor?: BotAuthorDto;
 
-  static fromDomain(comment: CommentOutput): CommentDto {
+  @ApiPropertyOptional()
+  emotionId: string | null;
+
+  static fromDomain(domain: Comment): CommentDto {
     return {
-      ...comment,
+      id: domain.id,
+      content: domain.content,
+      postId: domain.postId,
+      parentId: domain.parentId,
+      userId: domain.userId,
+      likeCount: domain.likeCount,
+      createdAt: domain.createdAt,
+      updatedAt: domain.updatedAt,
+      deletedAt: domain.deletedAt,
+      botId: domain.botId,
+      authorType: domain.authorType,
+      emotionId: domain.emotionId,
     };
   }
 }

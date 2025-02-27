@@ -28,6 +28,9 @@ import { CommentLikeService } from './services/comment-like.service';
 import { CommentRepository } from './repositories/comment.repository';
 import { SocialEngagementService } from './services/social-engagement.service';
 import { SocialEngagementController } from './presentation/social-engagement.controller';
+import { EmotionCommentableService } from './services/emotion-commentable.service';
+import { EmotionPrivacyService } from './services/emotion-privacy.service';
+import { EmotionSocialController } from './presentation/emotion-social.controller';
 
 @Module({
   imports: [
@@ -50,6 +53,7 @@ import { SocialEngagementController } from './presentation/social-engagement.con
     PostViewController,
     CommentController,
     SocialEngagementController,
+    EmotionSocialController,
   ],
   providers: [
     FeedService,
@@ -78,6 +82,8 @@ import { SocialEngagementController } from './presentation/social-engagement.con
     CommentLikeService,
     CommentRepository,
     SocialEngagementService,
+    EmotionCommentableService,
+    EmotionPrivacyService,
   ],
 })
 export class SocialModule {}
