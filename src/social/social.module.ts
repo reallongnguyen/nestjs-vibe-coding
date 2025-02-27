@@ -26,6 +26,8 @@ import { CommentController } from './presentation/comment.controller';
 import { CommentService } from './services/comment.service';
 import { CommentLikeService } from './services/comment-like.service';
 import { CommentRepository } from './repositories/comment.repository';
+import { SocialEngagementService } from './services/social-engagement.service';
+import { SocialEngagementController } from './presentation/social-engagement.controller';
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { CommentRepository } from './repositories/comment.repository';
     PostLikeController,
     PostViewController,
     CommentController,
+    SocialEngagementController,
   ],
   providers: [
     FeedService,
@@ -74,6 +77,7 @@ import { CommentRepository } from './repositories/comment.repository';
     CommentService,
     CommentLikeService,
     CommentRepository,
+    SocialEngagementService,
   ],
 })
 export class SocialModule {}

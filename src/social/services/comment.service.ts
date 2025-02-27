@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IEventBus } from 'src/common/event-bus';
-import { InjectEventBus } from 'src/common/event-bus';
+import { IEventBus, InjectEventBus } from 'src/common/event-bus';
 import { Collection } from 'src/common/models';
 import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
 
