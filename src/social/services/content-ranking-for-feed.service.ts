@@ -25,7 +25,6 @@ export class ContentRankingForFeedService {
     const post = await this.prisma.publishedPost.findUnique({
       where: { id: postId },
       include: {
-        likes: true,
         comments: true,
       },
     });

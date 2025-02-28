@@ -33,6 +33,7 @@ import { PublishedPostDto } from './dtos/published-post.dto';
 })
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(new RestExceptionFilter(contentErrorMap))
+@ErrorResponse('common', contentErrorMap)
 export class PublishedPostController {
   constructor(private readonly publishedPostService: PublishedPostService) {}
 

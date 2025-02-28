@@ -19,9 +19,6 @@ export class CommentDto implements Comment {
   userId: string;
 
   @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

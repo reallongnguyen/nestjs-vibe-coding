@@ -43,9 +43,6 @@ export class CommentDto implements Comment {
   userId: string;
 
   @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()
@@ -76,7 +73,6 @@ export class CommentDto implements Comment {
       postId: domain.postId,
       parentId: domain.parentId,
       userId: domain.userId,
-      likeCount: domain.likeCount,
       createdAt: domain.createdAt,
       updatedAt: domain.updatedAt,
       deletedAt: domain.deletedAt,

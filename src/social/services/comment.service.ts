@@ -161,7 +161,6 @@ export class CommentService {
       parentId: comment.parentId,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      likeCount: 0,
       deletedAt: null,
       botId: null,
       authorType: 'USER',
@@ -204,13 +203,6 @@ export class CommentService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          _count: {
-            select: {
-              likes: true,
-            },
-          },
-        },
       }),
       this.prisma.comment.count({ where }),
     ]);
@@ -225,8 +217,6 @@ export class CommentService {
         parentId: comment.parentId,
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
-        // eslint-disable-next-line no-underscore-dangle
-        likeCount: comment._count.likes,
         deletedAt: null,
         botId: null,
         authorType: comment.authorType,

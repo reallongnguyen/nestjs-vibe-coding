@@ -115,9 +115,6 @@ export class PublishedPostResponseDto extends PublishedPost {
   @ApiProperty()
   excerpt: string;
 
-  @ApiProperty()
-  viewCount: number;
-
   static fromDomain(post: PublishedPost): PublishedPostResponseDto {
     return {
       ...post,

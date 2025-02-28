@@ -6,7 +6,6 @@ export class Comment implements CommentPrisma {
   postId: string;
   parentId: string | null;
   userId: string;
-  likeCount: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;

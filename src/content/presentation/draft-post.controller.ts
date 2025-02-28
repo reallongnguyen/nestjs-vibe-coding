@@ -47,6 +47,7 @@ import { ApplyDraftDto } from './dtos/apply-draft.dto';
 })
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(new RestExceptionFilter(contentErrorMap))
+@ErrorResponse('common', contentErrorMap)
 export class DraftPostController {
   constructor(private readonly draftPostService: DraftPostService) {}
 

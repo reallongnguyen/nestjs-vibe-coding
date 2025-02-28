@@ -10,9 +10,6 @@ export class PublishedPost implements PublishedPostPrisma {
   cover: string | null;
   readingTime: number;
   topics?: string[];
-  likeCount: number;
-  replyCount: number;
-  viewCount: number;
   userId: string;
   publishedAt: Date;
   updatedAt: Date;

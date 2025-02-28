@@ -29,9 +29,6 @@ export async function createTestPublishedPost(
       userId: options.userId,
       publishedAt: options.publishedAt || new Date(),
       readingTime: 5,
-      viewCount: 0,
-      likeCount: 0,
-      replyCount: 0,
     },
   });
 

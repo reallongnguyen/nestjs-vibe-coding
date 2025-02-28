@@ -19,9 +19,6 @@ export interface PostContent {
   excerpt: string;
   cover?: string;
   readingTime: number;
-  likeCount: number;
-  replyCount: number;
-  viewCount: number;
   publishedAt: Date;
   userAuthor?: Author;
   botAuthor?: BotAuthor;

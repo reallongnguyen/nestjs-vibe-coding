@@ -97,9 +97,6 @@ export class DraftPostRepository
           content: data.content,
           cover: data.cover,
           userId: data.userId,
-          likeCount: 0,
-          replyCount: 0,
-          viewCount: 0,
           publishedAt: new Date(),
         },
       });

@@ -91,9 +91,6 @@ export class FeedDatabaseProvider implements FeedProvider {
         excerpt: true,
         cover: true,
         readingTime: true,
-        likeCount: true,
-        replyCount: true,
-        viewCount: true,
         publishedAt: true,
         userAuthor: {
           select: {
