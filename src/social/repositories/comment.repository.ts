@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
 import { Comment, CommentWithAuthor } from '../entities/comment.entity';
+import { ICommentRepository } from '../services/interfaces/comment-repository.interface';
 
 @Injectable()
-export class CommentRepository {
+export class CommentRepository implements ICommentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: {

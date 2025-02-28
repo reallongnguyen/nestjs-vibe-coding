@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { FeedDistributionService } from '../feed-distribution.service';
-import { GetFeedInput } from '../dto/get-feed.input';
-import { GetFeedOutput } from '../dto/get-feed.output';
+import { GetFeedInput } from '../dtos/get-feed.input';
+import { GetFeedOutput } from '../dtos/get-feed.output';
 import { createFeed, Feed, FeedContentType } from '../../entities/feed.entity';
 import { FeedProvider } from './feed-provider.interface';
 import {

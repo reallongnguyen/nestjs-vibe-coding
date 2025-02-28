@@ -19,7 +19,7 @@ export class PublishedPost implements PublishedPostPrisma {
   isArchived: boolean;
   botId: string | null;
   authorType: string;
-  metadata: Record<string, any>;
+  metadata: PrismaJson.PostMetadataType;
 }
 
 export class UserAuthor {

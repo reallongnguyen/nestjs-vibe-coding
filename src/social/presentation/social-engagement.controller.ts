@@ -4,18 +4,23 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Query,
+  Req,
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+import * as crypto from 'crypto';
 import {
   AuthContextUser,
   AuthGuard,
+  OptionalAuthGuard,
   RequireAnyRoles,
   Role,
   RolesGuard,
   User,
+  OptionalAuthContext,
+  AuthCtx,
 } from 'src/common/auth';
 import {
   ErrorResponse,
@@ -25,7 +30,6 @@ import {
 import { SocialEngagementService } from '../services/social-engagement.service';
 import { socialErrorMap } from '../entities/social-error.map';
 import { EngagementStatsDto } from './dtos/engagement-stats.dto';
-import { RecordViewDto } from './dtos/record-view.dto';
 
 @ApiTags('Social Engagement')
 @Controller({
@@ -53,11 +57,7 @@ export class SocialEngagementController {
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<EngagementStatsDto> {
-    const stats = await this.socialEngagementService.getEngagementStats(
-      id,
-      type,
-    );
-    return stats;
+    return this.socialEngagementService.getEngagementStats(id, type);
   }
 
   @Post('like/:type/:id')
@@ -77,15 +77,7 @@ export class SocialEngagementController {
     @Param('id', ParseUUIDPipe) id: string,
     @AuthContextUser() user: User,
   ): Promise<void> {
-    if (type === 'POST') {
-      const likeable = this.socialEngagementService.getLikeableForPost(id);
-      await likeable.like(user.id);
-    } else if (type === 'EMOTION') {
-      const likeable = this.socialEngagementService.getLikeableForEmotion(id);
-      await likeable.like(user.id);
-    } else {
-      throw new Error(`Unsupported content type: ${type}`);
-    }
+    await this.socialEngagementService.likeContent(type, id, user.id);
   }
 
   @Post('unlike/:type/:id')
@@ -105,18 +97,11 @@ export class SocialEngagementController {
     @Param('id', ParseUUIDPipe) id: string,
     @AuthContextUser() user: User,
   ): Promise<void> {
-    if (type === 'POST') {
-      const likeable = this.socialEngagementService.getLikeableForPost(id);
-      await likeable.unlike(user.id);
-    } else if (type === 'EMOTION') {
-      const likeable = this.socialEngagementService.getLikeableForEmotion(id);
-      await likeable.unlike(user.id);
-    } else {
-      throw new Error(`Unsupported content type: ${type}`);
-    }
+    await this.socialEngagementService.unlikeContent(type, id, user.id);
   }
 
   @Post('view/:type/:id')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: 'Record content view' })
   @ApiParam({
     name: 'type',
@@ -129,16 +114,35 @@ export class SocialEngagementController {
   async recordView(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query() query: RecordViewDto,
+    @Req() request: Request,
+    @OptionalAuthContext() authCtx?: AuthCtx,
   ): Promise<void> {
-    if (type === 'POST') {
-      const viewable = this.socialEngagementService.getViewableForPost(id);
-      await viewable.view(query.viewerHash, query.viewerId);
-    } else if (type === 'EMOTION') {
-      const viewable = this.socialEngagementService.getViewableForEmotion(id);
-      await viewable.view(query.viewerHash, query.viewerId);
-    } else {
-      throw new Error(`Unsupported content type: ${type}`);
-    }
+    // Generate viewer hash from IP and user agent
+    const ip = request.ip || request.socket.remoteAddress || 'unknown';
+    const userAgent = request.headers['user-agent'] || 'unknown';
+
+    // Get viewer ID if authenticated
+    const viewerId = authCtx?.isUser() ? authCtx.getUser().id : undefined;
+
+    const viewerHash = this.generateViewerHash(viewerId ?? ip, userAgent);
+
+    await this.socialEngagementService.recordView(
+      type,
+      id,
+      viewerHash,
+      viewerId,
+    );
+  }
+
+  /**
+   * Generate a hash to identify a viewer based on IP and user agent
+   * @param ip Client IP address
+   * @param userAgent Browser user agent
+   * @returns Hashed identifier
+   */
+  private generateViewerHash(identity: string, userAgent: string): string {
+    const data = `${identity}:${userAgent}`;
+
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 }

@@ -15,22 +15,17 @@ import { FeedCacheService } from './services/feed-cache.service';
 import { FeedDatabaseProvider } from './services/providers/feed-database.provider';
 import { FeedCacheProvider } from './services/providers/feed-cache.provider';
 import { ContentRankingForFeedService } from './services/content-ranking-for-feed.service';
-import { PostLikeController } from './presentation/post-like.controller';
-import { PostViewController } from './presentation/post-view.controller';
-import { PostLikeService } from './services/post-like.service';
-import { PostViewService } from './services/post-view.service';
-import { PostLikeRepository } from './repositories/post-like.repository';
-import { PostViewRepository } from './repositories/post-view.repository';
-import { ViewSyncCron } from './presentation/crons/view-sync.cron';
-import { CommentController } from './presentation/comment.controller';
 import { CommentService } from './services/comment.service';
-import { CommentLikeService } from './services/comment-like.service';
 import { CommentRepository } from './repositories/comment.repository';
 import { SocialEngagementService } from './services/social-engagement.service';
 import { SocialEngagementController } from './presentation/social-engagement.controller';
-import { EmotionCommentableService } from './services/emotion-commentable.service';
 import { EmotionPrivacyService } from './services/emotion-privacy.service';
-import { EmotionSocialController } from './presentation/emotion-social.controller';
+import { ContentCommentController } from './presentation/content-comment.controller';
+import { UpdateCommentCountHandler } from './presentation/handlers/update-comment-count.handler';
+import { UpdateLikeCountHandler } from './presentation/handlers/update-like-count.handler';
+import { LikeRepository } from './repositories/like.repository';
+import { UpdateViewCountHandler } from './presentation/handlers/update-view-count.handler';
+import { ViewRepository } from './repositories/view.repository';
 
 @Module({
   imports: [
@@ -49,11 +44,8 @@ import { EmotionSocialController } from './presentation/emotion-social.controlle
   ],
   controllers: [
     FeedController,
-    PostLikeController,
-    PostViewController,
-    CommentController,
+    ContentCommentController,
     SocialEngagementController,
-    EmotionSocialController,
   ],
   providers: [
     FeedService,
@@ -65,25 +57,25 @@ import { EmotionSocialController } from './presentation/emotion-social.controlle
     FeedCacheService,
     FeedDatabaseProvider,
     FeedCacheProvider,
-    PostLikeService,
-    PostViewService,
-    PostLikeRepository,
-    PostViewRepository,
     {
-      provide: 'IPostLikeRepository',
-      useClass: PostLikeRepository,
+      provide: 'ICommentRepository',
+      useClass: CommentRepository,
     },
-    {
-      provide: 'IPostViewRepository',
-      useClass: PostViewRepository,
-    },
-    ViewSyncCron,
     CommentService,
-    CommentLikeService,
-    CommentRepository,
     SocialEngagementService,
-    EmotionCommentableService,
     EmotionPrivacyService,
+    UpdateCommentCountHandler,
+    UpdateLikeCountHandler,
+    {
+      provide: 'ILikeRepository',
+      useClass: LikeRepository,
+    },
+    UpdateViewCountHandler,
+    {
+      provide: 'IViewRepository',
+      useClass: ViewRepository,
+    },
   ],
+  exports: [CommentService],
 })
 export class SocialModule {}

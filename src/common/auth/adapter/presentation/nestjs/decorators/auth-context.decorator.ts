@@ -35,3 +35,13 @@ export const AuthContextUser = createParamDecorator(
     return authCtx.getUser();
   },
 );
+
+export const OptionalAuthContext = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): AuthCtx | undefined => {
+    const request = ctx.switchToHttp().getRequest();
+
+    const { authCtx } = request;
+
+    return authCtx;
+  },
+);

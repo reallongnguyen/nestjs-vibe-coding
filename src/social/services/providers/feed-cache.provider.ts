@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { FeedCacheService } from '../feed-cache.service';
 import { FeedDatabaseProvider } from './feed-database.provider';
-import { GetFeedInput } from '../dto/get-feed.input';
-import { GetFeedOutput } from '../dto/get-feed.output';
+import { GetFeedInput } from '../dtos/get-feed.input';
+import { GetFeedOutput } from '../dtos/get-feed.output';
 import { FeedProvider } from './feed-provider.interface';
 
 @Injectable()

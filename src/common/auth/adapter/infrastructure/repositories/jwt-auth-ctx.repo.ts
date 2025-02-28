@@ -21,7 +21,7 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      this.logger.warn('auth: jwtGuard: missing access token');
+      this.logger.debug('auth: jwtGuard: missing access token');
       throw new AppError('common.invalidToken');
     }
 
@@ -46,7 +46,7 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      this.logger.warn('auth: jwtGuard: missing access token');
+      this.logger.debug('auth: jwtGuard: missing access token');
       throw new AppError('common.invalidToken');
     }
 

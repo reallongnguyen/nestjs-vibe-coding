@@ -1,14 +1,20 @@
 import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
 
-export class EmotionUnlikedEvent extends BaseEvent {
+export interface EmotionUnlikedEventPayload {
+  emotionId: string;
+  userId: string;
+}
+
+export class EmotionUnlikedEvent
+  extends BaseEvent
+  implements EmotionUnlikedEventPayload
+{
   static readonly eventName = 'emotion.unliked';
 
   constructor(
-    readonly payload: {
-      emotionId: string;
-      userId: string;
-      timestamp: Date;
-    },
+    readonly emotionId: string,
+    readonly userId: string,
+
     params: {
       correlationId?: string;
       metadata?: Record<string, unknown>;
@@ -22,9 +28,10 @@ export class EmotionUnlikedEvent extends BaseEvent {
     return EmotionUnlikedEvent.eventName;
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): EmotionUnlikedEventPayload {
     return {
-      ...this.payload,
+      emotionId: this.emotionId,
+      userId: this.userId,
     };
   }
 }

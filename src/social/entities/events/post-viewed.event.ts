@@ -1,16 +1,22 @@
 import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
 
-export class PostViewedEvent extends BaseEvent {
+export interface PostViewedEventPayload {
+  postId: string;
+  viewerHash: string;
+  viewerId?: string;
+}
+
+export class PostViewedEvent
+  extends BaseEvent
+  implements PostViewedEventPayload
+{
   static readonly eventName = 'post.viewed';
 
   constructor(
-    readonly payload: {
-      postId: string;
-      viewerHash: string;
-      viewerId?: string;
-      timestamp: Date;
-    },
-    params: {
+    readonly postId: string,
+    readonly viewerHash: string,
+    readonly viewerId?: string,
+    params?: {
       correlationId?: string;
       metadata?: Record<string, unknown>;
       occurredOn?: Date;
@@ -23,9 +29,11 @@ export class PostViewedEvent extends BaseEvent {
     return PostViewedEvent.eventName;
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): PostViewedEventPayload {
     return {
-      ...this.payload,
+      postId: this.postId,
+      viewerHash: this.viewerHash,
+      viewerId: this.viewerId,
     };
   }
 }

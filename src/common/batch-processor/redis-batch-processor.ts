@@ -35,7 +35,7 @@ export class RedisBatchProcessor<T> {
     this.logger = config.logger || new Logger(RedisBatchProcessor.name);
 
     this.batchKey = config.batchKey || uuidv7();
-    this.batchSize = config.batchSize || 1000;
+    this.batchSize = config.batchSize || 256;
     this.batchTimeout = config.batchTimeout || 8000;
     this.timerInterval = config.timerInterval || 1000;
 

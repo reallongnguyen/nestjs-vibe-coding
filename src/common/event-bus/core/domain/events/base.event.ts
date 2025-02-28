@@ -51,7 +51,7 @@ export abstract class BaseEvent {
    * Returns the event payload
    * Used as Kafka message value
    */
-  abstract toJSON(): Record<string, unknown>;
+  abstract toJSON(): unknown;
 
   /**
    * Returns the partition key for Kafka

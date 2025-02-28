@@ -85,7 +85,13 @@ export class DraftPostController {
     @Param('id') id: string,
     @Body() dto: PublishDraftDto,
   ): Promise<PublishedPostResponseDto> {
-    return this.draftPostService.publishDraft(user.id, id, dto.toData());
+    const post = await this.draftPostService.publishDraft(
+      user.id,
+      id,
+      dto.toData(),
+    );
+
+    return PublishedPostResponseDto.fromDomain(post);
   }
 
   @Delete(':id')

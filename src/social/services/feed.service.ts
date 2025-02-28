@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { GetFeedInput } from './dto/get-feed.input';
-import { GetFeedOutput } from './dto/get-feed.output';
+import { GetFeedInput } from './dtos/get-feed.input';
+import { GetFeedOutput } from './dtos/get-feed.output';
 import { FeedCacheProvider } from './providers/feed-cache.provider';
 
 @Injectable()

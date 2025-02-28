@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Comment } from '../../entities/comment.entity';
-import { CommentOutput } from '../../services/dto/comment.output';
+import { CommentOutput } from '../../services/dtos/comment.output';
 
 export class CommentDto implements Comment {
   @ApiProperty()
@@ -53,6 +53,9 @@ export class CommentDto implements Comment {
 
   @ApiProperty({ description: 'Type of author - either "user" or "bot"' })
   authorType: string;
+
+  @ApiProperty({ description: 'ID of the emotion if comment is on an emotion' })
+  emotionId: string | null;
 
   static fromApplication(comment: CommentOutput): CommentDto {
     return {

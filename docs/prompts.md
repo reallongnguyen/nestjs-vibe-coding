@@ -37,6 +37,22 @@ Attach files:
 - `/docs/module-structure.md`
 - `/docs/technical.md`
 
+### Change request
+
+```plaintext
+As a professional Product Owner, define task description for task bellow with hight priority. Add these tasks to current sprint in @tasks.md 
+1. Remove post like, post view features in @content module. Context: Social Engagement already support post.
+2. Refactor comment APIs to allow support many type of content follow @social-engagement.controller.ts 
+```
+
+Attach files:
+
+- `/tasks/tasks.md`
+- `/docs/task-template.md`
+- `/tasks/status.md`
+- `/prisma/schema.prisma`
+- `/docs/business-domain.md`
+
 ## Code implementation
 
 ### Implement the feature

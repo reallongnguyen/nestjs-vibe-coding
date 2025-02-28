@@ -26,15 +26,6 @@ export class PublishedPostDto {
   @ApiProperty({ description: 'Post reading time in minutes' })
   readingTime: number;
 
-  @ApiProperty({ description: 'Post like count' })
-  likeCount: number;
-
-  @ApiProperty({ description: 'Post view count' })
-  viewCount: number;
-
-  @ApiProperty({ description: 'Post reply count' })
-  replyCount: number;
-
   @ApiProperty({ description: 'Post topics' })
   topics: string[];
 
@@ -65,9 +56,6 @@ export class PublishedPostDto {
       excerpt: domain.excerpt,
       cover: domain.cover,
       readingTime: domain.readingTime,
-      likeCount: domain.likeCount,
-      viewCount: domain.viewCount,
-      replyCount: domain.replyCount,
       topics: domain.topics,
       publishedAt: domain.publishedAt,
       updatedAt: domain.updatedAt,

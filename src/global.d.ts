@@ -16,12 +16,12 @@ declare global {
       link?: string;
     };
     type EmotionMetadataType = {
-      privacy: 'public' | 'private' | 'friends';
+      privacy?: 'public' | 'private' | 'friends';
     };
     type PostMetadataType = {
-      privacy: 'public' | 'private' | 'friends';
-      lastViewedAt: string;
-      lastEngagementAt: string;
+      privacy?: 'public' | 'private' | 'friends';
+      lastViewedAt?: Date;
+      lastEngagementAt?: Date;
     };
   }
 }

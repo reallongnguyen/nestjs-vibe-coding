@@ -48,8 +48,6 @@ model User {
   publishedPosts  PublishedPost[]   @relation("UserAuthorPosts")
   draftPosts      DraftPost[]
   comments        Comment[]         @relation("UserAuthorComments")
-  postLikes       PostLike[]
-  commentLikes    CommentLike[]
   bookmarks       Bookmark[]
   feeds           Feed[]
   emotions        UserEmotion[]
@@ -247,12 +245,7 @@ model PublishedPost {
   excerpt     String      @db.Text
   cover       String?
   readingTime Int         @default(0) @map("reading_time")
-  likeCount   Int         @default(0) @map("like_count")
-  replyCount  Int         @default(0) @map("reply_count")
-  viewCount   Int         @default(0) @map("view_count")
   topics      PostTopic[]
-  comments    Comment[]
-  likes       PostLike[]
   publishedAt DateTime    @default(now()) @map("published_at") @db.Timestamptz()
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
   isArchived  Boolean     @default(false) @map("is_archived")
@@ -266,7 +259,7 @@ model PublishedPost {
   botAuthor  Bot?        @relation("BotPosts", fields: [botId], references: [id], map: "published_posts_bot_author_fkey")
   draftPosts DraftPost[]
   feeds      Feed[]      @relation(map: "feeds_published_post_fkey")
-  postViews  PostView[]
+  comments   Comment[]
 
   @@index([publishedAt])
   @@index([isArchived])
@@ -307,7 +300,6 @@ model Comment {
   replies    Comment[]      @relation("CommentReplies")
   userAuthor User?          @relation("UserAuthorComments", fields: [userId], references: [id], onDelete: Cascade)
   botAuthor  Bot?           @relation("BotComments", fields: [botId], references: [id], onDelete: Cascade)
-  likes      CommentLike[]
 
   @@index([postId])
   @@index([emotionId])
@@ -315,46 +307,6 @@ model Comment {
   @@index([userId])
   @@index([botId])
   @@map("comments")
-}
-
-// For likes
-model PostLike {
-  id        String        @id @default(uuid())
-  postId    String        @map("post_id")
-  userId    String        @map("user_id")
-  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz()
-  post      PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, userId])
-  @@index([postId])
-  @@index([userId])
-  @@map("post_likes")
-}
-
-// For view tracking
-model PostView {
-  id         String        @id @default(uuid())
-  postId     String        @map("post_id")
-  viewerId   String?       @map("viewer_id") // userId if logged in, null if anonymous
-  viewerHash String        @map("viewer_hash") // Hash of IP + UserAgent for anonymous users
-  timestamp  DateTime      @default(now()) @db.Timestamptz()
-  post       PublishedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@index([postId])
-  @@index([viewerHash])
-  @@index([timestamp])
-}
-
-model CommentLike {
-  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  commentId String   @map("comment_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-
-  @@id([commentId, userId])
-  @@map("comment_likes")
 }
 
 enum BookmarkContentType {

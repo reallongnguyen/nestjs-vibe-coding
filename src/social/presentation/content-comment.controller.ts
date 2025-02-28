@@ -11,7 +11,7 @@ import {
   UseGuards,
   UseFilters,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiParam } from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -30,13 +30,12 @@ import {
   RestExceptionFilter,
 } from 'src/common/presentation/rest';
 import { CommentService } from '../services/comment.service';
-import { CommentLikeService } from '../services/comment-like.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
 import { CommentDto } from './dtos/comment.dto';
 import { commentErrorMap } from '../entities/comment-error.map';
 
-@ApiTags('Comments')
+@ApiTags('Content Comments')
 @Controller({
   path: 'comments',
   version: '1',
@@ -44,44 +43,60 @@ import { commentErrorMap } from '../entities/comment-error.map';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(new RestExceptionFilter(commentErrorMap))
 @ErrorResponse('common', commentErrorMap)
-export class CommentController {
-  constructor(
-    private readonly commentService: CommentService,
-    private readonly commentLikeService: CommentLikeService,
-  ) {}
+export class ContentCommentController {
+  constructor(private readonly commentService: CommentService) {}
 
-  @Post()
+  @Post(':type/:id')
   @RequireAnyRoles(Role.USER)
-  @ApiOperation({ summary: 'Create comment' })
+  @ApiOperation({ summary: 'Create comment for content' })
+  @ApiParam({
+    name: 'type',
+    enum: ['POST', 'EMOTION'],
+    description: 'Content type',
+  })
+  @ApiParam({ name: 'id', description: 'Content ID' })
   @CreatedResponse(CommentDto)
   @ErrorResponse('comment.create', commentErrorMap, { hasValidationErr: true })
   async createComment(
+    @Param('type') type: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() data: CreateCommentDto,
     @AuthContextUser() user: User,
   ): Promise<CommentDto> {
-    const comment = await this.commentService.create(data, user.id);
+    const comment = await this.commentService.createComment(
+      type,
+      id,
+      user.id,
+      data.content,
+      data.parentId,
+    );
+
     return CommentDto.fromDomain(comment);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get comment by id' })
-  @OkResponse(CommentDto)
-  async getComment(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<CommentDto> {
-    const comment = await this.commentService.findById(id);
-    return CommentDto.fromDomain(comment);
-  }
-
-  @Get('post/:postId')
-  @ApiOperation({ summary: 'Get comments by post' })
+  @Get(':type/:id')
+  @ApiOperation({ summary: 'Get comments for content' })
+  @ApiParam({
+    name: 'type',
+    enum: ['POST', 'EMOTION'],
+    description: 'Content type',
+  })
+  @ApiParam({ name: 'id', description: 'Content ID' })
   @PaginatedResponse(CommentDto)
   @ErrorResponse('comment.list', commentErrorMap)
-  async getCommentsByPost(
-    @Param('postId', ParseUUIDPipe) postId: string,
+  async getCommentsByContent(
+    @Param('type') type: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() pagination: PaginationQueryDto,
+    @AuthContextUser() user: User,
   ): Promise<Collection<CommentDto>> {
-    const comments = await this.commentService.findByPost(postId, pagination);
+    const comments = await this.commentService.getCommentsByContent(
+      type,
+      id,
+      pagination,
+      user.id,
+    );
+
     return Collection.transform(comments, CommentDto.fromDomain);
   }
 
@@ -91,7 +106,7 @@ export class CommentController {
   @OkResponse(CommentDto)
   @ErrorResponse('comment.update', commentErrorMap, { hasValidationErr: true })
   async updateComment(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Body() data: UpdateCommentDto,
     @AuthContextUser() user: User,
   ): Promise<CommentDto> {
@@ -105,33 +120,9 @@ export class CommentController {
   @OkResponse(null)
   @ErrorResponse('comment.delete', commentErrorMap)
   async deleteComment(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @AuthContextUser() user: User,
   ): Promise<void> {
     await this.commentService.delete(id, user.id);
-  }
-
-  @Post(':id/like')
-  @RequireAnyRoles(Role.USER)
-  @ApiOperation({ summary: 'Like comment' })
-  @OkResponse(null)
-  @ErrorResponse('comment.like', commentErrorMap)
-  async likeComment(
-    @Param('id', ParseUUIDPipe) id: string,
-    @AuthContextUser() user: User,
-  ): Promise<void> {
-    await this.commentLikeService.like(id, user.id);
-  }
-
-  @Delete(':id/like')
-  @RequireAnyRoles(Role.USER)
-  @ApiOperation({ summary: 'Unlike comment' })
-  @OkResponse(null)
-  @ErrorResponse('comment.unlike', commentErrorMap)
-  async unlikeComment(
-    @Param('id', ParseUUIDPipe) id: string,
-    @AuthContextUser() user: User,
-  ): Promise<void> {
-    await this.commentLikeService.unlike(id, user.id);
   }
 }
