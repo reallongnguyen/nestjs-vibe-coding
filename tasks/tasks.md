@@ -11,7 +11,7 @@
 
 ### SOC-006: Implement User Following System
 
-Status: To Do
+Status: In Progress
 Priority: High
 Dependencies: None
 
@@ -92,6 +92,167 @@ Dependencies: None
    - Test follow/unfollow functionality
    - Test following feed
    - Test notification generation
+
+---
+
+### SOC-006-5: Implement Main Feed Prioritization
+
+Status: Blocked
+Priority: High
+Dependencies: SOC-006-4, SOC-007-1
+
+### Context
+
+- Users want to see content from people they follow in their main feed
+- Need to prioritize content from followed users without completely filtering out other content
+- Should maintain discovery of new content while emphasizing followed users
+
+### Requirements
+
+- Modify the main feed algorithm to prioritize content from followed users
+- Maintain a mix of followed and non-followed content
+- Implement a scoring system that boosts content from followed users
+- Ensure performance remains acceptable for the main feed
+
+### Acceptance Criteria
+
+1. Content from followed users appears with higher priority in the main feed
+2. Feed still contains some content from non-followed users for discovery
+3. Scoring algorithm properly balances followed vs non-followed content
+4. Performance remains acceptable (under 500ms)
+5. Proper error handling for all operations
+
+### Technical Notes
+
+- Current feed implementation uses Redis sorted sets for a global feed
+- This implementation doesn't support personalization based on user relationships
+- **BLOCKED**: Requires implementation of the new feed distribution system first
+- The new system should follow the TikTok-inspired approach documented in business.md
+
+### Implementation Steps (Pending New Feed System)
+
+1. Implement Phase 1 of the new feed distribution system (new task SOC-007-1)
+2. Update the content ranking service to consider followed users
+3. Modify the feed distribution service to fetch and incorporate followed users data
+4. Update the feed cache invalidation to handle follow/unfollow events
+5. Add tests for the prioritization algorithm
+6. Update documentation
+
+---
+
+### SOC-007-1: Implement Basic Discovery Feed (Phase 1)
+
+Status: To Do
+Priority: High
+Dependencies: None
+
+### Context
+
+- Current feed system uses Redis sorted sets for a global feed
+- Need a database-driven personalized feed system to support content prioritization
+- This is Phase 1 of the new feed distribution system described in business.md
+
+### Requirements
+
+- Implement database-driven content collection
+- Create basic ranking algorithm with engagement and recency factors
+- Add simple following boost (1.5x multiplier)
+- Implement Following-only feed option
+
+### Acceptance Criteria
+
+1. Content is retrieved from database with proper pagination
+2. Basic scoring algorithm ranks content by recency and engagement
+3. Following relationships are considered in content ranking
+4. Performance remains acceptable (under 500ms)
+5. System handles errors gracefully
+
+### Technical Notes
+
+- Implement in the social module
+- Use Prisma for database access
+- Follow the architecture design in business.md
+- Ensure proper indexing for performance
+- Implement caching strategy for frequent queries
+
+### API Specification
+
+```typescript
+// Keep existing feed API structure but enhance implementation
+GET /api/v1/feeds
+
+Response:
+{
+  edges: [
+    {
+      node: {
+        id: string;
+        type: 'POST' | 'USER_EMOTION';
+        score: number;
+        // Other feed item properties...
+      }
+    },
+    // ...
+  ],
+  pageInfo: {
+    total: number;
+    limit: number;
+    offset: number;
+  }
+}
+```
+
+### Implementation Steps
+
+1. Create content collection service with database queries
+2. Implement basic ranking engine
+3. Create feed API layer with proper pagination
+4. Add event handlers for content updates
+5. Implement caching strategy
+6. Add tests for the new implementation
+
+---
+
+### SOC-006-6: Write End-to-End Tests
+
+Status: In Progress
+Priority: Medium
+Dependencies: SOC-006-1, SOC-006-2, SOC-006-3, SOC-006-4
+
+### Context
+
+- Need comprehensive tests for the user following system
+- Should verify all key functionality works as expected
+- Will help ensure system stability during future changes
+
+### Requirements
+
+- Write end-to-end tests for all implemented following features
+- Test both happy paths and error scenarios
+- Ensure proper test isolation and cleanup
+
+### Acceptance Criteria
+
+1. Tests verify follow/unfollow functionality
+2. Tests verify follower/following lists and counts
+3. Tests verify following feed
+4. Tests verify notification generation
+
+### Technical Notes
+
+- Use NestJS testing module
+- Create test database
+- Clean up after tests
+- Mock external dependencies
+
+### Implementation Steps
+
+1. Create test setup
+2. Implement follow/unfollow tests
+3. Implement list and count tests
+4. Implement feed tests
+5. Implement notification tests
+6. Add cleanup procedures
 
 ---
 
@@ -525,104 +686,6 @@ Response (200):
 
 ---
 
-### SOC-006-5: Implement Main Feed Prioritization
-
-Status: To Do
-Priority: Medium
-Dependencies: SOC-006-2
-
-### Context
-
-- Content from followed users should be prioritized in the main feed
-- Need to update the feed scoring algorithm
-
-### Requirements
-
-- Update feed scoring algorithm to prioritize followed users' content
-- Maintain a balance between followed and recommended content
-- Ensure performance is not degraded
-
-### Acceptance Criteria
-
-1. Content from followed users appears higher in the main feed
-2. Feed still includes some recommended content for discovery
-3. Feed performance is maintained (under 500ms)
-4. Algorithm can be tuned via configuration
-
-### Technical Notes
-
-- Modify existing feed scoring algorithm
-- Add following status as a factor in scoring
-- Implement configurable weighting for followed content
-- Ensure efficient queries with proper indexing
-- Implement in the `social` module
-- Use the Collection class from common/models for consistent pagination responses
-- Use PaginationQueryDto for request parameters
-
-### API Specification
-
-```typescript
-// The existing feed API will be enhanced with following prioritization
-GET /api/v1/feed
-
-Request:
-{
-  // Using PaginationQueryDto
-  offset?: number; // default: 0
-  limit?: number;  // default: 10
-  sortBy?: string; // default: "recommended", options: "recent", "popular", "recommended"
-}
-
-Response (200):
-{
-  // Using Collection<T> format
-  edges: [
-    {
-      id: string;
-      type: "POST" | "USER_EMOTION";
-      content: {
-        id: string;
-        // Post or emotion specific fields
-        title?: string;
-        content?: any;
-        emotion?: string;
-        intensity?: number;
-        // Common fields
-        createdAt: Date;
-        author: {
-          id: string;
-          firstName: string;
-          lastName: string | null;
-          avatar: string | null;
-          isFollowed: boolean; // New field indicating if user follows this author
-        }
-      };
-      metrics: {
-        likeCount: number;
-        commentCount: number;
-        viewCount: number;
-      };
-      score: number; // Score used for ranking (higher for followed users)
-    }
-  ],
-  pagination: {
-    limit: number;
-    offset: number;
-    total: number;
-  }
-}
-```
-
-### Sub-tasks
-
-1. Update feed scoring algorithm
-2. Add configuration for followed content weight
-3. Optimize queries for performance
-4. Add unit tests for updated algorithm
-5. Add integration tests for feed results
-
----
-
 ### SOC-006-6: Implement Follow Notifications
 
 Status: To Do
@@ -754,4 +817,3 @@ Dependencies: SOC-006-1, SOC-006-2, SOC-006-3, SOC-006-4, SOC-006-5, SOC-006-6
 4. Implement feed tests
 5. Implement notification tests
 6. Add cleanup procedures
-

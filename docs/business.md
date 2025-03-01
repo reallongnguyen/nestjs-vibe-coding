@@ -343,3 +343,526 @@ stateDiagram-v2
    - Influence mapping
    - Interest groupings
    - Content propagation patterns
+
+## Feed Distribution System
+
+### Current Implementation
+
+The current feed system uses Redis sorted sets to store a global feed that is the same for all users. Content is scored based on recency and engagement metrics, but there's no personalization based on user relationships.
+
+### Updated Feed Distribution Strategy: TikTok-Inspired Approach
+
+#### Core Philosophy
+
+- **Discovery-First**: Prioritize showing users engaging content they're likely to enjoy, regardless of follow status
+- **Following as a Signal**: Use following relationships as one of several ranking signals, not the primary filter
+- **Engagement-Driven**: Heavily weight user engagement patterns in content selection
+
+#### Feed Structure
+
+1. **Primary Feed ("For You")**
+   - Default view when opening the app
+   - Content mix: 70% discovery / 30% followed
+   - Optimized for engagement and retention
+   - Personalized based on user behavior
+
+2. **Following Feed (Secondary Tab)**
+   - Dedicated space for followed content only
+   - Chronological or engagement-sorted option
+   - Ensures users can always find content from people they explicitly follow
+
+#### Ranking Factors (For Primary Feed)
+
+1. **Content Quality Signals**:
+   - Completion rate (how often users view content to completion)
+   - Engagement rate (likes, comments, shares relative to views)
+   - Freshness (recency bonus)
+   - Velocity (how quickly content is gaining engagement)
+
+2. **Personalization Signals**:
+   - Similar content engagement history
+   - Topic affinity (categories user engages with)
+   - Following relationship (boost, but not filter)
+   - Content creator reputation
+
+3. **Diversity Factors**:
+   - Content type variety (posts, emotions, etc.)
+   - Creator diversity (avoid showing too much from same creator)
+   - Topic diversity (ensure feed covers various interests)
+
+#### Implementation Phases
+
+1. **Phase 1: Basic Discovery Feed**
+   - Implement database-driven content collection
+   - Basic ranking algorithm with engagement and recency factors
+   - Simple following boost (1.5x multiplier)
+   - Add Following-only feed option
+
+2. **Phase 2: Enhanced Personalization**
+   - Implement user engagement history tracking
+   - Add content affinity signals
+   - Improve diversity mechanisms
+   - Optimize database queries for performance
+
+3. **Phase 3: Advanced Ranking**
+   - Implement completion rate tracking
+   - Add velocity and trending signals
+   - Develop creator reputation system
+   - Implement A/B testing framework for algorithm improvements
+
+4. **Phase 4: Optimization & Scale**
+   - Add real-time ranking updates
+   - Implement predictive content prefetching
+   - Optimize for mobile experience
+   - Add analytics dashboard for content performance
+
+#### Technical Considerations
+
+1. **Database Performance**
+   - Need proper indexes on engagement metrics, timestamps, and content metadata
+   - Consider denormalized tables for feed generation
+   - Use efficient pagination techniques
+
+2. **Cache Management**
+   - Use Redis for caching with appropriate TTL
+   - Implement selective cache invalidation
+   - Consider cache warming for active users
+
+3. **Scaling**
+   - Design for horizontal scaling
+   - Consider sharding strategies for large user bases
+   - Implement background processing for feed generation
+
+### Comparison with Major Platforms
+
+#### TikTok
+
+- **Similarities**:
+  - Discovery-first approach with algorithmic "For You" feed as default
+  - Heavy emphasis on engagement metrics and content completion rates
+  - Separate "Following" feed as a secondary option
+  - Content diversity mechanisms to prevent repetition
+- **Differences**:
+  - TikTok's algorithm is more sophisticated with hundreds of signals
+  - TikTok uses extensive AI/ML for content classification
+  - Our initial implementation will be simpler but follow similar principles
+
+#### Instagram
+
+- **Similarities**:
+  - Dual-feed approach (algorithmic main feed + following feed)
+  - Engagement metrics as ranking signals
+  - Creator diversity considerations
+- **Differences**:
+  - Instagram started follow-first and evolved to discovery
+  - Instagram puts more weight on social graph connections
+  - Our approach is discovery-first from the beginning
+  - Instagram has more complex content formats (Stories, Reels, Posts)
+
+#### Facebook
+
+- **Similarities**:
+  - Personalization based on user behavior
+  - Engagement as a key ranking factor
+  - Content diversity mechanisms
+- **Differences**:
+  - Facebook heavily weights social connections (friends, family)
+  - Facebook's algorithm considers hundreds more signals
+  - Facebook optimizes for "meaningful interactions" vs. pure engagement
+  - Our approach is simpler and more focused on content quality
+
+#### Twitter
+
+- **Similarities**:
+  - Dual-feed approach ("For You" and "Following")
+  - Engagement metrics influence ranking
+- **Differences**:
+  - Twitter is more chronologically oriented
+  - Twitter's content is primarily text-based
+  - Our approach puts more emphasis on content quality signals
+
+### Key Advantages of Our Approach
+
+1. **Balanced Discovery**: Our 70/30 discovery/following mix provides good balance between new content discovery and following relationships
+
+2. **Simplified Implementation**: By focusing on fewer, more impactful signals initially, we can implement faster and iterate
+
+3. **Dual Feed Strategy**: Providing both algorithmic and following-only feeds gives users choice and control
+
+4. **Phased Approach**: Our implementation phases allow for gradual sophistication while delivering value early
+
+## Feed Distribution System Architecture
+
+### System Architecture Overview
+
+The feed distribution system requires a scalable architecture that can handle personalized content ranking, efficient content delivery, and real-time updates. Below is the detailed architecture design for each implementation phase.
+
+```mermaid
+flowchart TD
+    User[User Request] --> API[API Gateway]
+    API --> FeedService[Feed Service]
+    FeedService --> ContentCollector[Content Collector]
+    FeedService --> RankingEngine[Ranking Engine]
+    FeedService --> CacheLayer[Cache Layer]
+    
+    ContentCollector --> DB[(Database)]
+    RankingEngine --> FollowService[Follow Service]
+    RankingEngine --> EngagementService[Engagement Service]
+    
+    CacheLayer --> Redis[(Redis Cache)]
+    
+    EngagementService --> EventBus[Event Bus]
+    FollowService --> EventBus
+    
+    EventBus --> CacheInvalidator[Cache Invalidator]
+    CacheInvalidator --> Redis
+```
+
+### Phase 1: Basic Discovery Feed Architecture
+
+#### Components
+
+1. **Content Collection Service**
+   - **Purpose**: Retrieve recent content from database with basic metadata
+   - **Implementation**:
+     - Database queries with efficient joins and pagination
+     - Content type filtering (posts, emotions)
+     - Basic author information inclusion
+   - **Technical Stack**:
+     - Prisma ORM for database access
+     - Repository pattern for data access abstraction
+     - Caching of frequent queries with short TTL
+
+2. **Basic Ranking Engine**
+   - **Purpose**: Score and rank content based on simple factors
+   - **Implementation**:
+     - Recency scoring (exponential decay function)
+     - Engagement scoring (normalized likes, comments, views)
+     - Following relationship boost (1.5x multiplier)
+     - Content type diversity enforcement
+   - **Technical Stack**:
+     - In-memory scoring algorithms
+     - Command pattern for follow status checking
+     - Sorting and pagination utilities
+
+3. **Feed API Layer**
+   - **Purpose**: Expose feed endpoints with proper pagination
+   - **Implementation**:
+     - Main "For You" feed endpoint
+     - Following-only feed endpoint
+     - Pagination with cursor-based approach
+     - Response caching with user-specific keys
+   - **Technical Stack**:
+     - NestJS controllers and services
+     - DTO validation and transformation
+     - Redis for response caching
+
+4. **Event Handlers**
+   - **Purpose**: React to system events for feed updates
+   - **Implementation**:
+     - Content creation/update handlers
+     - Follow/unfollow event handlers
+     - Engagement event handlers (likes, comments)
+     - Cache invalidation triggers
+   - **Technical Stack**:
+     - Event bus for pub/sub communication
+     - Event handlers with retry logic
+     - Selective cache invalidation
+
+#### Data Flow
+
+1. User requests feed content
+2. System checks cache for existing feed slice
+3. If cache miss, content collector retrieves recent content
+4. Ranking engine scores and sorts content
+5. Response is cached and returned to user
+6. Events trigger selective cache invalidation
+
+#### Performance Considerations
+
+- **Database Indexing**:
+  - Compound indexes on content type, timestamp, author
+  - Indexes on engagement metrics for sorting
+  - Partial indexes for active content
+
+- **Caching Strategy**:
+  - Cache feed slices by user ID, offset, limit
+  - Short TTL (1-5 minutes) for active users
+  - Longer TTL (15-30 minutes) for less active users
+
+- **Query Optimization**:
+  - Limit initial content collection to recent window (7-14 days)
+  - Use database-level pagination before in-memory processing
+  - Batch database queries where possible
+
+### Phase 2: Enhanced Personalization Architecture
+
+#### New Components
+
+1. **User Engagement Tracker**
+   - **Purpose**: Track and store user engagement patterns
+   - **Implementation**:
+     - View tracking with completion rates
+     - Engagement action recording (likes, comments, shares)
+     - Content type preference analysis
+     - Creator affinity calculation
+   - **Technical Stack**:
+     - Event-driven architecture for engagement events
+     - Time-series data storage for engagement history
+     - Batch processing for aggregations
+
+2. **Content Affinity Service**
+   - **Purpose**: Determine content relevance based on user history
+   - **Implementation**:
+     - Topic extraction and classification
+     - User-topic affinity scoring
+     - Creator-based affinity calculation
+     - Temporal relevance adjustments
+   - **Technical Stack**:
+     - Simple classification algorithms
+     - Affinity scoring models
+     - Cached affinity profiles
+
+3. **Enhanced Ranking Engine**
+   - **Purpose**: Incorporate personalization signals into ranking
+   - **Implementation**:
+     - Multi-factor scoring algorithm
+     - Personalization signal integration
+     - Dynamic weight adjustment based on user behavior
+     - Diversity enforcement algorithms
+   - **Technical Stack**:
+     - Modular scoring components
+     - Weighted ranking algorithms
+     - A/B testing framework integration
+
+#### Data Flow Enhancements
+
+1. Engagement events flow into engagement tracker
+2. Periodic batch jobs update user affinity profiles
+3. Ranking engine incorporates affinity data in scoring
+4. Content diversity is enforced during ranking
+5. Feedback loop captures user response to recommendations
+
+#### Performance Considerations
+
+- **Database Sharding**:
+  - Shard engagement data by user ID
+  - Implement read replicas for engagement queries
+  - Consider time-based partitioning for historical data
+
+- **Computation Optimization**:
+  - Pre-compute affinity scores in background jobs
+  - Cache user affinity profiles with medium TTL
+  - Use approximate algorithms for large-scale computations
+
+- **Memory Management**:
+  - Implement LRU caching for active user profiles
+  - Compress stored engagement data
+  - Prune historical data based on relevance decay
+
+### Phase 3: Advanced Ranking Architecture
+
+#### New Components
+
+1. **Content Completion Tracker**
+   - **Purpose**: Track how users consume content to completion
+   - **Implementation**:
+     - View duration tracking
+     - Completion rate calculation
+     - Skip/abandon detection
+     - Engagement depth analysis
+   - **Technical Stack**:
+     - Real-time event processing
+     - Time-series metrics storage
+     - Statistical analysis tools
+
+2. **Trending Detection Service**
+   - **Purpose**: Identify rapidly gaining content
+   - **Implementation**:
+     - Engagement velocity calculation
+     - Trend detection algorithms
+     - Category-specific trending
+     - Anomaly detection for viral content
+   - **Technical Stack**:
+     - Time-windowed analytics
+     - Velocity calculation algorithms
+     - Threshold-based detection
+
+3. **Creator Reputation System**
+   - **Purpose**: Score content creators based on engagement quality
+   - **Implementation**:
+     - Historical engagement quality analysis
+     - Consistency scoring
+     - Audience loyalty metrics
+     - Content quality assessment
+   - **Technical Stack**:
+     - Reputation scoring algorithms
+     - Historical data aggregation
+     - Decay functions for temporal relevance
+
+4. **A/B Testing Framework**
+   - **Purpose**: Test algorithm variations with user segments
+   - **Implementation**:
+     - User cohort management
+     - Algorithm variant assignment
+     - Performance metric tracking
+     - Statistical significance testing
+   - **Technical Stack**:
+     - User segmentation system
+     - Variant routing middleware
+     - Metrics collection and analysis
+     - Experiment management dashboard
+
+#### Data Flow Enhancements
+
+1. Content view events include duration and completion data
+2. Trending detection runs on scheduled intervals
+3. Creator reputation updates daily with new engagement data
+4. A/B test assignment happens at request time
+5. Metrics collection occurs asynchronously
+
+#### Performance Considerations
+
+- **Distributed Computing**:
+  - Implement map-reduce for large-scale analytics
+  - Use stream processing for real-time metrics
+  - Consider specialized time-series databases
+
+- **Predictive Optimization**:
+  - Implement content prefetching based on user patterns
+  - Pre-compute expensive ranking factors
+  - Use probabilistic data structures for large-scale counting
+
+- **Resource Isolation**:
+  - Separate compute resources for analytics vs. serving
+  - Implement circuit breakers for non-critical components
+  - Define clear SLAs for each system component
+
+### Phase 4: Optimization & Scale Architecture
+
+#### New Components
+
+1. **Real-time Ranking Updates**
+   - **Purpose**: Update content rankings in near real-time
+   - **Implementation**:
+     - Event-driven score recalculation
+     - Partial feed regeneration
+     - Hot content fast-tracking
+     - Dynamic cache invalidation
+   - **Technical Stack**:
+     - Stream processing framework
+     - Partial cache update mechanisms
+     - Priority queues for processing
+
+2. **Predictive Content Prefetching**
+   - **Purpose**: Prepare content before users request it
+   - **Implementation**:
+     - Usage pattern analysis
+     - Session prediction models
+     - Background content preparation
+     - Smart cache warming
+   - **Technical Stack**:
+     - Predictive models
+     - Background job scheduling
+     - Prioritized content loading
+
+3. **Mobile Optimization Layer**
+   - **Purpose**: Optimize delivery for mobile clients
+   - **Implementation**:
+     - Response size optimization
+     - Progressive content loading
+     - Network condition adaptation
+     - Battery usage optimization
+   - **Technical Stack**:
+     - Content compression
+     - Adaptive delivery APIs
+     - Client capability detection
+
+4. **Analytics Dashboard**
+   - **Purpose**: Monitor content performance and system health
+   - **Implementation**:
+     - Real-time content performance metrics
+     - Algorithm effectiveness tracking
+     - System performance monitoring
+     - User engagement visualization
+   - **Technical Stack**:
+     - Time-series metrics database
+     - Real-time dashboard framework
+     - Alerting and notification system
+     - Visualization components
+
+#### Data Flow Enhancements
+
+1. High-impact events trigger immediate ranking updates
+2. System predicts and prepares content for active users
+3. Content delivery adapts to client capabilities
+4. Performance metrics flow to dashboards in real-time
+5. Alerts trigger on anomalies or performance issues
+
+#### Performance Considerations
+
+- **Global Distribution**:
+  - Implement CDN for static content
+  - Consider edge computing for ranking
+  - Geo-distributed database replicas
+
+- **Extreme Scale Techniques**:
+  - Implement consistent hashing for sharding
+  - Consider specialized databases for different data types
+  - Use queue-based load leveling
+  - Implement graceful degradation
+
+- **Efficiency Optimizations**:
+  - Content bundling for network efficiency
+  - Incremental updates to reduce payload size
+  - Adaptive TTL based on content volatility
+  - Resource-aware scheduling
+
+### System Scalability Considerations
+
+#### Horizontal Scaling
+
+- **Stateless Services**: All API and processing services designed for horizontal scaling
+- **Database Scaling**:
+  - Read replicas for query-heavy operations
+  - Sharding strategy based on user ID and content type
+  - Consider NoSQL for engagement data at scale
+
+#### Vertical Scaling
+
+- **Memory Optimization**: Ranking algorithms optimized for memory efficiency
+- **CPU Efficiency**: Batch processing for compute-intensive operations
+- **I/O Optimization**: Efficient database query patterns and indexes
+
+#### Resilience
+
+- **Circuit Breakers**: Prevent cascade failures in service dependencies
+- **Retry Mechanisms**: Automatic retries with exponential backoff
+- **Fallback Strategies**: Degraded but functional experience when components fail
+
+#### Monitoring
+
+- **Key Metrics**:
+  - Feed generation latency (p95, p99)
+  - Cache hit rates
+  - Database query performance
+  - Event processing throughput
+  - Error rates by component
+
+- **Alerting**:
+  - SLA breach alerts
+  - Error rate thresholds
+  - Resource utilization warnings
+  - Data inconsistency detection
+
+### Conclusion
+
+This architecture provides a scalable foundation for implementing the TikTok-inspired feed distribution system. By phasing the implementation, we can deliver value early while building toward a sophisticated, personalized content discovery platform. The design emphasizes:
+
+1. **Performance**: Through efficient data access, caching, and computation
+2. **Scalability**: Via horizontal scaling and efficient resource usage
+3. **Flexibility**: Through modular components and clear interfaces
+4. **Resilience**: With proper error handling and fallback strategies
+5. **Measurability**: Via comprehensive monitoring and analytics
+
+Each phase builds upon the previous one, allowing for iterative development and testing while maintaining system stability and performance.
