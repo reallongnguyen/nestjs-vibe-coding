@@ -124,4 +124,21 @@ export class UserFollowRepository implements IUserFollowRepository {
       },
     });
   }
+
+  async getFollowerDetails(userId: string): Promise<{
+    firstName: string;
+    lastName: string | null;
+    avatar: string | null;
+  } | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        firstName: true,
+        lastName: true,
+        avatar: true,
+      },
+    });
+
+    return user;
+  }
 }

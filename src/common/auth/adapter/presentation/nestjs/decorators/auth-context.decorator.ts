@@ -32,6 +32,10 @@ export const AuthContextUser = createParamDecorator(
       throw new AppError('common.requireUser');
     }
 
+    if (data && typeof data === 'string') {
+      return authCtx.getUser()[data as keyof AuthCtx['user']];
+    }
+
     return authCtx.getUser();
   },
 );

@@ -5,31 +5,36 @@ export class UserFollowError extends AppError {
     message: string,
     metadata?: Record<string, string | number | boolean>,
   ) {
-    super('USER_FOLLOW_ERROR', metadata);
-    this.message = message;
+    super(message, metadata);
   }
 }
 
-export class UserFollowNotFoundError extends UserFollowError {
+export class UserFollowNotFoundError extends AppError {
   constructor(followerId: string, followingId: string) {
-    super('User follow relationship not found', { followerId, followingId });
+    super('user-follow.unfollowUser.userFollowNotFound', {
+      followerId,
+      followingId,
+    });
   }
 }
 
-export class SelfFollowError extends UserFollowError {
+export class SelfFollowError extends AppError {
   constructor(userId: string) {
-    super('Users cannot follow themselves', { userId });
+    super('user-follow.followUser.selfFollow', { userId });
   }
 }
 
-export class AlreadyFollowingError extends UserFollowError {
+export class AlreadyFollowingError extends AppError {
   constructor(followerId: string, followingId: string) {
-    super('User is already following this user', { followerId, followingId });
+    super('user-follow.followUser.alreadyFollowing', {
+      followerId,
+      followingId,
+    });
   }
 }
 
-export class UserNotFoundError extends UserFollowError {
+export class UserNotFoundError extends AppError {
   constructor(userId: string) {
-    super('User not found', { userId });
+    super('user-follow.followUser.userNotFound', { userId });
   }
 }

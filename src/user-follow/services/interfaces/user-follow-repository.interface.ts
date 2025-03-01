@@ -64,4 +64,15 @@ export interface IUserFollowRepository {
    * @returns Number of users being followed
    */
   getFollowingCount(userId: string): Promise<number>;
+
+  /**
+   * Get basic details of a follower for event publishing
+   * @param userId ID of the user to get details for
+   * @returns Basic user details or null if not found
+   */
+  getFollowerDetails(userId: string): Promise<{
+    firstName: string;
+    lastName: string | null;
+    avatar: string | null;
+  } | null>;
 }

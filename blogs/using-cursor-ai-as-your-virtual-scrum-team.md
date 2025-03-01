@@ -1,5 +1,7 @@
 # Using Cursor AI as Your Virtual Scrum Team
 
+As a solution architect, I've discovered that using Cursor AI as a virtual Scrum team significantly increases productivity and code quality. This approach allows me to focus on system design while leveraging AI capabilities across multiple development roles.
+
 ```mermaid
 graph TD
     You[You\nSolution Architect\nProduct Manager] --> |Supervises & Reviews| Cursor
@@ -16,15 +18,196 @@ graph TD
 
 ## Introduction
 
-- Brief overview of AI pair programming
-- Why I chose to experiment with Cursor
-- The unique approach of treating Cursor as a full Scrum team
+### Brief overview of AI pair programming
+
+Pair programming has long been recognized as an effective way to improve developer skills in agile development. AI pair programming takes this concept further, creating a dynamic where you can guide the AI through code reviews and feedback, helping it better understand your project requirements and coding standards.
+
+### Why Cursor?
+
+Cursor stands out by providing:
+
+- An IDE that makes reviewing generated code intuitive
+- Clear visualization of code changes (similar to GitHub Pull Requests)
+- A 14-day Pro trial period for comprehensive evaluation
+
+### A Novel Approach: Full Scrum Team Simulation
+
+Traditional AI coding assistants typically function as simple code generators. However, I've developed a more comprehensive approach by treating Cursor as a complete Scrum team:
+
+- **Product Owner**: Helps design features and maintain requirements
+- **Scrum Master**: Assists with process management
+- **Technical Leader**: Ensures architectural consistency
+- **Developer**: Generates code and maintains documentation
+
+This approach provides several benefits:
+
+- Better context retention through structured documentation
+- Improved code quality through consistent standards
+- More efficient feature implementation
+- Enhanced project organization
+
+### Pros and Cons of Cursor
+
+Cursor, being powered by LLM, has both advantages and limitations
+
+#### Pros
+
+- Can handle many roles: Product Owner, Scrum Master, Technical Leader, Developer, etc.
+- Have good knowledge of many domains.
+- Good at programming.
+- Understand the project context and code base.
+
+#### Cons
+
+- Limited memory retention, it just remember what you tell it in current session. When start a new session, cursor automatically summarize the previous conversation but it's not good enough.
+- It's generalist, it doesn't know specific things about your project.
 
 ## Setting Up the Development Environment
 
-- Initial setup of Cursor
-- Configuring custom instructions
-- Establishing coding standards and guidelines
+### Initial Setup of Cursor
+
+1. Download and install Cursor from [website](https://www.cursor.com/en/pricing)
+2. Sign up for a Cursor account (14-day Pro trial available)
+3. Open your project folder in Cursor
+4. Install recommended extensions for your tech stack
+
+### Configuring Custom Instructions
+
+1. Create a `.cursorrules` file in your project root
+2. Define project-specific rules:
+   - Code style preferences
+   - Project structure requirements
+   - Common patterns to follow
+   - Error handling conventions
+3. Add reference documentation:
+   - `/docs/technical.md` for technical guidelines
+   - `/docs/business.md` for domain knowledge
+   - `/docs/module-structure.md` for architecture patterns
+
+### Establishing Coding Standards and Guidelines
+
+1. Document core principles:
+   - Architecture patterns (DDD, Clean Architecture)
+   - Code organization rules
+   - Naming conventions
+   - Testing requirements
+2. Create example modules:
+   - Reference implementation with best practices
+   - Common patterns and structures
+   - Error handling examples
+   - Test case templates
+3. Set up linting and formatting:
+   - ESLint/TSLint configuration
+   - Prettier settings
+   - Git hooks for pre-commit checks
+
+I set up the example project in [base-api-service](https://github.com/reallongnguyen/base-api-service). This project is a NestJS project with Prisma ORM, Postgres, Redis, and Docker. I provide various prompts in `/docs/prompt.md`. You can clone it and try it out.
+
+## Results and Benefits
+
+### 1. Development Speed Improvements
+
+Using Cursor AI as a virtual Scrum team has dramatically improved development velocity:
+
+- **5x Faster Development**: Focus on system design while Cursor handles implementation details
+- **Rapid API Development**:
+  - Best case: Complete API implementation in ~10 minutes
+  - Average case: 30-45 minutes including review and refinement
+  - Worst case: Still faster than manual coding due to boilerplate generation
+
+> 💡 **Time Savings Example**: A typical CRUD module with 5 endpoints, DTOs, and tests:
+>
+> - Manual coding: 4-6 hours
+> - With Cursor: 1-1.5 hours including review
+
+### 2. Code Quality Improvements
+
+Cursor consistently maintains high code quality standards:
+
+#### Architecture & Design
+
+- Enforces DDD principles and clean architecture
+- Maintains consistent module structure
+- Follows SOLID principles automatically
+
+#### Database & Performance
+
+- Generates optimized database schemas
+- Automatically adds appropriate indexes
+- Example improvements:
+
+  ```sql
+  -- Cursor-generated index for efficient user following queries
+  CREATE INDEX idx_user_follows_composite 
+  ON user_follows(follower_id, following_id);
+  ```
+
+#### Best Practices Implementation
+
+- Consistent error handling patterns
+- Proper dependency injection
+- Comprehensive API documentation
+- Thorough test coverage
+
+### 3. Learning & Skill Enhancement
+
+Working with Cursor has accelerated professional growth:
+
+#### Technical Skills
+
+- Deeper understanding of architectural patterns
+- Exposure to advanced solutions:
+  - HyperLogLog for efficient counting
+  - Batch processing patterns
+  - Caching strategies
+  - Event-driven architectures
+
+#### Process Improvements
+
+- Better sprint planning techniques
+- Improved task breakdown strategies
+- Enhanced documentation practices
+
+> 💡 **Learning Example**: Cursor suggested using HyperLogLog for follower counting:
+>
+> ```typescript
+> @Injectable()
+> export class UserStatsService {
+>   async getFollowerCount(userId: string): Promise<number> {
+>     const key = `user:${userId}:followers:hll`;
+>     return this.redisService.pfcount(key);
+>   }
+> }
+> ```
+
+### 4. Project Management Benefits
+
+The virtual Scrum team approach has improved overall project organization:
+
+#### Documentation Quality
+
+- Automated Swagger documentation
+- Consistent README files
+- Clear API specifications
+- Comprehensive test cases
+
+#### Process Efficiency
+
+- Faster feature iterations
+- Reduced technical debt
+- Better requirement tracking
+- Improved code review process
+
+### 6. Team Collaboration Improvements
+
+Even when working solo, Cursor's virtual team approach provides:
+
+- Multiple perspectives on code design
+- Consistent code review feedback
+- Regular "standup" checkpoints
+- Continuous architectural guidance
+
+This structured approach ensures that even individual developers maintain team-level quality and consistency.
 
 ## Working with Cursor as a Product Owner
 
@@ -581,8 +764,10 @@ Look good. I review and update task description a bit. Next, move on to code imp
 My prompt:
 
 ```plaintext
-As a senior developer, follow the development process you implement tasks SOC-006-1 in @tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @tasks.md and @status.md.
+As a senior developer, follow the development process you implement tasks SOC-006-1 in @tasks.md. Follow code style in @technical.md and @social. After implementing the feature, update @tasks.md and @status.md.
 ```
+
+Note: social is a example module with good code quality.
 
 Cursor response:
 
@@ -600,64 +785,166 @@ Follow @AppError.ts, fix UserFollowError in @user-follow.error.ts
 In @user-follow-service.interface.ts, you are importing presentation DTOs, this is not follow clean architecture. Create service layer own Input and Output class.
 ```
 
+After fixing the issues, I review the code and update task description. This is PR: <https://github.com/reallongnguyen/base-api-service/pull/75>
+
 ## Best Practices I've Discovered
 
-- Effective prompting techniques
-- Review and validation strategies
-- Managing complex features
-- Handling edge cases
+### Define .cursorrules for personalization
 
-## Challenges and Solutions
+- Define your code style
+- Define workflow
 
-- Common pitfalls
-- Communication barriers
-- Technical limitations
-- How to overcome these challenges
+### Make your project is AI friendly
 
-## Results and Benefits
-
-- Development speed improvements
-- Code quality metrics
-- Learning outcomes
-- Team productivity gains
-
-## Tips for Others
-
-- Getting started recommendations
-- Communication patterns that work
-- When to use (and not use) Cursor
-- Building effective workflows
+- Make project structure clear and simple.
+  - Use DDD principles to design module structure
+  - Prevent big modules, prefer small and simple modules
+  - Keep single responsibility principle in mind
 - Document your project help cursor understand your project:
   - Business domain: @business.md
   - Technical: @technical.md
   - Code style: @code-style.md
   - Project structure: @project-structure.md
   - Task template: @task-template.md
-- Make project structure clear and simple.
-  - Use DDD principles to design module structure
-  - Prevent big modules, prefer small and simple modules
-  - Keep single responsibility principle in mind
-  - Keep SOLID principle in mind
-  - Keep DRY principle in mind
-  - Keep YAGNI principle in mind
-- Attach related files to the prompt.
-- Prefer to use Fix in Composer feature or prompt to fix issues. I often use this flow to fix issues:
+  - Continue to maintain the docs to help cursor understand the latest status of the project.
+  - Create module overview docs for each module to help cursor understand the module.
+- Modules should be independent and not depend on other modules.
+  - Prefer to use event-driven architecture
+
+### Effective prompting techniques
+
+- Use Composer to prompt with multiple files.
+- Attach related files to the prompt, attach good quality sample code to follow.
+- Task description is a part of prompt. Let add more details to the task description such API docs, suggest package to use, module name, etc.
+
+### Review and validation strategies
+
+- Prefer to use Fix in Composer feature or prompt to fix issues.
+- I often use this flow to fix issues and review code:
   - Fix entities layer
   - Fix presentation layer and Swagger docs
   - Fix service layer
   - Fix repository layer
   - Fix test cases
+- Confirm project is working after a task is done
+  - Confirm swagger docs is updated
+  - Test the feature to make sure it's working
+
+### Managing complex features
+
+- Break down complex features into smaller tasks
+- Use postmortem docs to help cursor understand the feature
+- A feature should be testable
+
+## Challenges and Solutions
+
+### Challenge 1: Limited Context Retention
+
+**Problem:**  
+At the start of each session, Cursor has limited understanding of your project context, similar to onboarding a new team member. It only retains information from the current conversation, making it challenging to maintain consistency across sessions.
+
+**Solution:**  
+
+- Provide comprehensive context in your initial prompts:
+  - Attach relevant schema files (`schema.prisma`)
+  - Include technical documentation (`technical.md`)
+  - Reference business requirements (`business.md`)
+  - Link to example modules with preferred patterns
+- Use the Composer feature to include multiple files in your prompts
+- Structure your prompts to include both requirements and context
+
+### Challenge 2: Managing Large Code Generation
+
+**Problem:**  
+Cursor can generate substantial amounts of code at once, making code review difficult and increasing the risk of overlooking issues.
+
+**Solution:**  
+Break down tasks into smaller, manageable units:
+
+- Focus on one API endpoint or feature at a time
+- Follow a clear task structure:
+
+  ```plaintext
+  1. Create module structure
+  2. Implement data layer
+  3. Implement presentation layer
+  4. Add business logic
+  5. Write tests
+  ```
+
+- Review code incrementally rather than all at once
+- Use the "Fix in Composer" feature for targeted improvements
+
+### Challenge 3: Maintaining Code Style Consistency
+
+**Problem:**  
+Initially, Cursor might generate code that doesn't match your project's style guidelines or architectural patterns.
+
+**Solution:**  
+
+1. Establish Clear References
+   - Provide example modules as style guides
+   - Reference specific files for pattern matching
+
+   ```plaintext
+   Following @content-comment.controller.ts, update swagger docs in 
+   @user-follow.controller.ts
+   ```
+
+2. Use Explicit Instructions
+   - Create detailed `.cursorrules` files
+   - Document coding standards in `technical.md`
+   - Maintain example implementations
+
+3. Iterative Refinement
+   - Review and correct style deviations early
+   - Use successful implementations as references for future tasks
+   - Build up a library of common patterns
+
+### Challenge 4: Complex Feature Implementation
+
+**Problem:**  
+Large features can become unwieldy and difficult to manage when implemented all at once.
+
+**Solution:**  
+
+1. Strategic Feature Breakdown
+   - Split features into independent sub-tasks
+   - Focus on one domain concept at a time
+   - Ensure each sub-task is independently testable
+
+2. Documentation-First Approach
+   - Create detailed API specifications before implementation
+   - Document domain models and relationships
+   - Define clear acceptance criteria
+
+3. Incremental Implementation
+
+   ```plaintext
+   Feature: User Following System
+   1. Basic follow/unfollow functionality
+   2. Follower/following lists
+   3. Notification integration
+   4. Feed integration
+   ```
+
+### Pro Tips
+>
+> 💡 **Maintain Context**: Create a project-specific prompt template that includes common file references and patterns.
+>
+> 💡 **Review Strategy**: Focus on reviewing one layer at a time (entities, presentation, service, repository).
+>
+> 💡 **Quality Assurance**: Always verify generated Swagger docs and run the test suite after implementing each sub-task.
 
 ## Conclusion
 
-- Overall experience summary
-- Future possibilities
-- Recommendations for teams
+Using Cursor AI as a virtual Scrum team has transformed my development workflow. By treating Cursor as a full team member - from Product Owner to Developer - I've achieved significant improvements in both productivity and code quality. The key to success has been establishing clear project structure, maintaining comprehensive documentation, and following consistent development patterns.
 
-## Resources
+For teams considering this approach, I recommend:
 
-- Useful links and references
-- Tools and plugins
-- Documentation resources
+- Starting with well-defined project guidelines and documentation
+- Breaking down complex features into smaller, manageable tasks
+- Maintaining example modules as reference implementations
+- Regularly reviewing and refining your interaction patterns with Cursor
 
-Would you like me to elaborate on any of these sections or suggest additional content for specific areas?
+While Cursor has limitations, particularly around context retention between sessions, its benefits far outweigh the challenges. As AI capabilities continue to evolve, this approach to development will only become more powerful and refined.

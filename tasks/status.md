@@ -11,10 +11,10 @@ Due: End of Sprint
 #### Remaining Work
 
 - ✅ Create module structure
-- Implement data layer (repository)
-- Implement service layer
-- Implement API layer (controller)
+- ✅ Implement follow/unfollow functionality
+- Implement follower/following lists and counts
 - Implement following feed
+- Implement main feed prioritization
 - Implement notification integration
 - Add end-to-end tests
 

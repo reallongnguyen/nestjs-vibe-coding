@@ -1,4 +1,6 @@
-export class UserFollowedEvent {
+import { BaseEvent } from 'src/common';
+
+export class UserFollowedEvent extends BaseEvent {
   static readonly eventName = 'user.followed';
 
   constructor(
@@ -7,7 +9,13 @@ export class UserFollowedEvent {
     public readonly followerName: string,
     public readonly followerAvatar: string | null,
     public readonly timestamp: Date,
-  ) {}
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return UserFollowedEvent.eventName;
+  }
 
   toJSON() {
     return {
