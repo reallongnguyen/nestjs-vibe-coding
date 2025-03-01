@@ -11,7 +11,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { Collection } from 'src/common/models';
 import {
   AuthContextUser,
   AuthGuard,
@@ -19,14 +18,13 @@ import {
   User,
   Role,
   RolesGuard,
-} from 'src/common/auth';
-import {
   CreatedResponse,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
+  Collection,
+} from 'src/common';
 import { CreateDraftPostDto } from './dtos/create-draft-post.dto';
 import { DraftPostService } from '../services/draft-post.service';
 import { contentErrorMap } from '../entities/content-error.map';

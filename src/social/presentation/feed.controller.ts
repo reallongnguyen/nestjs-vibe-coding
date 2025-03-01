@@ -7,13 +7,11 @@ import {
   Role,
   AuthContextUser,
   User,
-} from 'src/common/auth';
-import {
   ErrorResponse,
   PaginatedResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
-import Collection from 'src/common/models/Collection';
+  Collection,
+} from 'src/common';
 
 import { FeedService } from '../services/feed.service';
 import { GetFeedFiltersDto } from './dtos/get-feed-filters.dto';

@@ -40,6 +40,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - Clear separation of entities, repositories, services, and presentation layers
   - Specific error classes for better error handling
   - Consistent DTO patterns with fromDomain static methods
+  - DTOs implement the domain interface if it doesn't need additional properties
   - Proper use of decorators for API documentation
   - Consistent error mapping
   - Proper use of dependency injection
@@ -113,16 +114,18 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - And other controllers for secondary routes.
   - A models folder with data types.
   - DTOs validated with class-validator for inputs.
+  - DTOs have Swagger decorators for inputs and outputs.
   - Declare simple types for outputs.
   - A services module with business logic and persistence.
-  - Entities with MikroORM for data persistence.
+  - Entities with Prisma for data persistence.
   - One service per entity.
 - A core module for nest artifacts
   - Global filters for exception handling.
   - Global middlewares for request management.
-  - Guards for permission management.
+  - AuthGuard for authentication.
+  - RolesGuard for role-based access control.
   - Interceptors for request management.
-- A shared module for services shared between modules.
+- A `src/common` module for services shared between modules.
   - Utilities
   - Shared business logic
 

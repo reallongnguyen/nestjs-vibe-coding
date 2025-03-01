@@ -6,7 +6,6 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import { Collection } from 'src/common/models';
 import {
   AuthContextUser,
   AuthGuard,
@@ -14,14 +13,14 @@ import {
   Role,
   RolesGuard,
   User,
-} from 'src/common/auth';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
+  Collection,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
+} from 'src/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+
 import {
   NotificationListQuery,
   NotificationOutput,
@@ -80,4 +79,5 @@ export class NotificationController {
 
     return null;
   }
+  // eslint-disable-next-line prettier/prettier
 }

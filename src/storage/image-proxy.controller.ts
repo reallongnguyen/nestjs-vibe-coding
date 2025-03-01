@@ -1,9 +1,6 @@
 import { Controller, Get, Query, Redirect, UseFilters } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
-  RestExceptionFilter,
-  ErrorResponse,
-} from 'src/common/presentation/rest';
+import { RestExceptionFilter, ErrorResponse } from 'src/common';
 import { FileService } from './file.service';
 import { fileErrorMap } from './models/file-error.map';
 import { ViewImageDto } from './dto/view-image.dto';

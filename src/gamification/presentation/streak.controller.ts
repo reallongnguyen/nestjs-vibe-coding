@@ -5,12 +5,11 @@ import {
   AuthContextUser,
   RolesGuard,
   RequireAnyRoles,
-} from 'src/common/auth';
-import {
   ErrorResponse,
   RestExceptionFilter,
   OkResponse,
-} from 'src/common/presentation/rest';
+} from 'src/common';
+
 import { emotionErrorMap } from '../entities/emotion-error.map';
 import { GetStreakService } from '../services/get-streak.service';
 import { StreakResponseDto } from './dtos/streak.dto';

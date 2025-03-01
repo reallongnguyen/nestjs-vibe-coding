@@ -5,13 +5,13 @@ import {
   Inject,
 } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { RedisBatchProcessor } from 'src/common/batch-processor/redis-batch-processor';
+import { RedisBatchProcessor } from 'src/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ILikeRepository } from '../../services/interfaces/like-repository.interface';
 import { EmotionLikedEvent } from '../../entities/events/emotion-liked.event';
 import { PostLikedEvent } from '../../entities/events/post-liked.event';
 import { PostUnlikedEvent } from '../../entities/events/post-unliked.event';
 import { EmotionUnlikedEvent } from '../../entities/events/emotion-unliked.event';
-import { ILikeRepository } from '../../services/interfaces/like-repository.interface';
 
 export interface LikeOperation {
   contentId: string;

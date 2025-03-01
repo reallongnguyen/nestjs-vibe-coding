@@ -7,12 +7,11 @@ import {
   Role,
   User,
   AuthContextUser,
-} from 'src/common/auth';
-import {
   RestExceptionFilter,
   ErrorResponse,
   OkResponse,
-} from 'src/common/presentation/rest';
+} from 'src/common';
+
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';
 import { fileErrorMap } from './models/file-error.map';

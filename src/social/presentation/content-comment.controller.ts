@@ -19,20 +19,20 @@ import {
   Role,
   RolesGuard,
   User,
-} from 'src/common/auth';
-import { Collection } from 'src/common/models';
-import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
-import {
   CreatedResponse,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
+  Collection,
+  PaginationQueryDto,
+} from 'src/common';
 import { CommentService } from '../services/comment.service';
-import { CreateCommentDto } from './dtos/create-comment.dto';
-import { UpdateCommentDto } from './dtos/update-comment.dto';
-import { CommentDto } from './dtos/comment.dto';
+import {
+  CommentDto,
+  CreateCommentDto,
+  UpdateCommentDto,
+} from './dtos/comment.dto';
 import { commentErrorMap } from '../entities/comment-error.map';
 
 @ApiTags('Content Comments')

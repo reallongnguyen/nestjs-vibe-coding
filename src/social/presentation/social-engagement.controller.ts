@@ -21,12 +21,11 @@ import {
   User,
   OptionalAuthContext,
   AuthCtx,
-} from 'src/common/auth';
-import {
   ErrorResponse,
   OkResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
+} from 'src/common';
+
 import { SocialEngagementService } from '../services/social-engagement.service';
 import { socialErrorMap } from '../entities/social-error.map';
 import { EngagementStatsDto } from './dtos/engagement-stats.dto';

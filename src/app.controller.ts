@@ -1,7 +1,7 @@
 import { Controller, Get, UseFilters } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RestExceptionFilter, OkResponse } from 'src/common/presentation/rest';
+import { RestExceptionFilter, OkResponse } from 'src/common';
 
 @Controller()
 @UseFilters(new RestExceptionFilter({}))

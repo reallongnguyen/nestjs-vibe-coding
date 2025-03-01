@@ -12,14 +12,12 @@ import {
   AuthContextUser,
   RolesGuard,
   RequireAnyRoles,
-} from 'src/common/auth';
-import {
   ErrorResponse,
   CreatedResponse,
   RestExceptionFilter,
   PaginatedResponse,
-} from 'src/common/presentation/rest';
-import { Collection } from 'src/common/models';
+  Collection,
+} from 'src/common';
 
 import { CreateEmotionService } from '../services/create-emotion.service';
 import { emotionErrorMap } from '../entities/emotion-error.map';

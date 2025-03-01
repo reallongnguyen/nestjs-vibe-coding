@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Comment } from '../../entities/comment.entity';
+import { CommentOutput } from 'src/social/services/dtos/comment.output';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class CommentAuthorDto {
   @ApiProperty()
@@ -9,10 +16,10 @@ export class CommentAuthorDto {
   firstName: string;
 
   @ApiPropertyOptional()
-  lastName?: string;
+  lastName: string | null;
 
   @ApiPropertyOptional()
-  avatar?: string | null;
+  avatar: string | null;
 }
 
 export class BotAuthorDto {
@@ -23,10 +30,10 @@ export class BotAuthorDto {
   name: string;
 
   @ApiPropertyOptional()
-  avatar?: string | null;
+  avatar: string | null;
 }
 
-export class CommentDto implements Comment {
+export class CommentDto implements CommentOutput {
   @ApiProperty()
   id: string;
 
@@ -66,19 +73,37 @@ export class CommentDto implements Comment {
   @ApiPropertyOptional()
   emotionId: string | null;
 
-  static fromDomain(domain: Comment): CommentDto {
-    return {
-      id: domain.id,
-      content: domain.content,
-      postId: domain.postId,
-      parentId: domain.parentId,
-      userId: domain.userId,
-      createdAt: domain.createdAt,
-      updatedAt: domain.updatedAt,
-      deletedAt: domain.deletedAt,
-      botId: domain.botId,
-      authorType: domain.authorType,
-      emotionId: domain.emotionId,
-    };
+  static fromDomain(domain: CommentOutput): CommentDto {
+    return { ...domain };
   }
+}
+
+export class CreateCommentDto {
+  @ApiProperty({
+    description: 'Comment content',
+    example: 'This is a great post!',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  content: string;
+
+  @ApiPropertyOptional({
+    description: 'Parent comment ID for replies',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsOptional()
+  @IsUUID()
+  parentId?: string;
+}
+
+export class UpdateCommentDto {
+  @ApiProperty({
+    description: 'Updated comment content',
+    example: 'This is an updated comment!',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  content: string;
 }

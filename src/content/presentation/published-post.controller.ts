@@ -10,15 +10,18 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { AuthContextUser, AuthGuard, User, RolesGuard } from 'src/common/auth';
-import { Collection } from 'src/common/models';
 import {
   CreatedResponse,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
+  Collection,
+  AuthContextUser,
+  AuthGuard,
+  User,
+  RolesGuard,
+} from 'src/common';
 import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
 import { contentErrorMap } from '../entities/content-error.map';
 import { PublishedPostService } from '../services/published-post.service';

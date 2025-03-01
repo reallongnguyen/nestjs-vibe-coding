@@ -1,8 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IEventBus, InjectEventBus } from 'src/common/event-bus';
-import { Collection, AppError } from 'src/common/models';
+import {
+  IEventBus,
+  InjectEventBus,
+  Collection,
+  AppError,
+  PrismaService,
+} from 'src/common';
 import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
-import { PrismaService } from 'src/common/prisma/prisma.service';
 import { ICommentRepository } from './interfaces/comment-repository.interface';
 import { CreateCommentInput, UpdateCommentInput } from './dtos/comment.input';
 import { CommentOutput } from './dtos/comment.output';
@@ -201,28 +205,34 @@ export class CommentService {
       this.prisma.comment.findMany({
         where,
         skip,
+        include: {
+          userAuthor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+            },
+          },
+          botAuthor: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
         take: limit,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.comment.count({ where }),
     ]);
 
-    return new Collection(
-      comments.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        postId: comment.postId,
-        emotionId: comment.emotionId,
-        userId: comment.userId,
-        parentId: comment.parentId,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-        deletedAt: null,
-        botId: null,
-        authorType: comment.authorType,
-      })),
-      { offset: pagination.offset, limit, total },
-    );
+    return new Collection(comments, {
+      offset: skip,
+      limit,
+      total,
+    });
   }
 
   private async validateContentAccess(

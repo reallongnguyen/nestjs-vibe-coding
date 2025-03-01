@@ -1,7 +1,7 @@
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
-import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/common';
 import { IViewRepository } from '../services/interfaces/view-repository.interface';
 
 export interface ViewOperation {

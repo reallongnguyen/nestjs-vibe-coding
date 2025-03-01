@@ -5,7 +5,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { RedisBatchProcessor } from 'src/common/batch-processor/redis-batch-processor';
+import { RedisBatchProcessor } from 'src/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { IViewRepository } from '../../services/interfaces/view-repository.interface';
 import { PostViewedEvent } from '../../entities/events/post-viewed.event';

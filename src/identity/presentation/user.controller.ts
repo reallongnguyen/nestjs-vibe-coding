@@ -20,14 +20,13 @@ import {
   Role,
   AuthContextUser,
   User,
-} from 'src/common/auth';
-import {
   ErrorResponse,
   CreatedResponse,
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-} from 'src/common/presentation/rest';
+} from 'src/common';
+
 import { InjectEventBus, IEventBus } from 'src/common/event-bus';
 
 import { UserService } from '../services/user.service';
