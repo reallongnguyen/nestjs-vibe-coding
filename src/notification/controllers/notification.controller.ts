@@ -79,5 +79,4 @@ export class NotificationController {
 
     return null;
   }
-  // eslint-disable-next-line prettier/prettier
 }
