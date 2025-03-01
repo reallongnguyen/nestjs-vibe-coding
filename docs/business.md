@@ -257,3 +257,89 @@ stateDiagram-v2
      - Respect user settings
      - Selective sharing
      - View restrictions
+
+## User Following System
+
+### 1. User Following Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Discover: Find Users
+    Discover --> Follow: Follow User
+    Follow --> Unfollow: Unfollow User
+    Unfollow --> Follow: Follow Again
+    Follow --> Notify: Generate Notifications
+    Follow --> Feed: Prioritize Content
+```
+
+1. User Discovery
+   - Methods:
+     - Search by name/username
+     - Suggested users based on interests
+     - Content engagement patterns
+     - Mutual connections
+   - Features:
+     - User profiles with activity summaries
+     - Follow counts and metrics
+     - Content previews
+
+2. Following Mechanism
+   - Actions:
+     - Follow: Create connection
+     - Unfollow: Remove connection
+   - States:
+     - Following: User A follows User B
+     - Follower: User B is followed by User A
+     - Mutual: Both users follow each other
+   - Privacy:
+     - Public following lists by default
+     - Option for private following
+
+3. Notification Integration
+   - Triggers:
+     - New follower notifications
+     - Followed user activity notifications
+     - Priority notifications for followed users
+   - Controls:
+     - Granular notification preferences
+     - Activity threshold filtering
+     - Batch notification options
+
+4. Content Distribution
+   - Feed Impact:
+     - Higher ranking for followed users' content
+     - Dedicated "Following" feed option
+     - Mixed feed with followed/recommended content
+   - Discovery:
+     - "People you might know" suggestions
+     - "Popular among followers" content
+     - Interest-based user recommendations
+
+### 2. Following Analytics
+
+```mermaid
+stateDiagram-v2
+    [*] --> Metrics: Track Metrics
+    Metrics --> Insights: Generate Insights
+    Insights --> Recommendations: Create Recommendations
+    Recommendations --> [*]
+```
+
+1. User Metrics
+   - Following count
+   - Follower count
+   - Follower growth rate
+   - Engagement from followers
+   - Follow-back rate
+
+2. Content Impact
+   - Reach amplification
+   - Engagement rate from followers vs. non-followers
+   - Content distribution effectiveness
+   - Notification response rates
+
+3. Network Analysis
+   - Connection clusters
+   - Influence mapping
+   - Interest groupings
+   - Content propagation patterns

@@ -5,8 +5,10 @@
 ### Design the feature
 
 ```plaintext
-As a Product Owner, document the feature design in @tasks.md after reviewing @schema.prisma and @technical.md for technical alignment.
-Only create the feature design and task description follow feature design process. Do not implement the code.
+As a Product Owner, design follow feature between user. This feature use in notification and content distribution feature.
+- write feature design to @business.md 
+- add new table to @schema.prisma. Add index to reduce query time
+- add task to @backlog.md 
 ```
 
 Attach files:
@@ -52,6 +54,23 @@ Attach files:
 - `/tasks/status.md`
 - `/prisma/schema.prisma`
 - `/docs/business-domain.md`
+
+### Sprint planning
+
+```plaintext
+As a Scrum Master, plan the sprint 004 in @status.md.
+- Add SOC-006 and NOT-000 in @backlog.md to @tasks.md follow task template in @task-template.md and ### STEP 3: Create task specification in ## feature design process.
+- Break task to small and simple sub tasks.
+```
+
+Attach files:
+
+- `/tasks/tasks.md`
+- `/tasks/status.md`
+- `/tasks/task-template.md`
+- `/tasks/backlog.md`
+- `/docs/business.md`
+- `/docs/technical.md`
 
 ## Code implementation
 

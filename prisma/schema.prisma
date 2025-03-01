@@ -55,6 +55,8 @@ model User {
   achievements    UserAchievement[]
   botInteractions BotInteraction[]
   likes           Like[]
+  followers       UserFollow[]        @relation("UserFollowers")
+  following       UserFollow[]        @relation("UserFollowing")
 
   @@map("users")
 }
@@ -511,4 +513,21 @@ model View {
   @@index([viewerHash])
   @@index([timestamp])
   @@map("views")
+}
+
+// Add this model for user following relationships
+model UserFollow {
+  id           String   @id @default(uuid())
+  followerId   String   @map("follower_id")
+  followingId  String   @map("following_id")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  
+  // Relations
+  follower     User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following    User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
 }

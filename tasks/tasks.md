@@ -1,757 +1,746 @@
-# Sprint 003 Planning
+# Sprint 004 Planning
 
 ## Goals
 
-- Implement comment system for post
-- Rollout like, view tracking and comment for emotion
-- Enhance content distribution system
-- Implement CRUD for topic
-- Technical debt reduction:
-  - Refactor post like tracking to use Redis
-  - Clean redis data regularly
+- Implement user following system
+- Refactor notification module following DDD principles
+- Enhance content distribution with following-based prioritization
+- Improve code quality and maintainability
 
 ## Tasks
 
-### SOC-001: Implement Post Comment System Base
+### SOC-006: Implement User Following System
 
-Status: Completed
+Status: To Do
 Priority: High
 Dependencies: None
 
 ### Context
 
-- Currently, posts don't have a comment system
-- Need to implement basic commenting functionality
+- Currently, users cannot follow other users they're interested in
+- Need to implement a following system to enhance content discovery and personalization
+- This feature will be used by the notification system and content distribution
 
 ### Requirements
 
-- Allow users to create, read, update, and delete comments on posts
-- Support markdown formatting
-- Support threaded replies
-- Require USER role
-- Track comment counts on posts
+- Allow users to follow/unfollow other users
+- Display follower and following counts on user profiles
+- Create a "Following" feed view showing only content from followed users
+- Implement notifications for new followers
+- Prioritize followed users' content in the main feed
 
 ### Acceptance Criteria
 
-1. Users can create comments on posts
-2. Users can reply to existing comments
-3. Users can edit their own comments
-4. Users can delete their own comments
-5. Comment counts are updated correctly
-6. Markdown formatting works correctly
+1. Users can follow/unfollow other users with a single click
+2. User profiles display accurate follower and following counts
+3. Users receive notifications when someone follows them
+4. The main feed algorithm prioritizes content from followed users
+5. A dedicated "Following" feed shows only content from followed users
+6. Follow/unfollow actions are responsive (under 500ms)
+7. Proper error handling for all operations
+8. End-to-end tests verify the following functionality
 
 ### Technical Notes
 
-- Implement in social module
-- Use existing Comment model
-- Follow CQRS pattern for commands
-
-### Completion Notes
-
-- Implemented full CRUD operations with proper authorization
-- Added support for both user and bot authored comments
-- Optimized database queries with field selection
-- Added proper error handling and domain events
-
----
-
-### SOC-002: Implement Comment Like System
-
-Status: Completed
-Priority: Medium
-Dependencies: SOC-001
-
-### Context
-
-- Comments need engagement features
-- Users should be able to like comments
-
-### Requirements
-
-- Allow users to like/unlike comments
-- Track like counts on comments
-- Update like counts in real-time
-- Require USER role
-
-### Acceptance Criteria
-
-1. Users can like comments
-2. Users can unlike comments
-3. Like counts are updated correctly
-4. Users can't like their own comments
-5. Users can see who liked comments
-
-### Technical Notes
-
-- Implement in social module
-- Use Redis for like tracking
-- Follow batch processing pattern
-
-### Completion Notes
-
-- Implemented Redis-backed batch processing for likes
-- Added optimistic concurrency control
-- Implemented proper error handling
-- Added transaction support for consistency
-
----
-
-### SOC-003: Implement Social Engagement Core System
-
-Status: Completed
-Priority: High
-Dependencies: None
-
-### Context
-
-- Currently engagement features (likes, views, comments) are scattered
-- Need a unified system to handle social interactions for both posts and emotions
-
-### Requirements
-
-- Create unified interfaces for social engagement:
-  - ILikeable for like functionality
-  - IViewable for view tracking
-  - ICommentable for comment functionality
-- Implement base Redis handlers for:
-  - Like tracking
-  - View counting
-  - Comment management
-- Support different content types (posts, emotions)
-- Respect privacy settings for each content type
-
-### Acceptance Criteria
-
-1. Common interface for likes works on both posts and emotions
-2. Common interface for views works on both posts and emotions
-3. Common interface for comments works on both posts and emotions
-4. Privacy settings are respected for each content type
-5. Redis handlers efficiently manage data
-6. Batch processing works for all engagement types
-
-### Technical Notes
-
-- Create in social module
-- Use interfaces to define engagement contracts
-- Implement Redis handlers with generic types
-- Use decorator pattern for privacy checks
-
-### Completion Notes
-
-- Implemented ILikeable, IViewable, and ICommentable interfaces
-- Created base handlers with Redis integration for batch processing
-- Added support for different content types (POST, EMOTION)
-- Implemented efficient batch processing for likes and views
-- Added transaction support for data consistency
-- Created unified API endpoints for engagement operations
-
-### API Specification
-
-```typescript
-// No direct API endpoints - this is a core system used by other components
-
-// Interface definitions
-interface ILikeable {
-  like(userId: string): Promise<void>;
-  unlike(userId: string): Promise<void>;
-  getLikeCount(): Promise<number>;
-  isLikedBy(userId: string): Promise<boolean>;
-}
-
-interface IViewable {
-  view(viewerHash: string, viewerId?: string): Promise<void>;
-  getViewCount(): Promise<number>;
-}
-
-interface ICommentable {
-  comment(userId: string, content: string, parentId?: string): Promise<Comment>;
-  getComments(options: PaginationOptions): Promise<Collection<Comment>>;
-  getCommentCount(): Promise<number>;
-}
-```
-
-### Sub-tasks
-
-1. Create core interfaces:
-   - Define ILikeable, IViewable, ICommentable interfaces
-   - Create abstract base classes for each interface
-   - Add unit tests for base implementations
-
-2. Implement Redis handlers:
-   - Create generic LikeHandler with Redis integration
-   - Create generic ViewHandler with Redis integration
-   - Create generic CommentHandler with database integration
-   - Add unit tests for handlers
-
-3. Implement privacy management:
-   - Create privacy decorator for engagement operations
-   - Implement privacy check strategies
-   - Add unit tests for privacy checks
-
-4. Create batch processors:
-   - Implement generic batch processor for likes
-   - Implement generic batch processor for views
-   - Add monitoring and metrics
-   - Add unit tests for batch processors
-
-5. Add integration tests:
-   - Test with mock content types
-   - Test batch processing
-   - Test privacy rules
-   - Test error scenarios
-
----
-
-### SOC-004: Implement Post Social Features
-
-Status: To Do
-Priority: Medium
-Dependencies: SOC-003
-
-### Context
-
-- Core social engagement system is implemented
-- Need to implement post-specific social features
-
-### Requirements
-
-- Implement post-specific social engagement features
-- Integrate with existing post system
-- Ensure proper event handling for social actions
-
-### Acceptance Criteria
-
-1. Posts can be liked and unliked
-2. Post views are tracked
-3. Post engagement statistics are available
-4. Events are emitted for social actions
-5. Batch processing works correctly
-
-### Technical Notes
-
-- Use the core social engagement system from SOC-003
-- Implement any post-specific handlers not covered in SOC-003
-- Add event handlers for post engagement events
-- Ensure proper integration with the content module
-
-### API Specification
-
-```typescript
-// Like a post
-POST /api/v1/posts/{postId}/like
-Response: 204 No Content
-
-// Unlike a post
-DELETE /api/v1/posts/{postId}/like
-Response: 204 No Content
-
-// View a post
-POST /api/v1/posts/{postId}/view
-Request: { viewerHash: string }
-Response: 204 No Content
-
-// Get post comments
-GET /api/v1/posts/{postId}/comments
-Query parameters: offset, limit
-Response: Collection<CommentDto>
-
-// Add comment to post
-POST /api/v1/posts/{postId}/comments
-Request: { content: string, parentId?: string }
-Response: CommentDto
-```
-
-### Sub-tasks
-
-1. Implement post like functionality:
-   - Create PostLikeable class implementing ILikeable
-   - Add Redis integration for like tracking
-   - Add database sync for persistence
-   - Add unit tests
-
-2. Implement post view tracking:
-   - Create PostViewable class implementing IViewable
-   - Add Redis integration for view counting
-   - Add database sync for persistence
-   - Add unit tests
-
-3. Implement post comment system:
-   - Create PostCommentable class implementing ICommentable
-   - Add support for threaded comments
-   - Add support for Yoopta-Editor content
-   - Add unit tests
-
-4. Create API endpoints:
-   - Add like/unlike endpoints
-   - Add view tracking endpoint
-   - Add comment endpoints
-   - Add controller tests
-
-5. Add integration tests:
-   - Test like/unlike flows
-   - Test view tracking
-   - Test comment creation and threading
-   - Test error scenarios
-
----
-
-### SOC-005: Implement Emotion Social Features
-
-Status: To Do
-Priority: Medium
-Dependencies: SOC-003
-
-### Context
-
-- Core social engagement system is implemented
-- Need to implement emotion-specific social features
-
-### Requirements
-
-- Implement emotion-specific social engagement features
-- Integrate with existing emotion system
-- Ensure proper event handling for social actions
-
-### Acceptance Criteria
-
-1. Emotions can be liked and unliked
-2. Emotion views are tracked
-3. Emotion engagement statistics are available
-4. Events are emitted for social actions
-5. Batch processing works correctly
-
-### Technical Notes
-
-- Use the core social engagement system from SOC-003
-- Create EmotionLikeHandler and EmotionViewHandler classes
-- Add event handlers for emotion engagement events
-- Ensure proper integration with the emotion module
-
-### API Specification
-
-```typescript
-// Like an emotion
-POST /api/v1/emotions/{emotionId}/like
-Response: 204 No Content
-
-// Unlike an emotion
-DELETE /api/v1/emotions/{emotionId}/like
-Response: 204 No Content
-
-// View an emotion
-POST /api/v1/emotions/{emotionId}/view
-Request: { viewerHash: string }
-Response: 204 No Content
-
-// Get emotion comments
-GET /api/v1/emotions/{emotionId}/comments
-Query parameters: offset, limit
-Response: Collection<CommentDto>
-
-// Add comment to emotion
-POST /api/v1/emotions/{emotionId}/comments
-Request: { content: string, parentId?: string }
-Response: CommentDto
-```
-
-### Sub-tasks
-
-1. Implement emotion like functionality:
-   - Create EmotionLikeable class implementing ILikeable
-   - Add Redis integration for like tracking
-   - Add privacy checks for like operations
-   - Add unit tests
-
-2. Implement emotion view tracking:
-   - Create EmotionViewable class implementing IViewable
-   - Add Redis integration for view counting
-   - Add privacy checks for view operations
-   - Add unit tests
-
-3. Implement emotion comment system:
-   - Create EmotionCommentable class implementing ICommentable
-   - Add privacy checks for comment operations
-   - Add support for threaded comments
-   - Add unit tests
-
-4. Create API endpoints:
-   - Add like/unlike endpoints
-   - Add view tracking endpoint
-   - Add comment endpoints
-   - Add controller tests
-
-5. Add integration tests:
-   - Test like/unlike flows with privacy settings
-   - Test view tracking with privacy settings
-   - Test comment creation with privacy settings
-   - Test error scenarios
-
----
-
-### TOP-001: Implement Topic CRUD Operations
-
-Status: To Do
-Priority: Medium
-Dependencies: None
-
-### Context
-
-- Need complete topic management system
-- Support for hierarchical topics
-
-### Requirements
-
-- Create, read, update, delete topics
-- Support topic hierarchy
-- Generate unique slugs
-- Track topic usage
-
-### Acceptance Criteria
-
-1. Admins can create topics
-2. Topics can be organized hierarchically
-3. Topics can be updated and deleted
-4. Slugs are generated correctly
-5. Topic usage is tracked
-
-### Technical Notes
-
-- Implement in content module
-- Use existing Topic model
-- Add migration for new fields
-
-### API Specification
-
-```typescript
-// Create topic
-POST /api/v1/topics
-Request: {
-  name: string;
-  description?: string;
-  parentId?: string;
-}
-Response: TopicDto
-
-// Get topic by id
-GET /api/v1/topics/{id}
-Response: TopicDto
-
-// Get all topics
-GET /api/v1/topics
-Query parameters: offset, limit, parentId
-Response: Collection<TopicDto>
-
-// Update topic
-PATCH /api/v1/topics/{id}
-Request: {
-  name?: string;
-  description?: string;
-  parentId?: string;
-  isActive?: boolean;
-}
-Response: TopicDto
-
-// Delete topic
-DELETE /api/v1/topics/{id}
-Response: 204 No Content
-```
+- Use the UserFollow model added to the Prisma schema
+- Implement proper database indexing for efficient queries
+- Use the event bus for notifications
+- Ensure proper cache invalidation when follow status changes
+- Update feed scoring algorithm to consider follow relationships
+- Follow the established module structure pattern
+- Implement repository interfaces with dependency injection
 
 ### Sub-tasks
 
 1. Create module structure:
-   - Set up folder structure in content module
-   - Create migration for topic hierarchy fields
+   - Create user-follow module and register in app.module.ts
+   - Set up folder structure following module-structure.md
+   - Create empty files for all components
    - Define interfaces and DTOs
-   - Add repository interface
 
 2. Implement data layer:
-   - Create topic repository
-   - Add slug generation logic
-   - Add hierarchy management
+   - Create repository interface for user follows
+   - Implement Prisma repository
    - Add repository tests
+   - Register repository in module
 
-3. Implement business logic:
-   - Create topic service
-   - Add validation logic
-   - Add error handling
+3. Implement service layer:
+   - Create UserFollowService with follow/unfollow methods
+   - Implement follower/following count methods
+   - Add event publishing for follow actions
    - Add service unit tests
 
-4. Create API endpoints:
-   - Add CRUD endpoints
-   - Add authentication and authorization
-   - Add input validation
+4. Implement API layer:
+   - Create DTOs for request/response
+   - Create controller with follow/unfollow endpoints
+   - Add endpoints for getting followers/following lists
+   - Add authentication guards
    - Add controller tests
 
-5. Add integration tests:
-   - Test CRUD operations
-   - Test hierarchy management
-   - Test slug generation
-   - Test error scenarios
+5. Implement following feed:
+   - Create service method to get content from followed users
+   - Update feed scoring algorithm to prioritize followed users
+   - Add "Following" feed endpoint
+   - Add feed tests
+
+6. Implement notification integration:
+   - Create event handlers for follow events
+   - Add notification creation for new followers
+   - Test notification flow
+
+7. Add end-to-end tests:
+   - Test follow/unfollow functionality
+   - Test following feed
+   - Test notification generation
 
 ---
 
-### TECH-001: Migrate Post Likes to Redis
+### NOT-000: Refactor Notification Module following DDD
 
-Status: Cancelled
+Status: To Do
 Priority: High
 Dependencies: None
 
 ### Context
 
-- Current post like system needs optimization
-- Redis will improve performance
+- Current notification implementation lacks proper structure
+- Need to refactor following Domain-Driven Design principles
+- Will serve as foundation for enhanced notification features
 
 ### Requirements
 
-- Move like tracking to Redis
-- Implement batch processing
-- Ensure data consistency
-- Add monitoring
+- Refactor the Notification Module to follow Domain-Driven Design principles
+- Implement proper separation of concerns with entities, repositories, services, and controllers
+- Create repository interfaces with dependency injection
+- Implement event handlers for social interactions (likes, comments, mentions)
+- Add real-time notification delivery via MQTT powered by EQMX
+- Support notification preferences management
 
 ### Acceptance Criteria
 
-1. Likes are stored in Redis
-2. Batch processing works correctly
-3. Data is consistent
-4. Performance is improved
-5. Monitoring is in place
+1. Module structure follows the pattern in `/docs/module-structure.md`
+2. Clear separation between domain entities, repositories, services, and presentation layer
+3. Repository interfaces properly implemented with dependency injection
+4. Event handlers correctly respond to social events (likes, comments)
+5. Notification preferences can be managed by users
+6. Real-time notification delivery works within 5 seconds
+7. End-to-end tests verify notification flow
 
 ### Technical Notes
 
-- Use Redis Sorted Sets
-- Implement batch processor
-- Add health checks
+- Use the social module as a reference for implementation patterns
+- Leverage the common module for shared functionality
+- Implement proper error handling with custom error classes
+- Use the event bus for communication between modules
+- Follow the barrel pattern for exports to simplify imports
+- Use MQTT client for real-time delivery
 
 ### Sub-tasks
 
-1. Design Redis schema:
-   - Define key structure for likes
-   - Define batch processing approach
-   - Create migration plan
-   - Document Redis schema
+1. Create module structure:
+   - Create notification module and register in app.module.ts
+   - Set up folder structure following module-structure.md
+   - Create empty files for all components
+   - Define domain entities and interfaces
 
-2. Implement Redis storage:
-   - Create Redis repository for likes
-   - Add batch processor
-   - Add monitoring hooks
-   - Add unit tests
+2. Implement domain layer:
+   - Create notification entity
+   - Create notification preference entity
+   - Define domain events
+   - Create custom error classes
+   - Create error mapping
 
-3. Create migration script:
-   - Add script to migrate existing likes
-   - Add validation checks
-   - Add rollback capability
-   - Test migration process
+3. Implement data layer:
+   - Create repository interfaces
+   - Implement Prisma repositories
+   - Add repository tests
+   - Register repositories in module
 
-4. Update post like service:
-   - Modify service to use Redis
-   - Add database sync logic
-   - Add error handling
+4. Implement service layer:
+   - Create notification service
+   - Create notification preference service
+   - Add event publishing/handling
    - Add service unit tests
 
-5. Add monitoring and health checks:
-   - Add Redis health check
-   - Add batch processing metrics
-   - Add performance monitoring
-   - Add alerting for failures
+5. Implement presentation layer:
+   - Create DTOs for request/response
+   - Create controllers for notifications and preferences
+   - Add event handlers for social events
+   - Add controller tests
+
+6. Implement MQTT integration:
+   - Create MQTT notification service
+   - Add real-time delivery functionality
+   - Add retry mechanism
+   - Test real-time delivery
+
+7. Add end-to-end tests:
+   - Test notification CRUD operations
+   - Test preference management
+   - Test event handling
+   - Test real-time delivery
 
 ---
 
-### TECH-002: Implement Redis Data Cleanup
+### SOC-006-1: Create User Following Module Structure
 
-Status: Cancelled
+Status: To Do
+Priority: High
+Dependencies: None
+
+### Context
+
+- Need to establish the foundation for the user following system
+- Must follow the established module structure pattern
+
+### Requirements
+
+- Create the module structure following DDD principles
+- Define domain entities and interfaces
+- Set up repository interfaces
+- Create empty service and controller files
+
+### Acceptance Criteria
+
+1. Module structure follows the pattern in `/docs/module-structure.md`
+2. All necessary files are created with proper naming conventions
+3. Module is registered in the application
+
+### Technical Notes
+
+- Follow the folder structure in `/docs/module-structure.md`
+- Create barrel files for clean exports
+- Define clear interfaces for repositories and services
+
+### Sub-tasks
+
+1. Create module folder structure
+2. Define domain entities (UserFollow)
+3. Create repository interfaces
+4. Set up empty service classes
+5. Create controller skeletons
+6. Register module in app.module.ts
+
+---
+
+### SOC-006-2: Implement Follow/Unfollow Functionality
+
+Status: To Do
+Priority: High
+Dependencies: SOC-006-1
+
+### Context
+
+- Core functionality of the following system
+- Users need to be able to follow and unfollow other users
+
+### Requirements
+
+- Implement follow functionality
+- Implement unfollow functionality
+- Ensure proper validation and error handling
+- Publish events for follow/unfollow actions
+
+### Acceptance Criteria
+
+1. Users can follow other users
+2. Users can unfollow users they are following
+3. Users cannot follow themselves
+4. Follow/unfollow operations are responsive (under 500ms)
+5. Proper error handling for all operations
+6. Events are published for follow/unfollow actions
+
+### Technical Notes
+
+- Use the UserFollow model in Prisma schema
+- Implement proper database transactions
+- Use the event bus for publishing events
+- Add proper validation and error handling
+- Implement in the `user-follow` module
+- Follow RESTful API design principles
+
+### API Specification
+
+```typescript
+// Follow a user
+POST /api/v1/users/following/{targetUserId}
+
+Request:
+No body required
+
+Response (201):
+{
+  id: string;
+  followerId: string;
+  followingId: string;
+  createdAt: Date;
+}
+
+// Unfollow a user
+DELETE /api/v1/users/following/{targetUserId}
+
+Request:
+No body required
+
+Response (200):
+No content
+```
+
+### Sub-tasks
+
+1. Implement repository methods for follow/unfollow
+2. Create service methods for follow/unfollow
+3. Add validation logic
+4. Implement event publishing
+5. Create controller endpoints
+6. Add unit tests for service and repository
+7. Add integration tests for API endpoints
+
+---
+
+### SOC-006-3: Implement Follower/Following Lists and Counts
+
+Status: To Do
 Priority: Medium
-Dependencies: TECH-001
+Dependencies: SOC-006-2
 
 ### Context
 
-- Need to manage Redis data growth
-- Implement cleanup procedures
+- Users need to see who they are following and who follows them
+- Profile pages need to display follower/following counts
 
 ### Requirements
 
-- Regular cleanup of old data
-- TTL for cached items
-- Monitoring and alerts
-- Recovery procedures
+- Implement API to get a user's followers
+- Implement API to get users a user is following
+- Implement API to get follower/following counts
+- Support pagination for follower/following lists
 
 ### Acceptance Criteria
 
-1. Old data is cleaned up
-2. TTL is enforced
-3. Alerts work correctly
-4. Recovery works correctly
+1. API returns paginated list of followers
+2. API returns paginated list of users being followed
+3. API returns accurate follower/following counts
+4. Lists include basic user information (id, name, avatar)
+5. Proper error handling for all operations
 
 ### Technical Notes
 
-- Use Redis TTL features
-- Implement cleanup job
-- Add monitoring
+- Implement efficient queries with proper indexing
+- Use pagination for large lists
+- Include only necessary user information in responses
+- Implement in the `user-follow` module
+- Use the Collection class from common/models for consistent pagination responses
+- Use PaginationQueryDto for request parameters
+
+### API Specification
+
+```typescript
+// Get followers of a user
+GET /api/v1/users/{userId}/followers
+
+Request:
+{
+  // Using PaginationQueryDto
+  offset?: number; // default: 0
+  limit?: number;  // default: 10
+}
+
+Response (200):
+{
+  // Using Collection<T> format
+  edges: [
+    {
+      id: string;
+      firstName: string;
+      lastName: string | null;
+      avatar: string | null;
+      followedAt: Date;
+    }
+  ],
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  }
+}
+
+// Get users followed by a user
+GET /api/v1/users/{userId}/following
+
+Request:
+{
+  // Using PaginationQueryDto
+  offset?: number; // default: 0
+  limit?: number;  // default: 10
+}
+
+Response (200):
+{
+  // Using Collection<T> format
+  edges: [
+    {
+      id: string;
+      firstName: string;
+      lastName: string | null;
+      avatar: string | null;
+      followedAt: Date;
+    }
+  ],
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  }
+}
+
+// Get follower/following counts
+GET /api/v1/users/{userId}/follow-counts
+
+Response (200):
+{
+  followersCount: number;
+  followingCount: number;
+}
+```
 
 ### Sub-tasks
 
-1. Design cleanup strategy:
-   - Define TTL policies for different data types
-   - Create cleanup schedule
-   - Define monitoring requirements
-   - Document cleanup strategy
-
-2. Implement TTL management:
-   - Add TTL to Redis keys
-   - Create TTL enforcement service
-   - Add unit tests
-   - Add monitoring
-
-3. Create cleanup job:
-   - Implement scheduled cleanup job
-   - Add logging and metrics
-   - Add error handling
-   - Add job tests
-
-4. Implement recovery procedures:
-   - Create data recovery service
-   - Add consistency checks
-   - Add manual recovery tools
-   - Test recovery scenarios
-
-5. Add monitoring and alerts:
-   - Add Redis memory monitoring
-   - Add cleanup job monitoring
-   - Add alerts for failures
-   - Add dashboard for Redis health
+1. Implement repository methods for lists and counts
+2. Create service methods for retrieving data
+3. Add controller endpoints with pagination
+4. Create DTOs for response data
+5. Add unit tests for service and repository
+6. Add integration tests for API endpoints
 
 ---
 
-### SOC-009: Remove Duplicate Post Like and View Features from Social Module
+### SOC-006-4: Implement Following Feed
 
 Status: To Do
-Priority: High
-Dependencies: SOC-004, SOC-005
+Priority: Medium
+Dependencies: SOC-006-2
 
 ### Context
 
-- Post like and view features have been consolidated in the SocialEngagementService
-- The social module still contains duplicate functionality in dedicated controllers
-- Need to clean up the codebase to avoid confusion and maintain single responsibility
+- Users want to see content specifically from users they follow
+- Need a dedicated feed showing only followed users' content
 
 ### Requirements
 
-- Remove duplicate post like and view features from the social module
-- Update any references to use the SocialEngagementService instead
-- Ensure no functionality is lost during the transition
+- Create a "Following" feed view
+- Show only content from followed users
+- Support pagination and sorting
+- Maintain performance for users with many follows
 
 ### Acceptance Criteria
 
-1. Remove post-specific controllers:
-   - src/social/presentation/post-like.controller.ts
-   - src/social/presentation/post-view.controller.ts
-2. Remove or refactor post-specific cron jobs:
-   - src/social/presentation/crons/view-sync.cron.ts
-3. All functionality is accessible through SocialEngagementController
-4. All tests pass after the refactoring
-5. No regression in existing functionality
+1. API returns feed containing only content from followed users
+2. Feed is properly paginated
+3. Content is sorted by recency by default
+4. Feed performance is acceptable (under 500ms)
+5. Proper error handling for all operations
 
 ### Technical Notes
 
-- Use the SocialEngagementService for all engagement features
-- Update any controllers that directly used the old functionality
-- Remove unused DTOs, entities, and repositories
-- Update documentation to reflect the changes
+- Use efficient JOIN queries
+- Implement proper indexing for performance
+- Consider caching strategies for active users
+- Reuse existing feed infrastructure where possible
+- Implement in the `social` module
+- Use the Collection class from common/models for consistent pagination responses
+- Use PaginationQueryDto for request parameters
+
+### API Specification
+
+```typescript
+// Get feed with content only from followed users
+GET /api/v1/feed/following
+
+Request:
+{
+  // Using PaginationQueryDto
+  offset?: number; // default: 0
+  limit?: number;  // default: 10
+  sortBy?: string; // default: "recent", options: "recent", "popular"
+}
+
+Response (200):
+{
+  // Using Collection<T> format
+  edges: [
+    {
+      id: string;
+      type: "POST" | "USER_EMOTION";
+      content: {
+        id: string;
+        // Post or emotion specific fields
+        title?: string;
+        content?: any;
+        emotion?: string;
+        intensity?: number;
+        // Common fields
+        createdAt: Date;
+        author: {
+          id: string;
+          firstName: string;
+          lastName: string | null;
+          avatar: string | null;
+        }
+      };
+      metrics: {
+        likeCount: number;
+        commentCount: number;
+        viewCount: number;
+      };
+    }
+  ],
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  }
+}
+```
 
 ### Sub-tasks
 
-1. Identify all code to be removed:
-   - Review post-like.controller.ts and post-view.controller.ts
-   - Review view-sync.cron.ts
-   - Identify any services or repositories used exclusively by these components
-   - Identify unused DTOs and entities
-
-2. Update references to use SocialEngagementService:
-   - Ensure all functionality is available through SocialEngagementController
-   - Update any direct references to the removed controllers
-   - Ensure view synchronization is handled properly
-
-3. Clean up unused code:
-   - Remove the identified controllers
-   - Remove or refactor the cron job
-   - Remove unused services or methods
-   - Remove unused repositories
-   - Remove unused DTOs and entities
-
-4. Update tests:
-   - Update unit tests to use SocialEngagementService
-   - Update integration tests to use SocialEngagementController endpoints
-   - Add tests for the consolidated functionality
-
-5. Documentation and verification:
-   - Update API documentation
-   - Verify all functionality works as expected
-   - Ensure no regression in existing features
+1. Extend feed repository to filter by followed users
+2. Create service method for following feed
+3. Add controller endpoint with pagination
+4. Optimize queries for performance
+5. Add unit tests for service and repository
+6. Add integration tests for API endpoint
 
 ---
 
-### SOC-010: Refactor Comment APIs for Multi-Content Support
+### SOC-006-5: Implement Main Feed Prioritization
 
 Status: To Do
-Priority: High
-Dependencies: SOC-003, SOC-005
+Priority: Medium
+Dependencies: SOC-006-2
 
 ### Context
 
-- Current comment APIs are specific to posts
-- Social engagement controller supports multiple content types
-- Need to standardize comment APIs to support different content types
+- Content from followed users should be prioritized in the main feed
+- Need to update the feed scoring algorithm
 
 ### Requirements
 
-- Refactor comment APIs to support multiple content types (posts, emotions, etc.)
-- Follow the pattern established in social-engagement.controller.ts
-- Ensure backward compatibility for existing clients
-- Implement proper validation and error handling
+- Update feed scoring algorithm to prioritize followed users' content
+- Maintain a balance between followed and recommended content
+- Ensure performance is not degraded
 
 ### Acceptance Criteria
 
-1. Comment APIs support multiple content types
-2. Consistent API pattern across all social features
-3. Proper validation for different content types
-4. Comprehensive error handling
-5. Backward compatibility for existing clients
-6. All tests pass after refactoring
+1. Content from followed users appears higher in the main feed
+2. Feed still includes some recommended content for discovery
+3. Feed performance is maintained (under 500ms)
+4. Algorithm can be tuned via configuration
 
 ### Technical Notes
 
-- Use content type parameter in routes (similar to like/view endpoints)
-- Implement factory pattern for creating appropriate commentable services
-- Use dependency injection for better testability
-- Follow REST best practices for API design
+- Modify existing feed scoring algorithm
+- Add following status as a factor in scoring
+- Implement configurable weighting for followed content
+- Ensure efficient queries with proper indexing
+- Implement in the `social` module
+- Use the Collection class from common/models for consistent pagination responses
+- Use PaginationQueryDto for request parameters
+
+### API Specification
+
+```typescript
+// The existing feed API will be enhanced with following prioritization
+GET /api/v1/feed
+
+Request:
+{
+  // Using PaginationQueryDto
+  offset?: number; // default: 0
+  limit?: number;  // default: 10
+  sortBy?: string; // default: "recommended", options: "recent", "popular", "recommended"
+}
+
+Response (200):
+{
+  // Using Collection<T> format
+  edges: [
+    {
+      id: string;
+      type: "POST" | "USER_EMOTION";
+      content: {
+        id: string;
+        // Post or emotion specific fields
+        title?: string;
+        content?: any;
+        emotion?: string;
+        intensity?: number;
+        // Common fields
+        createdAt: Date;
+        author: {
+          id: string;
+          firstName: string;
+          lastName: string | null;
+          avatar: string | null;
+          isFollowed: boolean; // New field indicating if user follows this author
+        }
+      };
+      metrics: {
+        likeCount: number;
+        commentCount: number;
+        viewCount: number;
+      };
+      score: number; // Score used for ranking (higher for followed users)
+    }
+  ],
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  }
+}
+```
 
 ### Sub-tasks
 
-1. Design unified comment API:
-   - Define route structure with content type parameter
-   - Design request/response DTOs
-   - Define validation rules for different content types
-   - Document API changes
+1. Update feed scoring algorithm
+2. Add configuration for followed content weight
+3. Optimize queries for performance
+4. Add unit tests for updated algorithm
+5. Add integration tests for feed results
 
-2. Implement controller changes:
-   - Create or update controller with new endpoints
-   - Implement content type routing logic
-   - Add proper validation and error handling
-   - Ensure backward compatibility
+---
 
-3. Refactor service layer:
-   - Create factory for commentable services
-   - Update existing services to work with factory
-   - Implement proper error handling
-   - Add logging for debugging
+### SOC-006-6: Implement Follow Notifications
 
-4. Update repositories:
-   - Ensure repositories support multiple content types
-   - Optimize queries for performance
-   - Add proper error handling
-   - Implement transaction support
+Status: To Do
+Priority: Low
+Dependencies: SOC-006-2, NOT-000
 
-5. Testing and documentation:
-   - Update unit tests for new API structure
-   - Add integration tests for different content types
-   - Update API documentation
-   - Create examples for different content types
+### Context
+
+- Users should be notified when someone follows them
+- Requires integration with the notification system
+
+### Requirements
+
+- Create notifications when a user is followed
+- Deliver notifications in real-time via MQTT
+- Store notifications for later viewing
+
+### Acceptance Criteria
+
+1. Users receive notifications when someone follows them
+2. Notifications are delivered in real-time
+3. Notifications are stored for later viewing
+4. Notifications include follower information
+
+### Technical Notes
+
+- Use the event bus to trigger notifications
+- Integrate with MQTT for real-time delivery
+- Follow notification module patterns
+- Respect user notification preferences
+- Implement event handler in the `notification` module
+- Publish events from the `user-follow` module
+
+### Event Specification
+
+```typescript
+// Event published when a user follows another user
+export class UserFollowedEvent {
+  static readonly eventName = 'user.followed';
+  
+  constructor(
+    public readonly followerId: string,
+    public readonly followingId: string,
+    public readonly followerName: string,
+    public readonly followerAvatar: string | null,
+    public readonly timestamp: Date
+  ) {}
+  
+  toJSON() {
+    return {
+      followerId: this.followerId,
+      followingId: this.followingId,
+      followerName: this.followerName,
+      followerAvatar: this.followerAvatar,
+      timestamp: this.timestamp
+    };
+  }
+}
+
+// Notification created from the event
+{
+  id: string;
+  userId: string; // The user being followed (followingId)
+  type: "NEW_FOLLOWER";
+  title: "New Follower";
+  content: "{followerName} started following you";
+  sourceId: string; // followerId
+  sourceType: "USER";
+  actorId: string; // followerId
+  isRead: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  readAt: Date | null;
+  metadata: {
+    followerName: string;
+    followerAvatar: string | null;
+  };
+}
+```
+
+### Sub-tasks
+
+1. Create event handler for follow events
+2. Implement notification creation
+3. Add MQTT delivery
+4. Test notification flow
+5. Add unit tests for notification creation
+6. Add integration tests for notification delivery
+
+---
+
+### SOC-006-7: Add End-to-End Tests
+
+Status: To Do
+Priority: Low
+Dependencies: SOC-006-1, SOC-006-2, SOC-006-3, SOC-006-4, SOC-006-5, SOC-006-6
+
+### Context
+
+- Need to verify the entire following system works correctly
+- End-to-end tests will validate the complete flow
+
+### Requirements
+
+- Create end-to-end tests for the following system
+- Test all major functionality
+- Ensure proper error handling
+
+### Acceptance Criteria
+
+1. Tests verify follow/unfollow functionality
+2. Tests verify follower/following lists and counts
+3. Tests verify following feed
+4. Tests verify main feed prioritization
+5. Tests verify notification generation
+
+### Technical Notes
+
+- Use NestJS testing module
+- Create test database
+- Clean up after tests
+- Mock external dependencies
+
+### Sub-tasks
+
+1. Create test setup
+2. Implement follow/unfollow tests
+3. Implement list and count tests
+4. Implement feed tests
+5. Implement notification tests
+6. Add cleanup procedures
+
