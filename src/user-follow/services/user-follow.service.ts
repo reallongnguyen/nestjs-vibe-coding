@@ -119,20 +119,59 @@ export class UserFollowService implements IUserFollowService {
     userId: string,
     pagination: PaginationQueryDto,
   ): Promise<Collection<FollowerDto>> {
-    // Implementation will be added in SOC-006-3
-    throw new Error('Method not implemented.');
+    const [followers, total] = await this.userFollowRepository.getFollowers(
+      userId,
+      pagination,
+    );
+
+    const followerDtos = followers.map((follow) => ({
+      id: follow.follower.id,
+      firstName: follow.follower.firstName,
+      lastName: follow.follower.lastName,
+      avatar: follow.follower.avatar,
+      followedAt: follow.createdAt,
+    }));
+
+    return new Collection<FollowerDto>(followerDtos, {
+      total,
+      limit: pagination.limit,
+      offset: pagination.offset,
+    });
   }
 
   async getFollowing(
     userId: string,
     pagination: PaginationQueryDto,
   ): Promise<Collection<FollowerDto>> {
-    // Implementation will be added in SOC-006-3
-    throw new Error('Method not implemented.');
+    const [following, total] = await this.userFollowRepository.getFollowing(
+      userId,
+      pagination,
+    );
+
+    const followingDtos = following.map((follow) => ({
+      id: follow.following.id,
+      firstName: follow.following.firstName,
+      lastName: follow.following.lastName,
+      avatar: follow.following.avatar,
+      followedAt: follow.createdAt,
+    }));
+
+    return new Collection<FollowerDto>(followingDtos, {
+      total,
+      limit: pagination.limit,
+      offset: pagination.offset,
+    });
   }
 
   async getFollowCounts(userId: string): Promise<FollowCountsDto> {
-    // Implementation will be added in SOC-006-3
-    throw new Error('Method not implemented.');
+    const [followersCount, followingCount] = await Promise.all([
+      this.userFollowRepository.getFollowersCount(userId),
+      this.userFollowRepository.getFollowingCount(userId),
+    ]);
+
+    return {
+      followersCount,
+      followingCount,
+    };
   }
 }

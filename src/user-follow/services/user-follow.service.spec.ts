@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { IEventBus } from 'src/common';
+import { IEventBus, Collection } from 'src/common';
 import { UserFollowService } from './user-follow.service';
 import { IUserFollowRepository } from './interfaces/user-follow-repository.interface';
 import {
@@ -178,6 +178,126 @@ describe('UserFollowService', () => {
 
       expect(result).toBe(false);
       expect(repository.exists).toHaveBeenCalledWith(followerId, followingId);
+    });
+  });
+
+  describe('getFollowers', () => {
+    it('should return followers with pagination', async () => {
+      const userId = 'user-123';
+      const pagination = { limit: 10, offset: 0 };
+      const followers = [
+        {
+          id: 'follow-1',
+          followerId: 'follower-1',
+          followingId: userId,
+          createdAt: new Date(),
+          follower: {
+            id: 'follower-1',
+            firstName: 'John',
+            lastName: 'Doe',
+            avatar: 'avatar1.jpg',
+          },
+        },
+        {
+          id: 'follow-2',
+          followerId: 'follower-2',
+          followingId: userId,
+          createdAt: new Date(),
+          follower: {
+            id: 'follower-2',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            avatar: 'avatar2.jpg',
+          },
+        },
+      ];
+      const total = 2;
+
+      repository.getFollowers.mockResolvedValue([followers, total]);
+
+      const result = await service.getFollowers(userId, pagination);
+
+      expect(result).toBeInstanceOf(Collection);
+      expect(result.edges).toHaveLength(2);
+      expect(result.edges[0]).toEqual({
+        id: 'follower-1',
+        firstName: 'John',
+        lastName: 'Doe',
+        avatar: 'avatar1.jpg',
+        followedAt: expect.any(Date),
+      });
+      expect(result.pagination.total).toBe(total);
+      expect(repository.getFollowers).toHaveBeenCalledWith(userId, pagination);
+    });
+  });
+
+  describe('getFollowing', () => {
+    it('should return following with pagination', async () => {
+      const userId = 'user-123';
+      const pagination = { limit: 10, offset: 0 };
+      const following = [
+        {
+          id: 'follow-1',
+          followerId: userId,
+          followingId: 'following-1',
+          createdAt: new Date(),
+          following: {
+            id: 'following-1',
+            firstName: 'Alice',
+            lastName: 'Johnson',
+            avatar: 'avatar3.jpg',
+          },
+        },
+        {
+          id: 'follow-2',
+          followerId: userId,
+          followingId: 'following-2',
+          createdAt: new Date(),
+          following: {
+            id: 'following-2',
+            firstName: 'Bob',
+            lastName: 'Brown',
+            avatar: 'avatar4.jpg',
+          },
+        },
+      ];
+      const total = 2;
+
+      repository.getFollowing.mockResolvedValue([following, total]);
+
+      const result = await service.getFollowing(userId, pagination);
+
+      expect(result).toBeInstanceOf(Collection);
+      expect(result.edges).toHaveLength(2);
+      expect(result.edges[0]).toEqual({
+        id: 'following-1',
+        firstName: 'Alice',
+        lastName: 'Johnson',
+        avatar: 'avatar3.jpg',
+        followedAt: expect.any(Date),
+      });
+      expect(result.pagination.total).toBe(total);
+      expect(repository.getFollowing).toHaveBeenCalledWith(userId, pagination);
+    });
+  });
+
+  describe('getFollowCounts', () => {
+    it('should return follower and following counts', async () => {
+      const userId = 'user-123';
+      const followersCount = 5;
+      const followingCount = 10;
+
+      repository.getFollowersCount.mockResolvedValue(followersCount);
+      repository.getFollowingCount.mockResolvedValue(followingCount);
+
+      const result = await service.getFollowCounts(userId);
+
+      expect(result).toEqual({
+        followersCount,
+        followingCount,
+      });
+      expect(repository.getFollowersCount).toHaveBeenCalledWith(userId);
+      expect(repository.getFollowingCount).toHaveBeenCalledWith(userId);
     });
   });
 });

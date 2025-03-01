@@ -12,7 +12,7 @@ Due: End of Sprint
 
 - ✅ Create module structure
 - ✅ Implement follow/unfollow functionality
-- Implement follower/following lists and counts
+- ✅ Implement follower/following lists and counts
 - Implement following feed
 - Implement main feed prioritization
 - Implement notification integration

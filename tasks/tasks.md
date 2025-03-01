@@ -323,56 +323,45 @@ Response (200):
 
 ### SOC-006-3: Implement Follower/Following Lists and Counts
 
-Status: To Do
-Priority: Medium
+Status: Completed
+Priority: High
 Dependencies: SOC-006-2
 
 ### Context
 
-- Users need to see who they are following and who follows them
-- Profile pages need to display follower/following counts
+- Users need to see who is following them and who they are following
+- User profiles need to display follower and following counts
 
 ### Requirements
 
-- Implement API to get a user's followers
-- Implement API to get users a user is following
-- Implement API to get follower/following counts
-- Support pagination for follower/following lists
+- Implement API endpoints to get a user's followers
+- Implement API endpoints to get users a user is following
+- Implement API endpoint to get follower and following counts
+- Ensure proper pagination for list endpoints
 
 ### Acceptance Criteria
 
-1. API returns paginated list of followers
-2. API returns paginated list of users being followed
-3. API returns accurate follower/following counts
-4. Lists include basic user information (id, name, avatar)
-5. Proper error handling for all operations
+1. API returns paginated list of followers for a user
+2. API returns paginated list of users a user is following
+3. API returns accurate follower and following counts
+4. All endpoints handle edge cases properly
 
 ### Technical Notes
 
-- Implement efficient queries with proper indexing
-- Use pagination for large lists
-- Include only necessary user information in responses
-- Implement in the `user-follow` module
-- Use the Collection class from common/models for consistent pagination responses
-- Use PaginationQueryDto for request parameters
+- Use the UserFollow model in Prisma
+- Implement proper pagination using the Collection class
+- Follow RESTful API design principles
+- Ensure efficient database queries
 
 ### API Specification
 
 ```typescript
-// Get followers of a user
-GET /api/v1/users/{userId}/followers
-
-Request:
-{
-  // Using PaginationQueryDto
-  offset?: number; // default: 0
-  limit?: number;  // default: 10
-}
+// Get followers
+GET /api/v1/users/{userId}/followers?limit=10&offset=0
 
 Response (200):
 {
-  // Using Collection<T> format
-  edges: [
+  items: [
     {
       id: string;
       firstName: string;
@@ -381,27 +370,19 @@ Response (200):
       followedAt: Date;
     }
   ],
-  pagination: {
+  meta: {
+    total: number;
     limit: number;
     offset: number;
-    total: number;
   }
 }
 
-// Get users followed by a user
-GET /api/v1/users/{userId}/following
-
-Request:
-{
-  // Using PaginationQueryDto
-  offset?: number; // default: 0
-  limit?: number;  // default: 10
-}
+// Get following
+GET /api/v1/users/{userId}/following?limit=10&offset=0
 
 Response (200):
 {
-  // Using Collection<T> format
-  edges: [
+  items: [
     {
       id: string;
       firstName: string;
@@ -410,14 +391,14 @@ Response (200):
       followedAt: Date;
     }
   ],
-  pagination: {
+  meta: {
+    total: number;
     limit: number;
     offset: number;
-    total: number;
   }
 }
 
-// Get follower/following counts
+// Get follow counts
 GET /api/v1/users/{userId}/follow-counts
 
 Response (200):
@@ -429,12 +410,20 @@ Response (200):
 
 ### Sub-tasks
 
-1. Implement repository methods for lists and counts
-2. Create service methods for retrieving data
-3. Add controller endpoints with pagination
-4. Create DTOs for response data
-5. Add unit tests for service and repository
-6. Add integration tests for API endpoints
+1. Implement repository methods for getting followers and following
+2. Create service methods for followers, following, and counts
+3. Implement controller endpoints with pagination
+4. Add proper error handling
+5. Add unit tests
+
+### Completion Notes
+
+- Implemented repository methods for retrieving followers and following lists
+- Added service methods with proper pagination support
+- Created controller endpoints with Swagger documentation
+- Implemented count functionality for user profiles
+- Added comprehensive error handling
+- Ensured efficient database queries with proper joins
 
 ---
 

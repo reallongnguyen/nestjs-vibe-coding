@@ -85,5 +85,48 @@ export class UserFollowController {
     return IsFollowingDto.create(isFollowing);
   }
 
+  @Get(':userId/followers')
+  @ApiOperation({ summary: 'Get followers of a user' })
+  @ApiParam({ name: 'userId', description: 'ID of the user' })
+  @OkResponse(Collection)
+  async getFollowers(
+    @Param('userId') userId: string,
+    @Query() pagination: PaginationQueryDto,
+  ): Promise<Collection<FollowerDto>> {
+    const followers = await this.userFollowService.getFollowers(
+      userId,
+      pagination,
+    );
+
+    return Collection.transform(followers, FollowerDto.fromService);
+  }
+
+  @Get(':userId/following')
+  @ApiOperation({ summary: 'Get users followed by a user' })
+  @ApiParam({ name: 'userId', description: 'ID of the user' })
+  @OkResponse(Collection)
+  async getFollowing(
+    @Param('userId') userId: string,
+    @Query() pagination: PaginationQueryDto,
+  ): Promise<Collection<FollowerDto>> {
+    const following = await this.userFollowService.getFollowing(
+      userId,
+      pagination,
+    );
+
+    return Collection.transform(following, FollowerDto.fromService);
+  }
+
+  @Get(':userId/follow-counts')
+  @ApiOperation({ summary: 'Get follower and following counts for a user' })
+  @ApiParam({ name: 'userId', description: 'ID of the user' })
+  @OkResponse(FollowCountsDto)
+  async getFollowCounts(
+    @Param('userId') userId: string,
+  ): Promise<FollowCountsDto> {
+    const counts = await this.userFollowService.getFollowCounts(userId);
+    return FollowCountsDto.fromService(counts);
+  }
+
   // Additional methods for SOC-006-3 will be implemented later
 }
