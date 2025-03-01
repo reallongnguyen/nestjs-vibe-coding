@@ -4,13 +4,13 @@
 
 ### SOC-006: Implement User Following System
 
-Status: Not Started
+Status: In Progress
 Priority: High
 Due: End of Sprint
 
 #### Remaining Work
 
-- Create module structure
+- ✅ Create module structure
 - Implement data layer (repository)
 - Implement service layer
 - Implement API layer (controller)

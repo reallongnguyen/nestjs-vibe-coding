@@ -7,6 +7,7 @@ import { IdentityModule } from './identity/identity.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { SocialModule } from './social/social.module';
 import { ContentModule } from './content/content.module';
+import { UserFollowModule } from './user-follow/user-follow.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ContentModule } from './content/content.module';
     NotificationModule,
     SocialModule,
     ContentModule,
+    UserFollowModule,
   ],
   controllers: [AppController],
 })
