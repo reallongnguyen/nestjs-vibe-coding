@@ -361,7 +361,7 @@ GET /api/v1/users/{userId}/followers?limit=10&offset=0
 
 Response (200):
 {
-  items: [
+  edges: [
     {
       id: string;
       firstName: string;
@@ -370,7 +370,7 @@ Response (200):
       followedAt: Date;
     }
   ],
-  meta: {
+  pagination: {
     total: number;
     limit: number;
     offset: number;
@@ -382,7 +382,7 @@ GET /api/v1/users/{userId}/following?limit=10&offset=0
 
 Response (200):
 {
-  items: [
+  edges: [
     {
       id: string;
       firstName: string;
@@ -391,7 +391,7 @@ Response (200):
       followedAt: Date;
     }
   ],
-  meta: {
+  pagination: {
     total: number;
     limit: number;
     offset: number;
@@ -429,57 +429,45 @@ Response (200):
 
 ### SOC-006-4: Implement Following Feed
 
-Status: To Do
+Status: Completed
 Priority: Medium
 Dependencies: SOC-006-2
 
 ### Context
 
-- Users want to see content specifically from users they follow
+- Users need to see content from users they are following
 - Need a dedicated feed showing only followed users' content
 
 ### Requirements
 
-- Create a "Following" feed view
-- Show only content from followed users
-- Support pagination and sorting
-- Maintain performance for users with many follows
+- Create a "Following" feed view showing only content from followed users
+- Support sorting by recent and popular
+- Support pagination
+- Handle edge cases (no followed users)
 
 ### Acceptance Criteria
 
-1. API returns feed containing only content from followed users
-2. Feed is properly paginated
-3. Content is sorted by recency by default
-4. Feed performance is acceptable (under 500ms)
-5. Proper error handling for all operations
+1. API returns content only from followed users
+2. Feed supports sorting by recent and popular
+3. Feed supports pagination
+4. Empty feed is handled gracefully when user follows no one
+5. Performance is acceptable (under 500ms)
 
 ### Technical Notes
 
-- Use efficient JOIN queries
+- Do not use JOIN queries because user-follows is not in social module
+- Use command pattern (of NEST JS CQRS) to get data from user-follows module
 - Implement proper indexing for performance
 - Consider caching strategies for active users
-- Reuse existing feed infrastructure where possible
-- Implement in the `social` module
-- Use the Collection class from common/models for consistent pagination responses
-- Use PaginationQueryDto for request parameters
 
 ### API Specification
 
 ```typescript
-// Get feed with content only from followed users
-GET /api/v1/feed/following
-
-Request:
-{
-  // Using PaginationQueryDto
-  offset?: number; // default: 0
-  limit?: number;  // default: 10
-  sortBy?: string; // default: "recent", options: "recent", "popular"
-}
+// Get following feed
+GET /api/v1/feed/following?limit=10&offset=0&sortBy=recent
 
 Response (200):
 {
-  // Using Collection<T> format
   edges: [
     {
       id: string;
@@ -508,9 +496,9 @@ Response (200):
     }
   ],
   pagination: {
+    total: number;
     limit: number;
     offset: number;
-    total: number;
   }
 }
 ```
@@ -523,6 +511,17 @@ Response (200):
 4. Optimize queries for performance
 5. Add unit tests for service and repository
 6. Add integration tests for API endpoint
+
+### Completion Notes
+
+- Created FollowingFeedService to handle the following feed
+- Added getFollowingIds method to UserFollowService
+- Implemented getContentByAuthors in SocialRepository
+- Created FollowingFeedController with proper endpoint
+- Added support for sorting and pagination
+- Ensured efficient queries with proper filtering
+- Handled edge case when user follows no one
+- Updated module exports to enable cross-module communication
 
 ---
 

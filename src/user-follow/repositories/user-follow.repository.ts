@@ -141,4 +141,17 @@ export class UserFollowRepository implements IUserFollowRepository {
 
     return user;
   }
+
+  async getFollowingIds(userId: string): Promise<string[]> {
+    const follows = await this.prisma.userFollow.findMany({
+      where: {
+        followerId: userId,
+      },
+      select: {
+        followingId: true,
+      },
+    });
+
+    return follows.map((follow) => follow.followingId);
+  }
 }

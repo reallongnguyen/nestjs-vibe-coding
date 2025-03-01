@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -8,7 +7,6 @@ import {
   Query,
   UseGuards,
   UseFilters,
-  Req,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -127,6 +125,4 @@ export class UserFollowController {
     const counts = await this.userFollowService.getFollowCounts(userId);
     return FollowCountsDto.fromService(counts);
   }
-
-  // Additional methods for SOC-006-3 will be implemented later
 }

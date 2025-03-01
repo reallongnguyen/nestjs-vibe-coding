@@ -4,6 +4,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CqrsModule } from '@nestjs/cqrs';
 import moduleConfig from './social.config';
 import { FeedController } from './presentation/feed.controller';
 import { FeedService } from './services/feed.service';
@@ -26,6 +27,9 @@ import { UpdateLikeCountHandler } from './presentation/handlers/update-like-coun
 import { LikeRepository } from './repositories/like.repository';
 import { UpdateViewCountHandler } from './presentation/handlers/update-view-count.handler';
 import { ViewRepository } from './repositories/view.repository';
+import { SocialRepository } from './repositories/social.repository';
+import { FollowingFeedService } from './services/following-feed.service';
+import { FollowingFeedController } from './presentation/following-feed.controller';
 
 @Module({
   imports: [
@@ -41,11 +45,13 @@ import { ViewRepository } from './repositories/view.repository';
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
+    CqrsModule,
   ],
   controllers: [
     FeedController,
     ContentCommentController,
     SocialEngagementController,
+    FollowingFeedController,
   ],
   providers: [
     FeedService,
@@ -75,7 +81,11 @@ import { ViewRepository } from './repositories/view.repository';
       provide: 'IViewRepository',
       useClass: ViewRepository,
     },
+    {
+      provide: 'ISocialRepository',
+      useClass: SocialRepository,
+    },
+    FollowingFeedService,
   ],
-  exports: [CommentService],
 })
 export class SocialModule {}

@@ -75,4 +75,11 @@ export interface IUserFollowRepository {
     lastName: string | null;
     avatar: string | null;
   } | null>;
+
+  /**
+   * Get IDs of users that the specified user is following
+   * @param userId ID of the user
+   * @returns Array of user IDs
+   */
+  getFollowingIds(userId: string): Promise<string[]>;
 }

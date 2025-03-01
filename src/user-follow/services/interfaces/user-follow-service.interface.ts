@@ -56,4 +56,11 @@ export interface IUserFollowService {
    * @returns Object with follower and following counts
    */
   getFollowCounts(userId: string): Promise<FollowCountsDto>;
+
+  /**
+   * Get IDs of users that the specified user is following
+   * @param userId ID of the user
+   * @returns Array of user IDs
+   */
+  getFollowingIds(userId: string): Promise<string[]>;
 }

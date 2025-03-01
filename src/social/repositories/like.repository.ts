@@ -79,14 +79,19 @@ export class LikeRepository implements ILikeRepository {
           // eslint-disable-next-line no-await-in-loop
           await Promise.all(
             batch.map((unlike) =>
-              tx.engageable.update({
+              tx.engageable.upsert({
                 where: {
                   type_contentId: {
                     type: unlike.contentType,
                     contentId: unlike.contentId,
                   },
                 },
-                data: {
+                create: {
+                  type: unlike.contentType,
+                  contentId: unlike.contentId,
+                  likeCount: 0,
+                },
+                update: {
                   likeCount: {
                     decrement: 1,
                   },

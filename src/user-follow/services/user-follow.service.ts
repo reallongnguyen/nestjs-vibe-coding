@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Inject, Injectable } from '@nestjs/common';
 import {
   Collection,
@@ -173,5 +172,9 @@ export class UserFollowService implements IUserFollowService {
       followersCount,
       followingCount,
     };
+  }
+
+  async getFollowingIds(userId: string): Promise<string[]> {
+    return this.userFollowRepository.getFollowingIds(userId);
   }
 }
