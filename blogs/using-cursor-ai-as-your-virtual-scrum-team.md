@@ -581,13 +581,23 @@ Look good. I review and update task description a bit. Next, move on to code imp
 My prompt:
 
 ```plaintext
-As a senior developer, follow the development process you implement tasks <XXXX> in @tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @tasks.md and @status.md.
+As a senior developer, follow the development process you implement tasks SOC-006-1 in @tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @tasks.md and @status.md.
 ```
 
 Cursor response:
 
-```markdown
+![cursor-code-implementation.md](/blogs/soc-006-1-implementation-step-1.png)
 
+Look good. Cursor follow the folder structure and code style. There are some issues, let's aks cursor to fix them by using Fix in Composer feature or prompt.
+
+My prompt:
+
+```plaintext
+Follow @AppError.ts, fix UserFollowError in @user-follow.error.ts 
+```
+
+```plaintext
+In @user-follow-service.interface.ts, you are importing presentation DTOs, this is not follow clean architecture. Create service layer own Input and Output class.
 ```
 
 ## Best Practices I've Discovered
@@ -617,6 +627,26 @@ Cursor response:
 - Communication patterns that work
 - When to use (and not use) Cursor
 - Building effective workflows
+- Document your project help cursor understand your project:
+  - Business domain: @business.md
+  - Technical: @technical.md
+  - Code style: @code-style.md
+  - Project structure: @project-structure.md
+  - Task template: @task-template.md
+- Make project structure clear and simple.
+  - Use DDD principles to design module structure
+  - Prevent big modules, prefer small and simple modules
+  - Keep single responsibility principle in mind
+  - Keep SOLID principle in mind
+  - Keep DRY principle in mind
+  - Keep YAGNI principle in mind
+- Attach related files to the prompt.
+- Prefer to use Fix in Composer feature or prompt to fix issues. I often use this flow to fix issues:
+  - Fix entities layer
+  - Fix presentation layer and Swagger docs
+  - Fix service layer
+  - Fix repository layer
+  - Fix test cases
 
 ## Conclusion
 
