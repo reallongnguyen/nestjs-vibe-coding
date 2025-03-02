@@ -1,9 +1,10 @@
 services:
   traefik-gateway:
     # The official v3 Traefik docker image
-    image: traefik:v3.3
+    image: traefik:v2
     # Enables the web UI and tells Traefik to listen to docker
     labels:
+      - "traefik.http.routers.api.rule=Host(`docker.localhost`)"
       - "traefik.http.middlewares.circuitbreaker.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 100"
       - "traefik.http.middlewares.ratelimit.ratelimit.average=100"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=200"
@@ -200,7 +201,7 @@ services:
       VERIFY_TOKEN: FALSE
       # File module
       ## Storage
-      USER_ASSET_BUCKET: isling-dev01-user-asset
+      USER_ASSET_BUCKET: dev01-isling-me-asset
       ## Credentials
       GOOGLE_APPLICATION_CREDENTIALS: ${API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS}
       # Notification module

@@ -8,15 +8,15 @@ import timezone from 'dayjs/plugin/timezone';
 
 import { EmotionCreatedEvent } from '../../entities/events/emotion-created.event';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 @Injectable()
 export class StreakHandler {
   constructor(
     private readonly logger: Logger,
     private readonly prisma: PrismaService,
-  ) {}
+  ) {
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
+  }
 
   @OnEvent(EmotionCreatedEvent.getName())
   async handleEmotionCreated(event: EmotionCreatedEvent) {
