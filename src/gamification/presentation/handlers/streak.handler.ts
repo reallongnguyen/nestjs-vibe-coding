@@ -13,13 +13,13 @@ export class StreakHandler {
   constructor(
     private readonly logger: Logger,
     private readonly prisma: PrismaService,
-  ) {
-    dayjs.extend(utc);
-    dayjs.extend(timezone);
-  }
+  ) {}
 
   @OnEvent(EmotionCreatedEvent.getName())
   async handleEmotionCreated(event: EmotionCreatedEvent) {
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
+
     // calculate streak by UTC timezone
     const now = dayjs().tz('UTC');
     const yesterday = dayjs().tz('UTC').subtract(1, 'day');
