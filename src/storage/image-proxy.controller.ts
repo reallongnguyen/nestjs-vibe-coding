@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Redirect, UseFilters } from '@nestjs/common';
+import { Controller, Get, Query, UseFilters } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RestExceptionFilter, ErrorResponse } from 'src/common';
 import { FileService } from './file.service';
@@ -16,7 +16,7 @@ export class ImageProxyController {
   constructor(private readonly assetService: FileService) {}
 
   @Get()
-  @Redirect()
+  // @Redirect()
   @ApiOperation({
     description: 'View a image through image proxy',
   })

@@ -1,6 +1,50 @@
 # Prompts
 
-## Task design
+## Initial project
+
+Create `.cursorrules` first
+
+```plaintext
+Analyze source code of this frontend project
+- write folder structure to @folder-structure.md 
+- write business to @business.md 
+- write technical to @technical.md 
+```
+
+## Application scope
+
+Share files:
+
+- backlog.md
+- status.overall.md
+- schema.prisma
+- api.json
+- business.md
+
+### Compare feature with major platforms
+
+```plaintext
+As a Product Owner, compare your suggested New Design: Personalized Feed Distribution with feed distribution features in TikTok, Instagram and Facebook.
+```
+
+### Ask solution architecture design the architecture of the feature
+
+```plaintext
+As a senior solution architect, analyze the Updated Feed Distribution Strategy: TikTok-Inspired Approach in @business.md. Deep dive into Technical Considerations, then design the system architecture for each phase in Implementation Phases to ensure the feature reaches its goals and remains scalable. Write the design into @business.md
+```
+
+### Ask PO create task for both frontend and backend, write task design to backlog
+
+```plaintext
+As a product owner, design task for feature XXXX.
+Write task in @backlog.md for both Frontend and Backend team, note PIC of each task.
+Request Solution Architecture and Designer to help you design tasks. Break task to smaller tasks if task is complex.
+Follow task feature design process.
+```
+
+> Sync data to Frontend and Backend
+
+## Backend workflow
 
 ### Design the feature
 
@@ -21,18 +65,6 @@ Attach files:
 - `/docs/business.md`
 - `/docs/module-structure.md`
 - `/docs/technical.md`
-
-### Compare feature with major platforms
-
-```plaintext
-As a Product Owner, compare your suggested New Design: Personalized Feed Distribution with feed distribution features in TikTok, Instagram and Facebook.
-```
-
-### Ask solution architecture design the architecture of the feature
-
-```plaintext
-As a senior solution architect, analyze the Updated Feed Distribution Strategy: TikTok-Inspired Approach in @business.md. Deep dive into Technical Considerations, then design the system architecture for each phase in Implementation Phases to ensure the feature reaches its goals and remains scalable. Write the design into @business.md
-```
 
 ### Update task description follow new rules
 
@@ -125,9 +157,11 @@ Attach files:
 - `/prisma/schema.prisma`
 - `/docs/architecture.mermaid`
 
-## Change request complex feature
+## Case study
 
-### Request PO and SA design new approach
+### Change request a complex feature
+
+#### Request PO and SA design new approach
 
 Request PO to design new approach of feed distribution
 
@@ -145,7 +179,7 @@ Request SA to design system architecture for each phase in Implementation Phases
 As a senior solution architect, analyze the Updated Feed Distribution Strategy: TikTok-Inspired Approach in @business.md. Deep dive into Technical Considerations, then design a system architecture for each phase in Implementation Phases to ensure the feature reaches its goals and remains scalable. Write the design into @business.md
 ```
 
-### Request SM and PO update sprint plan and task description
+#### Request SM and PO update sprint plan and task description
 
 ```plaintext
 As a Scrum Master, update sprint plan in @status.md. SOC-006-5 is blocked by new distribution system that not yet implemented. Check if the rest of tasks in current sprint are still valid.
