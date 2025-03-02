@@ -1,9 +1,18 @@
-import { Controller, Get, Query, UseFilters } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseFilters,
+  UseInterceptors,
+} from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RestExceptionFilter, ErrorResponse } from 'src/common';
 import { FileService } from './file.service';
 import { fileErrorMap } from './models/file-error.map';
 import { ViewImageDto } from './dto/view-image.dto';
+
+const cacheTime = 1000 * (60 * 14 + 50);
 
 @Controller({
   path: 'image-proxy',
@@ -16,7 +25,8 @@ export class ImageProxyController {
   constructor(private readonly assetService: FileService) {}
 
   @Get()
-  // @Redirect()
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(cacheTime)
   @ApiOperation({
     description: 'View a image through image proxy',
   })
