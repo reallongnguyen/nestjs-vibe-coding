@@ -4,7 +4,6 @@ services:
     image: traefik:v2
     # Enables the web UI and tells Traefik to listen to docker
     labels:
-      - "traefik.http.routers.api.rule=Host(`docker.localhost`)"
       - "traefik.http.middlewares.circuitbreaker.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 100"
       - "traefik.http.middlewares.ratelimit.ratelimit.average=100"
       - "traefik.http.middlewares.ratelimit.ratelimit.burst=200"
@@ -38,7 +37,7 @@ services:
   auth-service:
     image: supabase/gotrue:v2.158.1
     labels:
-      - "traefik.http.routers.auth-service.rule=Host(`auth.docker.localhost`)"
+      - "traefik.http.routers.auth-service.rule=Host(`${AUTH_SERVICE_APIGW_HOST}`)"
       - "traefik.http.routers.auth-service.middlewares=circuitbreaker@docker,ratelimit@docker"
       - "traefik.http.services.auth-service.loadbalancer.server.port=8000"
     networks:
@@ -164,11 +163,13 @@ services:
   api-service:
     build: ./api-service
     labels:
-      - "traefik.http.routers.api-service.rule=Host(`api.docker.localhost`)"
+      - "traefik.http.routers.api-service.rule=Host(`${API_SERVICE_APIGW_HOST}`)"
       - "traefik.http.routers.api-service.middlewares=circuitbreaker@docker,ratelimit@docker"
       - "traefik.http.services.api-service.loadbalancer.server.port=8000"
     networks:
       - vpc-bridge
+    volumes:
+      - ./credentials:/etc/credentials
     depends_on:
       - api-postgres
       - api-redis
@@ -201,9 +202,9 @@ services:
       VERIFY_TOKEN: FALSE
       # File module
       ## Storage
-      USER_ASSET_BUCKET: dev01-isling-me-asset
+      USER_ASSET_BUCKET: ${API_SERVICE_USER_ASSET_BUCKET}
       ## Credentials
-      GOOGLE_APPLICATION_CREDENTIALS: ${API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS}
+      GOOGLE_APPLICATION_CREDENTIALS: /etc/credentials/${API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS_FILENAME}
       # Notification module
       NOTIFICATION_MQTT_URL: mqtt://api-mqtt01:2883
       ## unit: second
