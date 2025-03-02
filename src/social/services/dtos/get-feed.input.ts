@@ -1,5 +1,5 @@
 export interface GetFeedInput {
-  userId: string;
+  userId?: string;
   offset: number;
   limit: number;
 }
