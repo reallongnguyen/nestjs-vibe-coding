@@ -215,6 +215,8 @@ This structured approach ensures that even individual developers maintain team-l
 - Breaking down features into tasks
 - Managing the backlog
 
+Check output of Cursor here: <https://github.com/reallongnguyen/base-api-service/pull/76>
+
 ### Real examples of requirement discussions
 
 Context: I'm working on a feature to allow users to follow other users. The feature will be used in notification module and content distribution module. Notification module and content distribution module are already implemented.

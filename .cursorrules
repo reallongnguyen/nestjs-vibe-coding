@@ -208,7 +208,7 @@ Workflow steps:
 - Update `/docs/technical.md` if needed
 - Add tech debt notes to `/docs/technical.md` if needed
 
-## Design process
+## Feature design process
 
 As a Product Owner, follow these feature design principles:
 
@@ -233,9 +233,10 @@ As a Product Owner, follow these feature design principles:
   - Update `/prisma/schema.prisma` if needed
   - If this task is complex, design architecture then update to `/docs/technical.md` follow business
 
-### STEP 3: Create task specification
+### STEP 3: Task specification
 
-- Write task specification in `/tasks/sprint-current-tasks.md`
+- Write task specifications in `/tasks/backlog.md`
+- Break feature to smaller tasks, each tasks must testable and should less than 5 story point
 - Define Implementation Steps following:
   - If task is complex, programming following steps:
     - Create module structure. Just create empty files for now.
