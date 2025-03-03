@@ -46,11 +46,19 @@ Follow task feature design process.
 
 ## Backend workflow
 
-### Design the feature
+### Design the feature and Create Task specification
 
 ```plaintext
-As a Product Owner, design follow feature between user. This feature use in notification and content distribution feature.
+As a Product Owner, design follow feature between user follow Feature design process. This feature use in notification and content distribution feature.
 - write feature design to @business.md 
+- add new table to @schema.prisma. Add index to reduce query time
+- add task to @backlog.md 
+```
+
+Or just create Task specification
+
+```plaintext
+As a Product Owner, create task specifications for feature XXXX in @business.md follow STEP 3: Task specification in Feature design process.
 - add new table to @schema.prisma. Add index to reduce query time
 - add task to @backlog.md 
 ```
@@ -102,8 +110,9 @@ Attach files:
 ### Sprint planning
 
 ```plaintext
-As Scrum Master, plan the sprint 006. Take tasks in @backlog.md.
-Discuss Product Owner if she want to priority other features.
+As a Product Owner and a Scrum Master, plan the sprint 006. Take tasks in @backlog.md. Priority high value tasks.
+
+Break complex tasks to smaller sub-tasks.
 Remind developer follow code style in social module
 ```
 
@@ -118,7 +127,7 @@ Attach files:
 
 ### Quick Design
 
-Infrastructure investigate
+#### Infrastructure investigate
 
 ```plaintext
 As a Solution Architecture, investigate imgproxy service at @https://github.com/imgproxy/imgproxy .
@@ -126,7 +135,7 @@ Context: currently, system save images as Google Cloud Storage object url such g
 Let create short note as technical blog in @image-proxy.md then design infrasture task INF-001 in @backlog.md. At first stage, I want deploy imgproxy in docker system follow @README.md 
 ```
 
-Create API specification
+#### Create API specification
 
 ```plaintext
 As a Technical Leader
@@ -142,6 +151,13 @@ Attach files:
 - `/prisma/schema.prisma`
 - Collection class
 - BaseEvent class
+
+#### Integrate tasks specification with exist code
+
+```plaintext
+Task NOT-001 and sub-taks are implemented partially in notification module.
+As Technical Leader, investigate current feature and technical in /src/notification module then update task specification in @sprint-current-tasks.md 
+```
 
 ## Code implementation
 
