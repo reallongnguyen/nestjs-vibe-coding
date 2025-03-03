@@ -1,14 +1,14 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from 'nestjs-pino';
-import { NotificationCreateInput } from './dto/notification.dto';
-import { NotificationConsumerService } from '../usecases/notification-consumer.service';
+import { NotificationCreateInput } from './dtos/notification.dto';
+import { NotificationConsumerService } from '../services/notification-consumer.service';
 
 @Processor('notification')
 export class NotificationProcessor {
   constructor(
-    private logger: Logger,
-    private notificationService: NotificationConsumerService,
+    private readonly logger: Logger,
+    private readonly notificationService: NotificationConsumerService,
   ) {}
 
   @Process({ concurrency: 3 })

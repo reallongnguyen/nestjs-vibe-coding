@@ -1,14 +1,73 @@
+/**
+ * @module NotificationModule
+ *
+ * The Notification module handles all notification-related functionality in the application.
+ * It follows a Domain-Driven Design approach for managing user notifications across the system.
+ *
+ * Key Features:
+ * 1. User Notifications
+ *    - Stores and manages user-specific notifications
+ *    - Supports different notification types (likes, comments, mentions, system updates)
+ *    - Handles notification grouping for high-volume activities
+ *
+ * 2. Real-time Notifications
+ *    - Delivers notifications in real-time using MQTT
+ *    - Powered by EMQX for reliable message delivery
+ *    - Supports notification delivery within 5 seconds
+ *
+ * 3. Notification Structure
+ *    - key: Unique identifier for grouping similar notifications
+ *    - type: Type of notification (like, comment, mention, etc.)
+ *    - subjects: Array of entities that triggered the notification
+ *    - subjectCount: Count of subjects for grouped notifications
+ *    - diObject: Direct object of the notification (e.g., the post being liked)
+ *    - inObject: Indirect object (e.g., the comment being liked)
+ *    - prObject: Parent object (e.g., the post containing the comment)
+ *    - text: Human-readable notification message
+ *    - decorators: Text decorations for rich notification content
+ *    - link: URL associated with the notification
+ *
+ * 4. Event Handling
+ *    - Listens to domain events from other modules
+ *    - Creates notifications based on social interactions
+ *    - Supports notification preferences per user
+ *
+ * 5. Features
+ *    - Pagination support for notification lists
+ *    - Mark notifications as viewed (single or batch)
+ *    - Notification grouping for better UX
+ *    - Real-time delivery via MQTT
+ *    - Support for rich text and decorated content
+ *
+ * Database Schema:
+ * The module uses the Notification model from Prisma schema with the following key fields:
+ * - id: Unique identifier
+ * - userId: Target user for the notification
+ * - type: Notification type
+ * - subjects: JSON array of notification subjects
+ * - text: Notification message
+ * - notificationTime: Time when notification should be shown
+ * - viewedAt: When the user viewed the notification
+ *
+ * Integration Points:
+ * - Integrates with EventBus for cross-module communication
+ * - Uses MQTT for real-time notification delivery
+ * - Interfaces with the social module for engagement notifications
+ * - Works with the user module for preference management
+ */
+
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { NotificationController } from './controllers/notification.controller';
-import { NotificationConsumerService } from './usecases/notification-consumer.service';
-import { EventSubscriber } from './controllers/event.subscriber';
-import { NotificationProcessor } from './controllers/notification.processor';
-import { NotificationProducerService } from './usecases/notification-producer.service';
+import { NotificationController } from './presentation/notification.controller';
+import { NotificationProcessor } from './presentation/notification.processor';
+import { EventSubscriber } from './presentation/handlers/event.subscriber';
+import { NotificationService } from './services/notification.service';
+import { NotificationConsumerService } from './services/notification-consumer.service';
+import { NotificationProducerService } from './services/notification-producer.service';
+import { NotificationRepository } from './repositories/notification.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
-import { NotificationService } from './usecases/notification.service';
 import moduleConfig from './notification.config';
 
 @Module({
@@ -29,12 +88,22 @@ import moduleConfig from './notification.config';
   ],
   controllers: [NotificationController],
   providers: [
-    EventSubscriber,
-    NotificationConsumerService,
+    // Services
     NotificationService,
-    NotificationProcessor,
+    NotificationConsumerService,
     NotificationProducerService,
+
+    // Repositories
+    {
+      provide: 'INotificationRepository',
+      useClass: NotificationRepository,
+    },
+    NotificationRepository,
     RedlockMutex,
+
+    // Event handlers
+    EventSubscriber,
+    NotificationProcessor,
   ],
 })
 export class NotificationModule {}

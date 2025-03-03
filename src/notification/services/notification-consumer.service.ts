@@ -12,21 +12,21 @@ import dayjs from 'dayjs';
 import { ConfigService } from '@nestjs/config';
 import { notificationTemplate } from '../entities/notification.template';
 import { TemplateHelper } from './helpers/template.helper';
-import { NotificationCreateInput } from '../controllers/dto/notification.dto';
+import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 import { RedlockMutex } from '../repositories/redlock.mutex';
-import { Notification } from '../entities/notification.model';
+import { Notification } from '../entities/notification.entity';
 
 @Injectable()
 export class NotificationConsumerService {
-  private mergeNotificationThreshold: number;
+  private readonly mergeNotificationThreshold: number;
 
   constructor(
-    private logger: Logger,
-    private configService: ConfigService,
-    private eventEmitter: EventEmitter2,
-    private prismaService: PrismaService,
-    private mutex: RedlockMutex,
-    @InjectQueue('notification') private notiQueue: Queue,
+    private readonly logger: Logger,
+    private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly prismaService: PrismaService,
+    private readonly mutex: RedlockMutex,
+    @InjectQueue('notification') private readonly notiQueue: Queue,
   ) {
     this.mergeNotificationThreshold = this.configService.get<number>(
       'notification.mergeNotificationThreshold',
@@ -135,7 +135,7 @@ export class NotificationConsumerService {
               this.eventEmitter.emit('notification.created', notification);
             }
 
-            return { data: notification as Notification };
+            return { data: notification };
           } catch (err) {
             this.logger.error(
               `notification: notification-consumer.service: upsertNotification: ${err.message}`,

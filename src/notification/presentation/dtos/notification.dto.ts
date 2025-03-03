@@ -5,7 +5,7 @@ import { Transform } from 'class-transformer';
 import {
   Notification,
   NotificationDecorator,
-} from '../../entities/notification.model';
+} from '../../entities/notification.entity';
 
 export class NotificationCreateInput
   implements

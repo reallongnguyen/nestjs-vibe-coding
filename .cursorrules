@@ -136,11 +136,11 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 - Write end to end tests for each api module.
 - Add a admin/test method to each controller as a smoke test.
 
-## Development process
+## Implementation process
 
 ### STEP 1: Confirm task requirements
 
-- Read the file: /tasks/tasks.md
+- Read the file: `/tasks/sprint-current-tasks.md`
 - Extract and understand:
   - Task requirements
   - Acceptance criteria
@@ -177,38 +177,38 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 Required understanding files:
 
-- `/tasks/tasks.md`: Source of task definitions
-- `/tasks/status.md`: Progress tracking
+- `/tasks/sprint-current-tasks.md`: Source of task definitions
+- `/tasks/sprint-current-status.md`: Progress tracking
 - `/docs/technical.md`: Implementation guidelines
 
 Workflow steps:
 
-- Update task status `/tasks/status.md`:
+- Update task status `/tasks/sprint-current-status.md`:
   - Mark task as in-progress
-  - Define Implementation Steps in `/tasks/status.md` following:
-    - If task is complex, programming following steps:
-      - Create module structure. Just create empty files for now.
-      - Implement data layer
-      - Implement presentation layer with mock business logic
-      - Implement business logic in services
-      - Add end to end tests
-    - If task is simple, programming following steps:
-      - Implement code
-      - Add end to end tests
-  - Document any blockers
-- Implement following implementation steps in `/tasks/status.md`
+- Define Implementation Steps in `/tasks/sprint-current-tasks.md` following:
+  - If task is complex, programming following steps:
+    - Create module structure. Just create empty files for now.
+    - Implement data layer
+    - Implement presentation layer with mock business logic
+    - Implement business logic in services
+    - Add end to end tests
+  - If task is simple, programming following steps:
+    - Implement code
+    - Add end to end tests
+- Document any blockers
+- Implement following implementation steps in `/tasks/sprint-current-status.md`
 
 ### STEP 4: Keep documentation updated
 
-- UPDATE `/tasks/status.md` with:
+- UPDATE `/tasks/sprint-current-status.md` with:
   - Current progress
   - Any new issues encountered
   - Completed items
-- Update `/docs/architecture.mermaid` if needed
-- Add notes to `/docs/technical.md` if needed
+- Request Solution Architecture update system architecture in `/docs/architecture.mermaid` if needed
+- Update `/docs/technical.md` if needed
 - Add tech debt notes to `/docs/technical.md` if needed
 
-## Feature design process
+## Design process
 
 As a Product Owner, follow these feature design principles:
 
@@ -222,19 +222,20 @@ As a Product Owner, follow these feature design principles:
 ### STEP 1: Read context
 
 - Read data model in `/prisma/schema.prisma`
-- Read technical notes in `/docs/technical.md`
 - Read business notes in `/docs/business.md`
-- Read status in `/tasks/status.md`
+- Read status in `/tasks/backlog.md`
 
 ### STEP 2: Design the feature
 
-- Design the feature, ask for confirmation
-- Update `/prisma/schema.prisma` if needed
-- Update `/docs/business.md` if needed
+- Design the feature, compare this feature with similar feature of major platforms
+- Write feature specification to `/docs/business.md`
+- Request Solution Architecture helps you
+  - Update `/prisma/schema.prisma` if needed
+  - If this task is complex, design architecture then update to `/docs/technical.md` follow business
 
 ### STEP 3: Create task specification
 
-- Write task specification in `/tasks/tasks.md`
+- Write task specification in `/tasks/sprint-current-tasks.md`
 - Define Implementation Steps following:
   - If task is complex, programming following steps:
     - Create module structure. Just create empty files for now.

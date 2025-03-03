@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Logger } from 'nestjs-pino';
 import { cloneDeep } from 'lodash';
-import { NotificationOutput } from '../controllers/dto/notification.dto';
+import { NotificationOutput } from '../presentation/dtos/notification.dto';
 
 @Injectable()
 export class NotificationService {

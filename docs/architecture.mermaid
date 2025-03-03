@@ -1,6 +1,15 @@
 graph TD
     I[Identity Module] --> ID[(Identity DB)]
-    N[Notification Module] --> ND[(Notification DB)]
+    
+    subgraph Notification System
+        N[Notification Module] --> ND[(Notification DB)]
+        N --> TM[Template Management]
+        TM --> TC[(Template Cache)]
+        TM --> TS[(Template Store)]
+        N --> NQ[Notification Queue]
+        NQ --> NP[Notification Processor]
+    end
+    
     G[Gamification] --> GD[(Gamification DB)]
     S[Social Module] --> SD[(Social DB)]
 
@@ -11,8 +20,15 @@ graph TD
     E[Event Bus] --> I
     E --> N
     E --> G
+    E --> S
 
     S --> R[(Redis Cache)]
     C --> R
+    N --> R
+
+    I -.-> TM
+    S -.-> N
 
     style E fill:#FFD700,stroke:#333,stroke-width:2px
+    style TM fill:#98FB98,stroke:#333,stroke-width:2px
+    style NQ fill:#98FB98,stroke:#333,stroke-width:2px

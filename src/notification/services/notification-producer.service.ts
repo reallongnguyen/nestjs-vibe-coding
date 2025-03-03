@@ -4,7 +4,7 @@ import { AppResult } from 'src/common/models';
 import { IProfileUpdatedEvent } from 'src/common/event-bus/core/domain/events/event.interface';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { NotificationCreateInput } from '../controllers/dto/notification.dto';
+import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 
 @Injectable()
 export class NotificationProducerService {

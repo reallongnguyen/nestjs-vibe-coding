@@ -25,8 +25,8 @@ import {
   NotificationListQuery,
   NotificationOutput,
   NotificationPatchQuery,
-} from './dto/notification.dto';
-import { NotificationService } from '../usecases/notification.service';
+} from './dtos/notification.dto';
+import { NotificationService } from '../services/notification.service';
 import { notificationErrorMap } from '../entities/notification-error.map';
 
 @Controller({

@@ -57,9 +57,9 @@ As a Product Owner, design follow feature between user. This feature use in noti
 
 Attach files:
 
-- `/tasks/tasks.md`
+- `/tasks/sprint-current-tasks.md`
 - `/docs/task-template.md`
-- `/tasks/status.md`
+- `/tasks/sprint-current-status.md`
 - `/prisma/schema.prisma`
 - `/docs/business-domain.md`
 - `/docs/business.md`
@@ -69,14 +69,14 @@ Attach files:
 ### Update task description follow new rules
 
 ```plaintext
-Follow new feature design process and task template in @task-template.md update tasks that not yet implemented in @tasks.md
+Follow new feature design process and task template in @task-template.md update tasks that not yet implemented in @sprint-current-tasks.md
 ```
 
 Attach files:
 
-- `/tasks/tasks.md`
+- `/tasks/sprint-current-tasks.md`
 - `/docs/task-template.md`
-- `/tasks/status.md`
+- `/tasks/sprint-current-status.md`
 - `/prisma/schema.prisma`
 - `/docs/business-domain.md`
 - `/docs/business.md`
@@ -86,31 +86,31 @@ Attach files:
 ### Change request
 
 ```plaintext
-As a professional Product Owner, define task description for task bellow with hight priority. Add these tasks to current sprint in @tasks.md 
+As a professional Product Owner, define task description for task bellow with hight priority. Add these tasks to current sprint in @sprint-current-tasks.md 
 1. Remove post like, post view features in @content module. Context: Social Engagement already support post.
 2. Refactor comment APIs to allow support many type of content follow @social-engagement.controller.ts 
 ```
 
 Attach files:
 
-- `/tasks/tasks.md`
+- `/tasks/sprint-current-tasks.md`
 - `/docs/task-template.md`
-- `/tasks/status.md`
+- `/tasks/sprint-current-status.md`
 - `/prisma/schema.prisma`
 - `/docs/business-domain.md`
 
 ### Sprint planning
 
 ```plaintext
-As a Scrum Master, plan the sprint 004 in @status.md.
-- Add SOC-006 and NOT-000 in @backlog.md to @tasks.md follow task template in @task-template.md and ### STEP 3: Create task specification in ## feature design process.
+As a Scrum Master, plan the sprint 004 in @sprint-current-status.md.
+- Add SOC-006 and NOT-000 in @backlog.md to @sprint-current-tasks.md follow task template in @task-template.md and ### STEP 3: Create task specification in ## feature design process.
 - Break task to small and simple sub tasks.
 ```
 
 Attach files:
 
-- `/tasks/tasks.md`
-- `/tasks/status.md`
+- `/tasks/sprint-current-tasks.md`
+- `/tasks/sprint-current-status.md`
 - `/tasks/task-template.md`
 - `/tasks/backlog.md`
 - `/docs/business.md`
@@ -121,13 +121,13 @@ Attach files:
 ### Implement the feature
 
 ```plaintext
-As a senior developer, follow the development process you implement tasks <XXXX> in @tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @tasks.md and @status.md.
+As a senior developer, follow the development process you implement tasks XXXX in @sprint-current-tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @sprint-current-tasks.md and @sprint-current-status.md.
 ```
 
 Attach files:
 
-- `/tasks/tasks.md`
-- `/tasks/status.md`
+- `/tasks/sprint-current-tasks.md`
+- `/tasks/sprint-current-status.md`
 - `/docs/technical.md`
 - `/docs/module-structure.md`
 - `/prisma/schema.prisma`
@@ -143,7 +143,7 @@ In @user-follow-service.interface.ts, you are importing presentation DTOs, this 
 Follow @AppError.ts, fix UserFollowError in @user-follow.error.ts 
 ```
 
-## Refactor the code
+### Refactor the code
 
 ```plaintext
 As a senior developer, refactor code in <XXXX> follow code style in @content module
@@ -156,6 +156,17 @@ Attach files:
 - `/docs/module-structure.md`
 - `/prisma/schema.prisma`
 - `/docs/architecture.mermaid`
+
+## Sprint Review
+
+```plaintext
+Hey Scrum Master, check status of whole task in current sprint then update @sprint-current-status.md. If task was done, please remote it from @backlog.md.
+Request developer update @technical.md and request solution architecture @architecture.mermaid 
+```
+
+```plaintext
+Hey scrum master, as we close current sprint, let change name @sprint-current-tasks.md to format sprint-xxx-tasks.md and also change name of @sprint-current-status.md. Prepare empty @sprint-current-tasks.md and @sprint-current-status.md to the next sprint.
+```
 
 ## Case study
 
@@ -182,11 +193,11 @@ As a senior solution architect, analyze the Updated Feed Distribution Strategy: 
 #### Request SM and PO update sprint plan and task description
 
 ```plaintext
-As a Scrum Master, update sprint plan in @status.md. SOC-006-5 is blocked by new distribution system that not yet implemented. Check if the rest of tasks in current sprint are still valid.
+As a Scrum Master, update sprint plan in @sprint-current-status.md. SOC-006-5 is blocked by new distribution system that not yet implemented. Check if the rest of tasks in current sprint are still valid.
 ```
 
 ```plaintext
-As a product owner, update task description in @tasks.md. SOC-006-5 is blocked by new distribution system that not yet implemented. Check if the rest of tasks in current sprint are still valid.
+As a product owner, update task description in @sprint-current-tasks.md. SOC-006-5 is blocked by new distribution system that not yet implemented. Check if the rest of tasks in current sprint are still valid.
 ```
 
 ```plaintext

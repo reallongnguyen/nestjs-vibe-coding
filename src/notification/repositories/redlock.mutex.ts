@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Redlock, { RedlockAbortSignal } from 'redlock';
 import Client, { RedisOptions } from 'ioredis';
 import { isEqual } from 'lodash';
-import { Mutex } from '../usecases/interfaces/mutex.interface';
+import { Mutex } from '../services/interfaces/mutex.interface';
 
 @Injectable()
 export class RedlockMutex implements Mutex {

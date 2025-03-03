@@ -2,36 +2,6 @@
 
 ## Tasks
 
-### NOT-000: Refactor Notification Module following DDD
-
-1. Requirements:
-   - Refactor the Notification Module to follow Domain-Driven Design principles
-   - Implement proper separation of concerns with entities, repositories, services, and controllers
-   - Create repository interfaces with dependency injection
-   - Implement event handlers for social interactions (likes, comments, mentions)
-   - Add real-time notification delivery via MQTT powered by EQMX (implemented)
-   - Support notification preferences management
-
-2. Acceptance Criteria:
-   - Module structure follows the pattern in `/docs/module-structure.md`
-   - Clear separation between domain entities, repositories, services, and presentation layer
-   - Repository interfaces properly implemented with dependency injection
-   - Event handlers correctly respond to social events (likes, comments)
-   - Notification preferences can be managed by users
-   - Real-time notification delivery works within 5 seconds
-   - End-to-end tests verify notification flow
-
-3. Technical Notes:
-   - Use the social module as a reference for implementation patterns
-   - Leverage the common module for shared functionality
-   - Implement proper error handling with custom error classes
-   - Use the event bus for communication between modules
-   - Follow the barrel pattern for exports to simplify imports
-
-4. Dependencies:
-   - Common module with updated barrel exports
-   - Social module events for triggering notifications
-
 ### NOT-001: User Notification System
 
 1. Requirements:
@@ -70,6 +40,89 @@
    - Completed NOT-000 refactoring
    - Social module events for triggering notifications
    - Common module with MQTT client
+
+### NOT-002: Notification System Technical Debt Resolution
+
+1. Requirements:
+   - Implement profile change notifications for followers
+   - Add efficient notification content update mechanism
+   - Improve notification template management
+   - Key improvements needed:
+     - Send notifications to followers when a user updates their profile
+     - Update existing notifications when user names change
+     - Update notifications when templates change
+     - Implement configurable notification templates
+     - Add template versioning support
+
+2. Acceptance Criteria:
+   - Profile Updates:
+     - Followers receive notifications when users update their profiles
+     - Profile update notifications are grouped appropriately
+     - Configurable which profile changes trigger notifications
+
+   - Notification Updates:
+     - Efficient mechanism to update existing notifications when user data changes
+     - Batch update support for large notification sets
+     - Proper handling of notification history
+     - Performance optimization for update operations
+
+   - Template Management:
+     - Easy-to-use template management system
+     - Support for template versioning
+     - Template hot-reload capability
+     - Template validation system
+     - Migration strategy for existing notifications
+     - Template inheritance/override support
+     - Template testing framework
+
+3. Technical Notes:
+   - Profile Change Notifications:
+     - Implement event handlers for profile update events
+     - Use efficient follower lookup mechanisms
+     - Add notification grouping for bulk profile changes
+
+   - Notification Updates:
+     - Consider using database views for dynamic content
+     - Implement efficient batch update mechanisms
+     - Add caching layer for frequently accessed data
+     - Use database triggers or materialized views if appropriate
+     - Consider eventual consistency approach for updates
+
+   - Template Management:
+     - Evaluate storage options:
+       - Database-driven with caching
+       - File-based with hot reload
+       - Hybrid approach
+     - Consider implementing:
+       - Template versioning system
+       - Template inheritance
+       - Template validation
+       - Template testing framework
+     - Migration strategy for existing notifications
+
+4. Dependencies:
+   - Completed NOT-000 refactoring
+   - User Follow module (SOC-006)
+   - Event bus system for profile updates
+   - Caching infrastructure
+
+5. Performance Considerations:
+   - Profile update notifications should be sent within 5 seconds
+   - Notification content updates should be processed in batches
+   - Template changes should be applied with minimal system impact
+   - System should handle large volumes of notifications efficiently
+   - Consider implementing:
+     - Batch processing for updates
+     - Caching strategies
+     - Async processing where appropriate
+     - Database optimization for large updates
+
+6. Migration Strategy:
+   - Plan for migrating existing notifications
+   - Handle template version transitions
+   - Maintain notification history
+   - Ensure data consistency during updates
+   - Provide rollback mechanisms
 
 ### REC-001: Content Recommendation Engine
 
@@ -132,38 +185,3 @@
    - Test coverage above 80% for core modules
    - Standardized error handling and response formats
    - Comprehensive logging for debugging and monitoring
-
-### SOC-006: User Following System
-
-1. Requirements:
-   - Implement user following functionality
-   - Allow users to follow/unfollow other users
-   - Display follower and following counts on user profiles
-   - Create a "Following" feed view showing only content from followed users
-   - Implement notifications for new followers
-   - Implement notifications for followed users' activities
-   - Prioritize followed users' content in the main feed
-
-2. Acceptance Criteria:
-   - Users can follow/unfollow other users with a single click
-   - User profiles display accurate follower and following counts
-   - Users receive notifications when someone follows them
-   - Users receive configurable notifications about followed users' activities
-   - The main feed algorithm prioritizes content from followed users
-   - A dedicated "Following" feed shows only content from followed users
-   - Follow/unfollow actions are responsive (under 500ms)
-   - Proper error handling for all operations
-   - End-to-end tests verify the following functionality
-
-3. Technical Notes:
-   - Implement proper database indexing for efficient queries
-   - Use the event bus for notifications
-   - Ensure proper cache invalidation when follow status changes
-   - Update feed scoring algorithm to consider follow relationships
-   - Follow the established module structure pattern
-   - Implement repository interfaces with dependency injection
-
-4. Dependencies:
-   - Common module with updated barrel exports
-   - Social module for feed integration
-   - Notification module for activity notifications

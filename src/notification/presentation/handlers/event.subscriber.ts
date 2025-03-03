@@ -3,9 +3,9 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
 import { IProfileUpdatedEvent } from 'src/common/event-bus/core/domain/events/event.interface';
 import { ClientProxy, MqttRecordBuilder } from '@nestjs/microservices';
-import { NotificationProducerService } from '../usecases/notification-producer.service';
-import { NotificationOutput } from './dto/notification.dto';
-import { Notification } from '../entities/notification.model';
+import { NotificationProducerService } from '../../services/notification-producer.service';
+import { NotificationOutput } from '../dtos/notification.dto';
+import { Notification } from '../../entities/notification.entity';
 
 // TODO: move business logic to usecase layer
 @Injectable()
