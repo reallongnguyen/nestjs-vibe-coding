@@ -670,4 +670,12 @@ export class RedisBatchProcessor<T> {
   async add(item: T): Promise<void> {
     // ...
   }
+}
 ```
+
+## Technical Debt
+
+### Event System
+
+1. Social Interaction Events
+   - RESOLVED: Consolidated implementations into the common module and added backward compatibility layers for existing modules.

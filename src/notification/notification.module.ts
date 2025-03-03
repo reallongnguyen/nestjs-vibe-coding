@@ -73,7 +73,7 @@ import { NotificationController } from './presentation/notification.controller';
 import { NotificationPreferenceController } from './presentation/notification-preference.controller';
 import { NotificationTemplateController } from './presentation/notification-template.controller';
 import { NotificationProcessor } from './presentation/notification.processor';
-import { EventSubscriber } from './presentation/handlers/event.subscriber';
+import { NotificationHandler } from './presentation/handlers/notification.handler';
 import { NotificationService } from './services/notification.service';
 import { NotificationPreferenceService } from './services/notification-preference.service';
 import { NotificationTemplateService } from './services/notification-template.service';
@@ -86,6 +86,7 @@ import { NotificationPreferenceRepository } from './repositories/notification-pr
 import { NotificationTemplateRepository } from './repositories/notification-template.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
+import { SocialEventHandler } from './presentation/handlers/social-event.handler';
 
 @Module({
   imports: [
@@ -138,7 +139,8 @@ import moduleConfig from './notification.config';
     RedlockMutex,
 
     // Event handlers
-    EventSubscriber,
+    NotificationHandler,
+    SocialEventHandler,
     NotificationProcessor,
   ],
 })

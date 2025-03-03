@@ -9,7 +9,7 @@ import {
   CommentAddedEvent,
   UserMentionedEvent,
   UserFollowedEvent,
-} from 'src/common/event-bus/core/domain/events/social-interaction.events';
+} from '../entities/events/social-interaction.events';
 import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 
 @Injectable()
@@ -61,9 +61,9 @@ export class NotificationProducerService {
     payload: PostLikedEvent,
   ): Promise<AppResult<string, string>> {
     // Skip self-likes
-    if (payload.likerId === payload.postOwnerId) {
-      return { data: '' };
-    }
+    // if (payload.likerId === payload.postOwnerId) {
+    //   return { data: '' };
+    // }
 
     const notification = new NotificationCreateInput();
     notification.key = `likePost:${payload.postId}`;

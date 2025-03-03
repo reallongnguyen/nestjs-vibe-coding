@@ -11,6 +11,7 @@ export interface NotificationDeliveryEvent {
   userId: string;
   channel: string;
   timestamp: number;
+  retryCount?: number;
 }
 
 /**
@@ -24,6 +25,7 @@ export class NotificationDeliveryAttemptEvent
     public readonly userId: string,
     public readonly channel: string,
     public readonly timestamp: number = Date.now(),
+    public readonly retryCount: number = 0,
   ) {}
 
   /**
@@ -44,6 +46,7 @@ export class NotificationDeliverySuccessEvent
     public readonly channel: string,
     public readonly latencyMs: number,
     public readonly timestamp: number = Date.now(),
+    public readonly retryCount: number = 0,
   ) {}
 
   /**
@@ -64,6 +67,7 @@ export class NotificationDeliveryFailureEvent
     public readonly channel: string,
     public readonly error: Error,
     public readonly timestamp: number = Date.now(),
+    public readonly retryCount: number = 0,
   ) {}
 
   /**

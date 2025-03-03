@@ -7,7 +7,7 @@ import {
   CommentAddedEvent,
   UserMentionedEvent,
   UserFollowedEvent,
-} from 'src/common/event-bus/core/domain/events/social-interaction.events';
+} from '../entities/events/social-interaction.events';
 import { NotificationProducerService } from './notification-producer.service';
 
 describe('NotificationProducerService', () => {

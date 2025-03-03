@@ -4,6 +4,8 @@
  * This file contains the domain model for notification templates following DDD principles.
  */
 
+import { escapeRegExp } from 'lodash';
+
 /**
  * Supported languages for notification templates
  */
@@ -110,8 +112,10 @@ export class NotificationTemplateDomain {
       // Check for required variables if specified
       if (requiredVariables && requiredVariables.length > 0) {
         for (const variable of requiredVariables) {
+          const safeVariable = escapeRegExp(variable);
+
           const variablePattern = new RegExp(
-            `{{\\s*${variable}\\s*}}|{{\\s*${variable}\\.`,
+            `{{\\s*${safeVariable}\\s*}}|{{\\s*${safeVariable}\\.`,
           );
           if (!variablePattern.test(template)) {
             return false;
@@ -153,8 +157,10 @@ export class NotificationTemplateDomain {
       const missingVariables: string[] = [];
 
       for (const variable of variables) {
+        const safeVariable = escapeRegExp(variable);
+
         const variablePattern = new RegExp(
-          `{{\\s*${variable}\\s*}}|{{\\s*${variable}\\.`,
+          `{{\\s*${safeVariable}\\s*}}|{{\\s*${safeVariable}\\.`,
         );
         if (!variablePattern.test(template)) {
           missingVariables.push(variable);

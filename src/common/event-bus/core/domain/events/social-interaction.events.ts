@@ -4,6 +4,11 @@ import { BaseEvent } from './base.event';
  * Event emitted when a post is liked
  */
 export class PostLikedEvent extends BaseEvent {
+  /**
+   * Event name for EventEmitter
+   */
+  static readonly EVENT_NAME = 'post.liked';
+
   constructor(
     public readonly postId: string,
     public readonly postOwnerId: string,
@@ -11,12 +16,18 @@ export class PostLikedEvent extends BaseEvent {
     public readonly likerName: string,
     public readonly likerAvatar?: string,
     public readonly postTitle?: string,
+    public readonly timestamp: number = Date.now(),
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ) {
-    super();
+    super(params);
   }
 
   eventName(): string {
-    return 'post.liked';
+    return PostLikedEvent.EVENT_NAME;
   }
 
   toJSON(): unknown {
@@ -27,16 +38,20 @@ export class PostLikedEvent extends BaseEvent {
       likerName: this.likerName,
       likerAvatar: this.likerAvatar,
       postTitle: this.postTitle,
+      timestamp: this.timestamp,
     };
   }
-
-  static readonly EVENT_NAME = 'post.liked';
 }
 
 /**
  * Event emitted when a comment is added to a post
  */
 export class CommentAddedEvent extends BaseEvent {
+  /**
+   * Event name for EventEmitter
+   */
+  static readonly EVENT_NAME = 'comment.added';
+
   constructor(
     public readonly commentId: string,
     public readonly postId: string,
@@ -46,12 +61,18 @@ export class CommentAddedEvent extends BaseEvent {
     public readonly commentText: string,
     public readonly postTitle?: string,
     public readonly commenterAvatar?: string,
+    public readonly timestamp: number = Date.now(),
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ) {
-    super();
+    super(params);
   }
 
   eventName(): string {
-    return 'comment.added';
+    return CommentAddedEvent.EVENT_NAME;
   }
 
   toJSON(): unknown {
@@ -64,16 +85,20 @@ export class CommentAddedEvent extends BaseEvent {
       commentText: this.commentText,
       postTitle: this.postTitle,
       commenterAvatar: this.commenterAvatar,
+      timestamp: this.timestamp,
     };
   }
-
-  static readonly EVENT_NAME = 'comment.added';
 }
 
 /**
  * Event emitted when a user is mentioned in content
  */
 export class UserMentionedEvent extends BaseEvent {
+  /**
+   * Event name for EventEmitter
+   */
+  static readonly EVENT_NAME = 'user.mentioned';
+
   constructor(
     public readonly contentId: string,
     public readonly contentType: 'post' | 'comment',
@@ -83,12 +108,18 @@ export class UserMentionedEvent extends BaseEvent {
     public readonly contentText: string,
     public readonly contentTitle?: string,
     public readonly mentioningUserAvatar?: string,
+    public readonly timestamp: number = Date.now(),
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ) {
-    super();
+    super(params);
   }
 
   eventName(): string {
-    return 'user.mentioned';
+    return UserMentionedEvent.EVENT_NAME;
   }
 
   toJSON(): unknown {
@@ -101,27 +132,37 @@ export class UserMentionedEvent extends BaseEvent {
       contentText: this.contentText,
       contentTitle: this.contentTitle,
       mentioningUserAvatar: this.mentioningUserAvatar,
+      timestamp: this.timestamp,
     };
   }
-
-  static readonly EVENT_NAME = 'user.mentioned';
 }
 
 /**
  * Event emitted when a user follows another user
  */
 export class UserFollowedEvent extends BaseEvent {
+  /**
+   * Event name for EventEmitter
+   */
+  static readonly EVENT_NAME = 'user.followed';
+
   constructor(
     public readonly followerId: string,
     public readonly followerName: string,
     public readonly followingId: string,
     public readonly followerAvatar?: string,
+    public readonly timestamp: number = Date.now(),
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ) {
-    super();
+    super(params);
   }
 
   eventName(): string {
-    return 'user.followed';
+    return UserFollowedEvent.EVENT_NAME;
   }
 
   toJSON(): unknown {
@@ -130,8 +171,7 @@ export class UserFollowedEvent extends BaseEvent {
       followerName: this.followerName,
       followingId: this.followingId,
       followerAvatar: this.followerAvatar,
+      timestamp: this.timestamp,
     };
   }
-
-  static readonly EVENT_NAME = 'user.followed';
 }

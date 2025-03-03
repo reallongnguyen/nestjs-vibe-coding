@@ -153,28 +153,50 @@ export class NotificationTemplateService {
   ): Promise<NotificationTemplateDomain> {
     const existingTemplate = await this.getTemplateById(command.templateId);
 
-    // Create a new version of the template
-    const newTemplate = existingTemplate.createNewVersion();
+    // Create a partial template with updates
+    const templateUpdate: Partial<NotificationTemplateDomain> = {
+      version: command.version,
+    };
 
     // Handle I18N content
     if (command.templateContent) {
+      const contentUpdate: Partial<Record<TemplateLanguage, string>> = {};
+
       // Update content for each language provided
       for (const [lang, content] of Object.entries(command.templateContent)) {
         if (lang in TemplateLanguage) {
-          newTemplate.setContent(lang as TemplateLanguage, content);
+          contentUpdate[lang as TemplateLanguage] = content;
         }
       }
-    } else {
+
+      // Only set content if we have updates
+      if (Object.keys(contentUpdate).length > 0) {
+        // Merge with existing content to ensure all languages are present
+        templateUpdate.content = {
+          ...existingTemplate.content,
+          ...contentUpdate,
+        };
+      }
+    } else if (command.template) {
       // Fallback to single template for Vietnamese
-      newTemplate.setContent(TemplateLanguage.VI, command.template);
+      templateUpdate.content = {
+        ...existingTemplate.content,
+        [TemplateLanguage.VI]: command.template,
+      };
     }
 
     // Validate template syntax
-    if (!newTemplate.validate()) {
+    const tempTemplate = new NotificationTemplateDomain();
+    tempTemplate.content = templateUpdate.content || existingTemplate.content;
+    if (!tempTemplate.validate()) {
       throw new AppError('notification.template.update.invalidSyntax');
     }
 
-    const updatedTemplate = await this.templateRepository.create(newTemplate);
+    // Update the existing template
+    const updatedTemplate = await this.templateRepository.update(
+      command.templateId,
+      templateUpdate,
+    );
 
     // Clear cache for this template type
     this.clearTemplateCache(updatedTemplate.type);
@@ -268,131 +290,147 @@ export class NotificationTemplateService {
   }
 
   /**
-   * Clear template cache for a specific type
+   * Hot reload a notification template
    * @param type Template type
-   */
-  private clearTemplateCache(type: string): void {
-    // Clear Handlebars template cache
-    for (const key of Array.from(this.templateCache.keys())) {
-      if (key.startsWith(`${type}:`)) {
-        this.templateCache.delete(key);
-      }
-    }
-
-    this.logger.log(`Template cache cleared for type: ${type}`);
-  }
-
-  /**
-   * Hot reload a template by type
-   * This will clear the cache and reload the template from the database
-   * @param type Template type
-   * @returns True if reloaded, false if not found
+   * @returns True if reloaded successfully
+   * @throws AppError if template not found or compilation fails
    */
   async hotReloadTemplate(type: string): Promise<boolean> {
     try {
-      // Get the template from the database
-      const template = await this.templateRepository.findByType(type);
-      if (!template) {
-        this.logger.warn(`Template not found for hot reload: ${type}`);
-        return false;
-      }
+      const template = await this.getTemplateByType(type);
 
-      // Clear the cache
+      // Clear cache for this template type
       this.clearTemplateCache(type);
 
-      // Precompile templates for each language
+      // Pre-compile templates for all languages to ensure they're valid
       for (const [language, content] of Object.entries(template.content)) {
-        const cacheKey = `${type}:${language}`;
         try {
-          this.templateCache.set(cacheKey, Handlebars.compile(content));
+          const compiledTemplate = Handlebars.compile(content);
+          this.templateCache.set(`${type}_${language}`, compiledTemplate);
+          this.logger.log(
+            `Successfully reloaded template ${type} for language ${language}`,
+          );
         } catch (error) {
           this.logger.error(
-            `Failed to compile template ${type} for language ${language}: ${error.message}`,
+            `Error compiling template ${type} for language ${language}: ${error.message}`,
           );
           throw new AppError('notification.template.hotReload.compileError', {
             type,
             language,
-            error: error.message,
           });
         }
       }
 
-      this.logger.log(`Template hot reloaded: ${type}`);
       return true;
-    } catch (error) {
-      this.logger.error(
-        `Failed to hot reload template ${type}: ${error.message}`,
-      );
-      throw error;
+    } catch (err) {
+      if (err instanceof AppError) {
+        throw err;
+      }
+
+      this.logger.error(`Error hot reloading template ${type}: ${err.message}`);
+      throw new AppError('notification.template.hotReload.notFound', {
+        type,
+      });
     }
   }
 
   /**
-   * Validate template variables
+   * Clear template cache for a specific type
+   * @param type Template type
+   */
+  private clearTemplateCache(type: string): void {
+    // Remove all cached templates for this type (all languages)
+    for (const key of Array.from(this.templateCache.keys())) {
+      if (key.startsWith(`${type}_`)) {
+        this.templateCache.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Validate template variables against required variables
    * @param template Template to validate
-   * @param requiredVariables List of required variables
+   * @param requiredVariables Array of required variable names
    * @returns Validation result with missing variables if any
    */
   validateTemplateVariables(
     template: NotificationTemplateDomain,
     requiredVariables: string[],
-  ): {
-    isValid: boolean;
-    missingVariables?: Record<TemplateLanguage, string[]>;
-  } {
-    // Basic syntax validation
-    if (!template.validate()) {
-      return { isValid: false };
-    }
-
-    // Check for required variables
+  ): { isValid: boolean; missingVariables?: Record<string, string[]> } {
     const missingVariables = template.checkRequiredVariables(requiredVariables);
-    const hasAllVariables = Object.keys(missingVariables).length === 0;
+
+    // If no missing variables in any language, template is valid
+    const isValid = Object.keys(missingVariables).length === 0;
 
     return {
-      isValid: hasAllVariables,
-      missingVariables: hasAllVariables ? undefined : missingVariables,
+      isValid,
+      missingVariables: isValid ? undefined : missingVariables,
     };
   }
 
   /**
-   * Register Handlebars helpers
+   * Register Handlebars helpers for template rendering
    */
   private registerHandlebarsHelpers(): void {
-    // Helper for mathematical operations
-    Handlebars.registerHelper('math', (lvalue, operator, rvalue) => {
-      const parsedLvalue = parseFloat(lvalue);
-      const parsedRvalue = parseFloat(rvalue);
+    // Helper for pluralization
+    Handlebars.registerHelper(
+      'plural',
+      function (count: number, singular: string, plural: string) {
+        return count === 1 ? singular : plural;
+      },
+    );
+
+    // Helper for conditional text
+    Handlebars.registerHelper(
+      'ifCond',
+      function (v1: any, operator: string, v2: any, options: any) {
+        switch (operator) {
+          case '==':
+            return v1 === v2 ? options.fn(this) : options.inverse(this);
+          case '===':
+            return v1 === v2 ? options.fn(this) : options.inverse(this);
+          case '!=':
+            return v1 !== v2 ? options.fn(this) : options.inverse(this);
+          case '!==':
+            return v1 !== v2 ? options.fn(this) : options.inverse(this);
+          case '<':
+            return v1 < v2 ? options.fn(this) : options.inverse(this);
+          case '<=':
+            return v1 <= v2 ? options.fn(this) : options.inverse(this);
+          case '>':
+            return v1 > v2 ? options.fn(this) : options.inverse(this);
+          case '>=':
+            return v1 >= v2 ? options.fn(this) : options.inverse(this);
+          default:
+            return options.inverse(this);
+        }
+      },
+    );
+
+    // Helper for greater than comparison
+    Handlebars.registerHelper('gt', function (v1, v2) {
+      return v1 > v2;
+    });
+
+    // Helper for math operations
+    Handlebars.registerHelper('math', function (lvalue, operator, rvalue) {
+      const left = parseFloat(lvalue);
+      const right = parseFloat(rvalue);
 
       switch (operator) {
         case '+':
-          return parsedLvalue + parsedRvalue;
+          return left + right;
         case '-':
-          return parsedLvalue - parsedRvalue;
+          return left - right;
         case '*':
-          return parsedLvalue * parsedRvalue;
+          return left * right;
         case '/':
-          return parsedLvalue / parsedRvalue;
+          return left / right;
         case '%':
-          return parsedLvalue % parsedRvalue;
+          return left % right;
         default:
-          return parsedLvalue;
+          return left;
       }
-    });
-
-    // Helper for greater than comparison
-    Handlebars.registerHelper('gt', (a, b) => {
-      return a > b;
-    });
-
-    // Helper for less than comparison
-    Handlebars.registerHelper('lt', (a, b) => {
-      return a < b;
-    });
-
-    // Helper for equality comparison
-    Handlebars.registerHelper('eq', (a, b) => {
-      return a === b;
     });
   }
 }

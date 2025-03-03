@@ -169,71 +169,143 @@ export class NotificationDeliveryService {
    * @returns Promise resolving to true if delivery was successful
    */
   private async deliverToMqtt(notification: Notification): Promise<boolean> {
-    try {
-      const startTime = Date.now();
-      const notiOutput = NotificationOutput.from(notification);
-      const record = new MqttRecordBuilder(notiOutput)
-        .setQoS(1) // At least once delivery
-        .build();
+    let retryCount = 0;
+    let lastError: Error | null = null;
 
-      const topic = this.getReceivedNotificationTopic(notification.userId);
+    while (retryCount <= this.maxRetries) {
+      try {
+        const startTime = Date.now();
+        const notiOutput = NotificationOutput.from(notification);
+        const record = new MqttRecordBuilder(notiOutput)
+          .setQoS(1) // At least once delivery
+          .build();
 
-      this.logger.debug(
-        `notification: delivery: sending to MQTT topic ${topic} for user ${notification.userId}`,
-      );
+        const topic = this.getReceivedNotificationTopic(notification.userId);
 
-      // Emit attempt event using the new event class
-      this.eventEmitter.emit(
-        NotificationDeliveryAttemptEvent.EVENT_NAME,
-        new NotificationDeliveryAttemptEvent(
-          notification.id,
-          notification.userId,
-          'in_app',
-          startTime,
-        ),
-      );
+        this.logger.debug(
+          `notification: delivery: attempt ${retryCount + 1}/${
+            this.maxRetries + 1
+          } sending to MQTT topic ${topic} for user ${notification.userId}`,
+        );
 
-      // Since we're using emit() which is fire-and-forget, we don't need timeout/retry logic
-      // Just emit the message and consider it delivered
-      this.mqttClient.emit(topic, record);
+        // Emit attempt event using the event class
+        this.eventEmitter.emit(
+          NotificationDeliveryAttemptEvent.EVENT_NAME,
+          new NotificationDeliveryAttemptEvent(
+            notification.id,
+            notification.userId,
+            'in_app',
+            startTime,
+            retryCount,
+          ),
+        );
 
-      const endTime = Date.now();
-      const latencyMs = endTime - startTime;
+        // Use emit() with a timeout promise to detect potential issues
+        const deliveryPromise = new Promise<boolean>((resolve, reject) => {
+          try {
+            this.mqttClient.emit(topic, record);
+            resolve(true);
+          } catch (error) {
+            reject(error);
+          }
+        });
 
-      // Emit success event with latency information using the new event class
-      this.eventEmitter.emit(
-        NotificationDeliverySuccessEvent.EVENT_NAME,
-        new NotificationDeliverySuccessEvent(
-          notification.id,
-          notification.userId,
-          'in_app',
-          latencyMs,
-        ),
-      );
+        // Add timeout to the delivery promise
+        const timeoutPromise = new Promise<boolean>((_, reject) => {
+          setTimeout(() => {
+            reject(
+              new Error(
+                `MQTT delivery timed out after ${this.deliveryTimeout}ms`,
+              ),
+            );
+          }, this.deliveryTimeout);
+        });
 
-      this.logger.debug(
-        `notification: delivery: sent to MQTT topic for user ${notification.userId} in ${latencyMs}ms`,
-      );
+        // Wait for either successful delivery or timeout
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.race([deliveryPromise, timeoutPromise]);
 
-      return true;
-    } catch (error) {
-      // Emit failure event using the new event class
-      this.eventEmitter.emit(
-        NotificationDeliveryFailureEvent.EVENT_NAME,
-        new NotificationDeliveryFailureEvent(
-          notification.id,
-          notification.userId,
-          'in_app',
-          error instanceof Error ? error : new Error(String(error)),
-        ),
-      );
+        const endTime = Date.now();
+        const latencyMs = endTime - startTime;
 
-      this.logger.error(
-        `notification: delivery: failed to send to MQTT for user ${notification.userId}`,
-        error,
-      );
-      return false;
+        // Emit success event with latency information
+        this.eventEmitter.emit(
+          NotificationDeliverySuccessEvent.EVENT_NAME,
+          new NotificationDeliverySuccessEvent(
+            notification.id,
+            notification.userId,
+            'in_app',
+            latencyMs,
+            retryCount,
+          ),
+        );
+
+        this.logger.debug(
+          `notification: delivery: successfully sent to MQTT topic for user ${notification.userId} in ${latencyMs}ms after ${retryCount} retries`,
+        );
+
+        return true;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        this.logger.warn(
+          `notification: delivery: attempt ${retryCount + 1}/${
+            this.maxRetries + 1
+          } failed for user ${notification.userId}: ${lastError.message}`,
+        );
+
+        // If we've reached max retries, emit failure and return false
+        if (retryCount >= this.maxRetries) {
+          // Emit failure event with the last error
+          this.eventEmitter.emit(
+            NotificationDeliveryFailureEvent.EVENT_NAME,
+            new NotificationDeliveryFailureEvent(
+              notification.id,
+              notification.userId,
+              'in_app',
+              lastError,
+              retryCount,
+            ),
+          );
+
+          this.logger.error(
+            `notification: delivery: failed to send to MQTT for user ${notification.userId} after ${retryCount + 1} attempts: ${lastError.message}`,
+            lastError.stack,
+          );
+          return false;
+        }
+
+        // Exponential backoff with jitter for retries
+        const baseDelay = this.retryDelay * 2 ** retryCount;
+        const jitter = Math.random() * 0.3 * baseDelay; // 0-30% jitter
+        const delayMs = baseDelay + jitter;
+
+        this.logger.debug(
+          `notification: delivery: retrying in ${Math.round(delayMs)}ms (attempt ${retryCount + 1}/${this.maxRetries})`,
+        );
+
+        // Wait before retrying - using a separate function to avoid await in loop warning
+        // eslint-disable-next-line no-await-in-loop
+        await this.delay(delayMs);
+
+        retryCount += 1;
+      }
     }
+
+    // This should never be reached due to the return in the catch block
+    // when retryCount >= maxRetries, but TypeScript needs it
+    return false;
+  }
+
+  /**
+   * Helper method to create a delay promise
+   * @param ms Milliseconds to delay
+   * @returns Promise that resolves after the specified delay
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 
   /**

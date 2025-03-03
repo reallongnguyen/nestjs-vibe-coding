@@ -25,9 +25,20 @@ import {
 } from './dtos';
 import { TemplateLanguage } from '../entities/notification-template.domain';
 import { notificationErrorMap } from '../entities/notification-error.map';
+import {
+  ValidateTemplateDto,
+  ValidationResultDto,
+} from './dtos/validate-template.dto';
+import {
+  TestRenderTemplateDto,
+  TestRenderResultDto,
+} from './dtos/test-render-template.dto';
 
 @ApiTags('notification-templates')
-@Controller('notifications/templates')
+@Controller({
+  path: 'notifications/templates',
+  version: '1',
+})
 @UseGuards(AuthGuard, RolesGuard)
 export class NotificationTemplateController {
   constructor(private readonly templateService: NotificationTemplateService) {}
@@ -120,31 +131,12 @@ export class NotificationTemplateController {
   @Post(':id/validate')
   @RequireAnyRoles(Role.ADMIN, Role.ROOT)
   @ApiOperation({ summary: 'Validate a notification template' })
-  @ApiResponse({
-    status: 200,
-    description: 'Validation result',
-    schema: {
-      type: 'object',
-      properties: {
-        isValid: { type: 'boolean' },
-        missingVariables: {
-          type: 'object',
-          additionalProperties: {
-            type: 'array',
-            items: { type: 'string' },
-          },
-        },
-      },
-    },
-  })
+  @OkResponse(ValidationResultDto)
   @ErrorResponse('notification.template.validate', notificationErrorMap)
   async validateTemplate(
     @Param('id') id: string,
-    @Body() body: { requiredVariables: string[] },
-  ): Promise<{
-    isValid: boolean;
-    missingVariables?: Record<string, string[]>;
-  }> {
+    @Body() body: ValidateTemplateDto,
+  ): Promise<ValidationResultDto> {
     const template = await this.templateService.getTemplateById(id);
     return this.templateService.validateTemplateVariables(
       template,
@@ -155,21 +147,12 @@ export class NotificationTemplateController {
   @Post(':id/test-render')
   @RequireAnyRoles(Role.ADMIN, Role.ROOT)
   @ApiOperation({ summary: 'Test render a notification template' })
-  @ApiResponse({
-    status: 200,
-    description: 'Rendered template',
-    schema: {
-      type: 'object',
-      properties: {
-        rendered: { type: 'object', additionalProperties: { type: 'string' } },
-      },
-    },
-  })
+  @OkResponse(TestRenderResultDto)
   @ErrorResponse('notification.template.testRender', notificationErrorMap)
   async testRenderTemplate(
     @Param('id') id: string,
-    @Body() body: { data: Record<string, any>; language?: TemplateLanguage },
-  ): Promise<{ rendered: Record<TemplateLanguage, string> }> {
+    @Body() body: TestRenderTemplateDto,
+  ): Promise<TestRenderResultDto> {
     const template = await this.templateService.getTemplateById(id);
     const result: Record<TemplateLanguage, string> = {} as Record<
       TemplateLanguage,

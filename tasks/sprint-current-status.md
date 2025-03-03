@@ -35,6 +35,8 @@
 - Real-time notification delivery enhancement completed (NOT-001.4)
 - Notification templates management in progress (NOT-001.5)
 - Social interaction notification triggers completed (NOT-001.6)
+  - Note: There are multiple implementations of social interaction events in different modules (common, notification, social, user-follow). This could lead to confusion and maintenance issues. Consider consolidating these implementations.
+  - Update: Technical debt addressed. Consolidated implementations into the common module and added backward compatibility layers for existing modules.
 - Code style guidelines from social module being followed
 
 #### Completed Sub-Tasks
