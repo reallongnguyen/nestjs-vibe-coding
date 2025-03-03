@@ -102,9 +102,9 @@ Attach files:
 ### Sprint planning
 
 ```plaintext
-As a Scrum Master, plan the sprint 004 in @sprint-current-status.md.
-- Add SOC-006 and NOT-000 in @backlog.md to @sprint-current-tasks.md follow task template in @task-template.md and ### STEP 3: Create task specification in ## feature design process.
-- Break task to small and simple sub tasks.
+As Scrum Master, plan the sprint 006. Take tasks in @backlog.md.
+Discuss Product Owner if she want to priority other features.
+Remind developer follow code style in social module
 ```
 
 Attach files:
@@ -115,6 +115,33 @@ Attach files:
 - `/tasks/backlog.md`
 - `/docs/business.md`
 - `/docs/technical.md`
+
+### Quick Design
+
+Infrastructure investigate
+
+```plaintext
+As a Solution Architecture, investigate imgproxy service at @https://github.com/imgproxy/imgproxy .
+Context: currently, system save images as Google Cloud Storage object url such gs://bucket-name/path/file.png. We need imgproxy to help Frontend (nextjs) get image.
+Let create short note as technical blog in @image-proxy.md then design infrasture task INF-001 in @backlog.md. At first stage, I want deploy imgproxy in docker system follow @README.md 
+```
+
+Create API specification
+
+```plaintext
+As a Technical Leader
+- design API specification and Event Interface, Command Interface for each tasks in @sprint-current-tasks.md. Follow API style in identity module @user.controller.ts, @user.input.ts, @user.output.ts.
+- Design Event, Command Interface in common module.
+then update design to task description.
+
+Do not implement code.
+```
+
+Attach files:
+
+- `/prisma/schema.prisma`
+- Collection class
+- BaseEvent class
 
 ## Code implementation
 
