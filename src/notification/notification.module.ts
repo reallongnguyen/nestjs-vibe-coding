@@ -76,6 +76,8 @@ import { NotificationService } from './services/notification.service';
 import { NotificationPreferenceService } from './services/notification-preference.service';
 import { NotificationConsumerService } from './services/notification-consumer.service';
 import { NotificationProducerService } from './services/notification-producer.service';
+import { NotificationDeliveryService } from './services/notification-delivery.service';
+import { NotificationMonitoringService } from './services/notification-monitoring.service';
 import { NotificationRepository } from './repositories/notification.repository';
 import { NotificationPreferenceRepository } from './repositories/notification-preference.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
@@ -104,6 +106,8 @@ import moduleConfig from './notification.config';
     NotificationPreferenceService,
     NotificationConsumerService,
     NotificationProducerService,
+    NotificationDeliveryService,
+    NotificationMonitoringService,
 
     // Repositories
     {

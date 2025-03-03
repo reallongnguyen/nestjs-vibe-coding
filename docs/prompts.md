@@ -6,9 +6,9 @@ Create `.cursorrules` first
 
 ```plaintext
 Analyze source code of this frontend project
-- write folder structure to @folder-structure.md 
-- write business to @business.md 
-- write technical to @technical.md 
+- write folder structure to @folder-structure.md
+- write business to @business.md
+- write technical to @technical.md
 ```
 
 ## Application scope
@@ -139,10 +139,11 @@ Let create short note as technical blog in @image-proxy.md then design infrastur
 
 ```plaintext
 As a Technical Leader
-- design API specification and Event Interface, Command Interface for each tasks in @sprint-current-tasks.md. Follow API style in identity module @user.controller.ts, @user.input.ts, @user.output.ts.
-- Design Event, Command Interface in common module.
-then update design to task description.
+- design API Input and Output if need if need for each tasks in @sprint-current-tasks.md. Follow API style in social module.
+- Review Technical notes. Keep in mind this system is microservice ready
+- Check if database schema in @schema.prisma and system architecture is suite with requirement
 
+Once you completed update task description.
 Do not implement code.
 ```
 

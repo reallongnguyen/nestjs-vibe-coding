@@ -5,6 +5,7 @@ import {
   Query,
   UseFilters,
   UseGuards,
+  Post,
 } from '@nestjs/common';
 import {
   AuthContextUser,
@@ -20,6 +21,7 @@ import {
   RestExceptionFilter,
 } from 'src/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { NotificationMonitoringService } from '../services/notification-monitoring.service';
 
 import {
   NotificationListQuery,
@@ -28,6 +30,7 @@ import {
 } from './dtos/notification.dto';
 import { NotificationService } from '../services/notification.service';
 import { notificationErrorMap } from '../entities/notification-error.map';
+import { NotificationMetricsDto } from './dtos/metrics.dto';
 
 @Controller({
   path: 'notifications',
@@ -38,7 +41,10 @@ import { notificationErrorMap } from '../entities/notification-error.map';
 @ApiTags('notifications')
 @ErrorResponse('common', notificationErrorMap)
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(
+    private readonly notificationService: NotificationService,
+    private readonly monitoringService: NotificationMonitoringService,
+  ) {}
 
   @Get()
   @RequireAnyRoles(Role.USER)
@@ -78,5 +84,37 @@ export class NotificationController {
     await this.notificationService.view(user.id, query.id);
 
     return null;
+  }
+
+  /**
+   * Get notification delivery metrics
+   *
+   * @returns Notification delivery metrics
+   */
+  @Get('metrics')
+  @ApiOperation({
+    summary: 'Get notification delivery metrics',
+    description: 'Returns metrics about notification delivery performance',
+  })
+  @OkResponse(NotificationMetricsDto)
+  @RequireAnyRoles(Role.ADMIN)
+  async getDeliveryMetrics(): Promise<NotificationMetricsDto> {
+    return this.monitoringService.getMetrics();
+  }
+
+  /**
+   * Reset notification delivery metrics
+   *
+   * @returns Success message
+   */
+  @Post('metrics/reset')
+  @ApiOperation({
+    summary: 'Reset notification delivery metrics',
+    description: 'Resets all notification delivery metrics',
+  })
+  @OkResponse(null)
+  @RequireAnyRoles(Role.ADMIN)
+  async resetDeliveryMetrics(): Promise<void> {
+    return this.monitoringService.resetMetrics();
   }
 }

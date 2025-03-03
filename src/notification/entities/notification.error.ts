@@ -8,6 +8,15 @@ export class NotificationCreateError extends AppError {
   }
 }
 
+export class NotificationDeliveryError extends AppError {
+  constructor(message: string, cause?: Error) {
+    super('notification.delivery.failed', {
+      message,
+      cause: cause?.message,
+    });
+  }
+}
+
 export class NotificationNotFoundError extends AppError {
   constructor(id: string) {
     super('notification.notFound', {
