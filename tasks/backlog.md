@@ -2,6 +2,77 @@
 
 ## Tasks
 
+### INF-001: Deploy imgproxy for Image Processing and Optimization
+
+1. Requirements:
+   - Deploy imgproxy service to optimize image delivery for the frontend
+   - Configure imgproxy to work with Google Cloud Storage
+   - Implement secure URL signing for image requests
+   - Set up Docker-based deployment
+   - Configure image processing options:
+     - Resizing and cropping
+     - Format conversion (JPEG, PNG, WebP, AVIF)
+     - Quality optimization
+     - Watermarking (optional)
+   - Implement proper caching strategy
+   - Ensure secure access to Google Cloud Storage buckets
+
+2. Acceptance Criteria:
+   - imgproxy service is deployed and accessible
+   - Service can retrieve and process images from Google Cloud Storage
+   - NextJS frontend can request optimized images through imgproxy
+   - Image URLs are properly signed for security
+   - Service supports multiple image transformations:
+     - Resizing to different dimensions
+     - Format conversion based on browser support
+     - Quality adjustments
+   - Performance metrics show improved image load times
+   - Proper error handling for missing or invalid images
+   - Documentation for developers on how to use the service
+
+3. Technical Notes:
+   - Docker Configuration:
+     - Use the official imgproxy Docker image (darthsim/imgproxy)
+     - Configure with appropriate environment variables
+     - Set up health checks and monitoring
+     - Implement proper logging
+
+   - Google Cloud Storage Integration:
+     - Configure IMGPROXY_USE_GCS=true
+     - Set up service account with appropriate permissions
+     - Configure IMGPROXY_GCS_KEY if needed
+     - Restrict access to specific buckets
+
+   - Security Configuration:
+     - Generate and configure IMGPROXY_KEY and IMGPROXY_SALT for URL signing
+     - Set IMGPROXY_ALLOWED_SOURCES to restrict source URLs
+     - Configure proper CORS settings
+     - Implement rate limiting
+
+   - Performance Optimization:
+     - Configure appropriate cache settings
+     - Enable WebP/AVIF detection for modern browsers
+     - Set appropriate quality settings for different image types
+     - Configure proper timeout and connection settings
+
+   - Frontend Integration:
+     - Create utility functions for generating signed URLs
+     - Implement responsive image loading in NextJS
+     - Add fallback mechanisms for image loading failures
+
+4. Dependencies:
+   - Google Cloud Storage buckets for image storage
+   - Docker environment for deployment
+   - Network access to Google Cloud Storage
+   - Frontend NextJS application
+
+5. Deployment Strategy:
+   - Initial deployment as standalone Docker container
+   - Configure environment variables for different environments
+   - Set up monitoring and alerting
+   - Document deployment process for future reference
+   - Consider scaling strategy for production
+
 ### NOT-001: User Notification System
 
 1. Requirements:
