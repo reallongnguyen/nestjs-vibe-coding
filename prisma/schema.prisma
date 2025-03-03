@@ -32,31 +32,32 @@ enum UserRole {
 }
 
 model User {
-  id              String            @id @default(uuid())
-  authId          String            @unique @map("auth_id") @db.Uuid
-  email           String?
-  phone           String?
-  firstName       String            @map("first_name") @db.Text
-  lastName        String?           @map("last_name") @db.Text
-  avatar          String?           @db.Text
-  roles           UserRole[]
-  isActive        Boolean           @default(true) @map("is_active")
-  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
-  userInSpaces    UserInSpaces[]
-  activities      UserActivity[]
-  publishedPosts  PublishedPost[]   @relation("UserAuthorPosts")
-  draftPosts      DraftPost[]
-  comments        Comment[]         @relation("UserAuthorComments")
-  bookmarks       Bookmark[]
-  feeds           Feed[]
-  emotions        UserEmotion[]
-  streak          UserStreak?
-  achievements    UserAchievement[]
-  botInteractions BotInteraction[]
-  likes           Like[]
-  followers       UserFollow[]        @relation("UserFollowers")
-  following       UserFollow[]        @relation("UserFollowing")
+  id                      String                   @id @default(uuid())
+  authId                  String                   @unique @map("auth_id") @db.Uuid
+  email                   String?
+  phone                   String?
+  firstName               String                   @map("first_name") @db.Text
+  lastName                String?                  @map("last_name") @db.Text
+  avatar                  String?                  @db.Text
+  roles                   UserRole[]
+  isActive                Boolean                  @default(true) @map("is_active")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz()
+  userInSpaces            UserInSpaces[]
+  activities              UserActivity[]
+  publishedPosts          PublishedPost[]          @relation("UserAuthorPosts")
+  draftPosts              DraftPost[]
+  comments                Comment[]                @relation("UserAuthorComments")
+  bookmarks               Bookmark[]
+  feeds                   Feed[]
+  emotions                UserEmotion[]
+  streak                  UserStreak?
+  achievements            UserAchievement[]
+  botInteractions         BotInteraction[]
+  likes                   Like[]
+  followers               UserFollow[]             @relation("UserFollowers")
+  following               UserFollow[]             @relation("UserFollowing")
+  notificationPreferences NotificationPreference[]
 
   @@map("users")
 }
@@ -167,6 +168,8 @@ model Notification {
   /// [NotificationDecoratorType]
   decorators       Json[]
   link             String?
+  /// [MetadataType]
+  metadata         Json?     @default("{}")
   notificationTime DateTime  @default(now()) @map("notification_time") @db.Timestamptz()
   viewedAt         DateTime? @map("viewed_at") @db.Timestamptz()
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
@@ -177,6 +180,23 @@ model Notification {
   @@index([key], type: Hash)
   @@index([type], type: Hash)
   @@map("notifications")
+}
+
+model NotificationPreference {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String
+  channels  String[] // Store as array of strings representing channels (in_app, email, push, mqtt)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@index([type], type: Hash)
+  @@map("notification_preferences")
 }
 
 model UserEmotion {
@@ -517,14 +537,14 @@ model View {
 
 // Add this model for user following relationships
 model UserFollow {
-  id           String   @id @default(uuid())
-  followerId   String   @map("follower_id")
-  followingId  String   @map("following_id")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
   // Relations
-  follower     User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
-  following    User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@index([followerId])

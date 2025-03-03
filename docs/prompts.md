@@ -164,7 +164,7 @@ As Technical Leader, investigate current feature and technical in /src/notificat
 ### Implement the feature
 
 ```plaintext
-As a senior developer, follow the development process you implement tasks XXXX in @sprint-current-tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @sprint-current-tasks.md and @sprint-current-status.md.
+As a senior developer, follow the development process you implement tasks NOT-001.1 to NOT-00.3 in @sprint-current-tasks.md. Follow code style in @technical.md and Technical notes in task. After implementing the feature, update @sprint-current-tasks.md and @sprint-current-status.md.
 ```
 
 Attach files:

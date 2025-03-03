@@ -38,6 +38,7 @@
  *    - Notification grouping for better UX
  *    - Real-time delivery via MQTT
  *    - Support for rich text and decorated content
+ *    - User-configurable notification preferences
  *
  * Database Schema:
  * The module uses the Notification model from Prisma schema with the following key fields:
@@ -48,6 +49,13 @@
  * - text: Notification message
  * - notificationTime: Time when notification should be shown
  * - viewedAt: When the user viewed the notification
+ *
+ * The module also uses the NotificationPreference model with the following key fields:
+ * - id: Unique identifier
+ * - userId: User the preference belongs to
+ * - type: Notification type the preference applies to
+ * - channels: Array of channels to deliver notifications on
+ * - enabled: Whether notifications of this type are enabled
  *
  * Integration Points:
  * - Integrates with EventBus for cross-module communication
@@ -61,12 +69,15 @@ import { BullModule } from '@nestjs/bull';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NotificationController } from './presentation/notification.controller';
+import { NotificationPreferenceController } from './presentation/notification-preference.controller';
 import { NotificationProcessor } from './presentation/notification.processor';
 import { EventSubscriber } from './presentation/handlers/event.subscriber';
 import { NotificationService } from './services/notification.service';
+import { NotificationPreferenceService } from './services/notification-preference.service';
 import { NotificationConsumerService } from './services/notification-consumer.service';
 import { NotificationProducerService } from './services/notification-producer.service';
 import { NotificationRepository } from './repositories/notification.repository';
+import { NotificationPreferenceRepository } from './repositories/notification-preference.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
 
@@ -86,10 +97,11 @@ import moduleConfig from './notification.config';
       },
     ]),
   ],
-  controllers: [NotificationController],
+  controllers: [NotificationController, NotificationPreferenceController],
   providers: [
     // Services
     NotificationService,
+    NotificationPreferenceService,
     NotificationConsumerService,
     NotificationProducerService,
 
@@ -98,7 +110,12 @@ import moduleConfig from './notification.config';
       provide: 'INotificationRepository',
       useClass: NotificationRepository,
     },
+    {
+      provide: 'INotificationPreferenceRepository',
+      useClass: NotificationPreferenceRepository,
+    },
     NotificationRepository,
+    NotificationPreferenceRepository,
     RedlockMutex,
 
     // Event handlers

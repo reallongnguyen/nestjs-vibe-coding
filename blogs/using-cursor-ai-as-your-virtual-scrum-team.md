@@ -215,7 +215,10 @@ This structured approach ensures that even individual developers maintain team-l
 - Breaking down features into tasks
 - Managing the backlog
 
-Check output of Cursor here: <https://github.com/reallongnguyen/base-api-service/pull/76>
+Check output of Cursor here:
+
+- [Sprint planing](https://github.com/reallongnguyen/base-api-service/pull/76)
+- [Task specification enhancement](https://github.com/reallongnguyen/base-api-service/pull/77)
 
 ### Real examples of requirement discussions
 

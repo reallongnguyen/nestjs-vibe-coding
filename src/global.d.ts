@@ -23,5 +23,8 @@ declare global {
       lastViewedAt?: Date;
       lastEngagementAt?: Date;
     };
+    type NotificationMetadataType = {
+      [key: string]: unknown;
+    };
   }
 }
