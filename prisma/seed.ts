@@ -15,40 +15,97 @@ async function createRootUser(authId: string) {
 
 // Seed notification templates
 async function seedNotificationTemplates() {
-  // Check if template already exists
-  const existingTemplate = await prisma.notificationTemplate.findUnique({
-    where: { type: 'likePost' },
+  // Define templates
+  const templates = [
+    {
+      name: 'Like Post Template',
+      type: 'likePost',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã thích bài viết {{ diObject.name }} của bạn{{#if prObject}} trong {{ prObject.name }}{{/if}}',
+        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} liked your post {{ diObject.name }}{{#if prObject}} in {{ prObject.name }}{{/if}}',
+      },
+    },
+    {
+      name: 'Comment Post Template',
+      type: 'commentPost',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã bình luận về bài viết {{ diObject.name }} của bạn',
+        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} commented on your post {{ diObject.name }}',
+      },
+    },
+    {
+      name: 'Mention Template',
+      type: 'mention',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d> đã nhắc đến bạn trong {{ inObject.type }} "{{ inObject.name }}"',
+        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d> mentioned you in a {{ inObject.type }} "{{ inObject.name }}"',
+      },
+    },
+    {
+      name: 'Follow Template',
+      type: 'follow',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã bắt đầu theo dõi bạn',
+        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} started following you',
+      },
+    },
+  ];
+
+  // Get existing templates
+  const existingTemplates = await prisma.notificationTemplate.findMany({
+    where: {
+      type: {
+        in: templates.map((t) => t.type),
+      },
+    },
+    select: {
+      type: true,
+    },
   });
 
-  if (!existingTemplate) {
-    // Create like post template
-    await prisma.notificationTemplate.create({
-      data: {
-        name: 'Like Post Template',
-        type: 'likePost',
-        version: '1.0.0',
-        isActive: true,
-        contents: {
-          create: [
-            {
-              language: 'VI',
-              content:
-                '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã thích bài viết {{ diObject.name }} của bạn{{#if prObject}} trong {{ prObject.name }}{{/if}}',
-            },
-            {
-              language: 'EN',
-              content:
-                '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} liked your post {{ diObject.name }}{{#if prObject}} in {{ prObject.name }}{{/if}}',
-            },
-          ],
+  const existingTypes = new Set(existingTemplates.map((t) => t.type));
+
+  // Create templates that don't exist
+  const templatesToCreate = templates.filter((t) => !existingTypes.has(t.type));
+
+  if (templatesToCreate.length > 0) {
+    const createPromises = templatesToCreate.map((template) =>
+      prisma.notificationTemplate.create({
+        data: {
+          name: template.name,
+          type: template.type,
+          version: template.version,
+          isActive: true,
+          contents: {
+            create: Object.entries(template.contents).map(
+              ([language, content]) => ({
+                language: language as 'EN' | 'VI',
+                content,
+              }),
+            ),
+          },
         },
-      },
+      }),
+    );
+
+    await Promise.all(createPromises);
+
+    templatesToCreate.forEach((template) => {
+      console.log(`✅ Created notification template: ${template.type}`);
+    });
+  }
+
+  templates
+    .filter((t) => existingTypes.has(t.type))
+    .forEach((template) => {
+      console.log(`⏩ Template ${template.type} already exists, skipping`);
     });
 
-    console.log('✅ Notification templates seeded');
-  } else {
-    console.log('⏩ Notification templates already exist, skipping seed');
-  }
+  console.log('✅ Notification templates seeding completed');
 }
 
 async function main() {

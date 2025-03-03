@@ -1,10 +1,11 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as Handlebars from 'handlebars';
 import {
   IEventBus,
   InjectEventBus,
   CreateNotificationTemplateCommand,
   UpdateNotificationTemplateCommand,
+  AppError,
 } from 'src/common';
 import {
   NotificationTemplateCreatedEvent,
@@ -54,7 +55,9 @@ export class NotificationTemplateService {
   async getTemplateById(id: string): Promise<NotificationTemplateDomain> {
     const template = await this.templateRepository.findById(id);
     if (!template) {
-      throw new NotFoundException(`Template with ID ${id} not found`);
+      throw new AppError('notification.template.get.notFound', {
+        id,
+      });
     }
     return template;
   }
@@ -68,7 +71,9 @@ export class NotificationTemplateService {
   async getTemplateByType(type: string): Promise<NotificationTemplateDomain> {
     const template = await this.templateRepository.findByType(type);
     if (!template) {
-      throw new NotFoundException(`Template with type ${type} not found`);
+      throw new AppError('notification.template.get.notFound', {
+        type,
+      });
     }
     return template;
   }
@@ -116,7 +121,7 @@ export class NotificationTemplateService {
 
     // Validate template syntax
     if (!template.validate()) {
-      throw new Error('Invalid template syntax');
+      throw new AppError('notification.template.create.invalidSyntax');
     }
 
     const createdTemplate = await this.templateRepository.create(template);
@@ -166,7 +171,7 @@ export class NotificationTemplateService {
 
     // Validate template syntax
     if (!newTemplate.validate()) {
-      throw new Error('Invalid template syntax');
+      throw new AppError('notification.template.update.invalidSyntax');
     }
 
     const updatedTemplate = await this.templateRepository.create(newTemplate);
@@ -227,9 +232,10 @@ export class NotificationTemplateService {
     const templateContent = template.getContent(language);
 
     if (!templateContent) {
-      throw new NotFoundException(
-        `Template content for type ${type} and language ${language} not found`,
-      );
+      throw new AppError('notification.template.render.notFound', {
+        type,
+        language,
+      });
     }
 
     // Get or compile template
@@ -240,7 +246,11 @@ export class NotificationTemplateService {
         this.templateCache.set(`${type}_${language}`, compiledTemplate);
       } catch (error) {
         this.logger.error(`Error compiling template ${type}: ${error.message}`);
-        throw new Error(`Error compiling template: ${error.message}`);
+        throw new AppError('notification.template.render.compileError', {
+          type,
+          language,
+          error: error.message,
+        });
       }
     }
 
@@ -249,7 +259,11 @@ export class NotificationTemplateService {
       return compiledTemplate(data);
     } catch (error) {
       this.logger.error(`Error rendering template ${type}: ${error.message}`);
-      throw new Error(`Error rendering template: ${error.message}`);
+      throw new AppError('notification.template.render.renderError', {
+        type,
+        language,
+        error: error.message,
+      });
     }
   }
 
@@ -258,9 +272,87 @@ export class NotificationTemplateService {
    * @param type Template type
    */
   private clearTemplateCache(type: string): void {
-    for (const language of Object.values(TemplateLanguage)) {
-      this.templateCache.delete(`${type}_${language}`);
+    // Clear Handlebars template cache
+    for (const key of Array.from(this.templateCache.keys())) {
+      if (key.startsWith(`${type}:`)) {
+        this.templateCache.delete(key);
+      }
     }
+
+    this.logger.log(`Template cache cleared for type: ${type}`);
+  }
+
+  /**
+   * Hot reload a template by type
+   * This will clear the cache and reload the template from the database
+   * @param type Template type
+   * @returns True if reloaded, false if not found
+   */
+  async hotReloadTemplate(type: string): Promise<boolean> {
+    try {
+      // Get the template from the database
+      const template = await this.templateRepository.findByType(type);
+      if (!template) {
+        this.logger.warn(`Template not found for hot reload: ${type}`);
+        return false;
+      }
+
+      // Clear the cache
+      this.clearTemplateCache(type);
+
+      // Precompile templates for each language
+      for (const [language, content] of Object.entries(template.content)) {
+        const cacheKey = `${type}:${language}`;
+        try {
+          this.templateCache.set(cacheKey, Handlebars.compile(content));
+        } catch (error) {
+          this.logger.error(
+            `Failed to compile template ${type} for language ${language}: ${error.message}`,
+          );
+          throw new AppError('notification.template.hotReload.compileError', {
+            type,
+            language,
+            error: error.message,
+          });
+        }
+      }
+
+      this.logger.log(`Template hot reloaded: ${type}`);
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `Failed to hot reload template ${type}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Validate template variables
+   * @param template Template to validate
+   * @param requiredVariables List of required variables
+   * @returns Validation result with missing variables if any
+   */
+  validateTemplateVariables(
+    template: NotificationTemplateDomain,
+    requiredVariables: string[],
+  ): {
+    isValid: boolean;
+    missingVariables?: Record<TemplateLanguage, string[]>;
+  } {
+    // Basic syntax validation
+    if (!template.validate()) {
+      return { isValid: false };
+    }
+
+    // Check for required variables
+    const missingVariables = template.checkRequiredVariables(requiredVariables);
+    const hasAllVariables = Object.keys(missingVariables).length === 0;
+
+    return {
+      isValid: hasAllVariables,
+      missingVariables: hasAllVariables ? undefined : missingVariables,
+    };
   }
 
   /**

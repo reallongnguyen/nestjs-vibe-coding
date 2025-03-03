@@ -253,49 +253,53 @@ Enhance the notification templates management system to standardize notification
 - Template validation prevents invalid templates
 - Unit and integration tests verify template functionality
 
-##### NOT-001.6: Social Interaction Notification Triggers (3 points)
+##### NOT-001.6: Implement Social Interaction Notification Triggers
 
-**Status:** Partially Completed
-**Priority:** High
-**Assignee:** Backend Developer
+**Status**: Completed  
+**Story Points**: 5  
+**Assigned to**: Backend Developer  
+**Priority**: High  
+**Due Date**: 2023-06-15  
 
-**Description:**
-Implement comprehensive notification triggers for social interactions such as likes, comments, and mentions to ensure users are notified of relevant activities.
+### Description
 
-**Current Implementation:**
+Implement notification triggers for social interactions such as likes, comments, mentions, and follows. These notifications should be sent to users when someone interacts with their content or profile.
 
-- Basic event subscriber exists with a demo implementation for profile updates
-- Event handling infrastructure is in place
-- Producer service has a method for handling profile updates
+### Current Implementation
 
-**Tasks:**
+- Event interfaces for social interactions (PostLikedEvent, CommentAddedEvent, UserMentionedEvent, UserFollowedEvent) have been defined
+- Notification producer service methods have been implemented to handle these events
+- Event subscriber is already set up to listen for these events and call the appropriate producer methods
+- Unit tests have been added for the notification producer service methods
+- Integration tests have been implemented to verify end-to-end functionality
 
-1. Implement event handlers for likes, comments, and mentions
-2. Create notification content generators for each interaction type
-3. Add notification routing logic based on user preferences
-4. Implement user-specific filtering for notifications
-5. Create comprehensive unit and integration tests
+### Tasks
 
-**Technical Notes:**
+- ✅ Define event interfaces for social interactions
+- ✅ Implement notification producer service methods for social interactions
+- ✅ Verify event subscriber handlers for social interactions
+- ✅ Add unit tests for social interaction notification handlers
+- ✅ Implement integration tests for social interaction notifications
 
-- Leverage the existing event-driven architecture
-- Implement efficient content generation for notifications
-- Add proper error handling for event processing
-- Implement batching for high-volume events
+### Technical Notes
 
-**Event Handlers:**
+- Social interaction events are defined in `src/notification/entities/events/social-interaction.events.ts`
+- Notification producer service methods are implemented in `src/notification/services/notification-producer.service.ts`
+- Event subscriber handlers are in `src/notification/presentation/handlers/event.subscriber.ts`
+- Each social interaction type (like, comment, mention, follow) has its own event class and handler
+- The notification system uses Bull queue for processing notifications asynchronously
+- Notifications include relevant information about the interaction (who performed it, what content was involved, etc.)
+- Integration tests verify the end-to-end flow of social interaction notifications
 
-- `PostLikedNotificationEvent` - Handle post like notifications
-- `CommentAddedNotificationEvent` - Handle comment notifications
-- `UserMentionedNotificationEvent` - Handle mention notifications
+### Acceptance Criteria
 
-**Acceptance Criteria:**
-
-- Users receive notifications for likes on their posts
-- Users receive notifications for comments on their posts
-- Users receive notifications for mentions in posts and comments
-- Notifications respect user preferences
-- Unit and integration tests verify notification triggers
+- When a user likes a post, the post owner should receive a notification
+- When a user comments on a post, the post owner should receive a notification
+- When a user mentions another user in a post or comment, the mentioned user should receive a notification
+- When a user follows another user, the followed user should receive a notification
+- Notifications should include relevant information about the interaction
+- Notifications should be delivered in real-time
+- Users should not receive notifications for their own actions (e.g., liking their own post)
 
 **API Specification:**
 

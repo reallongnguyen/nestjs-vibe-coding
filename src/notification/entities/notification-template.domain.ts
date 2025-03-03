@@ -82,9 +82,10 @@ export class NotificationTemplateDomain {
   /**
    * Validate the template content for syntax errors
    *
+   * @param requiredVariables Optional array of variable names that must be present in the template
    * @returns True if the template is valid, false otherwise
    */
-  validate(): boolean {
+  validate(requiredVariables?: string[]): boolean {
     // Check if at least one language is defined
     if (Object.keys(this.content).length === 0) {
       return false;
@@ -105,9 +106,67 @@ export class NotificationTemplateDomain {
       if (openDecorators !== closeDecorators) {
         return false;
       }
+
+      // Check for required variables if specified
+      if (requiredVariables && requiredVariables.length > 0) {
+        for (const variable of requiredVariables) {
+          const variablePattern = new RegExp(
+            `{{\\s*${variable}\\s*}}|{{\\s*${variable}\\.`,
+          );
+          if (!variablePattern.test(template)) {
+            return false;
+          }
+        }
+      }
+
+      // Check for malformed Handlebars expressions
+      const handlebarsExpressions = template.match(/{{[^{}]+}}/g) || [];
+      for (const expr of handlebarsExpressions) {
+        // Check for unclosed helpers (e.g., {{#if without {{/if}})
+        if (
+          expr.includes('#') &&
+          !template.includes(`{{/${expr.match(/{{#(\w+)/)?.[1] || ''}}}`)
+        ) {
+          return false;
+        }
+      }
     }
 
     return true;
+  }
+
+  /**
+   * Check if the template has all required variables
+   *
+   * @param variables Array of variable names to check
+   * @returns Object with missing variables for each language
+   */
+  checkRequiredVariables(
+    variables: string[],
+  ): Record<TemplateLanguage, string[]> {
+    const result: Record<TemplateLanguage, string[]> = {} as Record<
+      TemplateLanguage,
+      string[]
+    >;
+
+    for (const [language, template] of Object.entries(this.content)) {
+      const missingVariables: string[] = [];
+
+      for (const variable of variables) {
+        const variablePattern = new RegExp(
+          `{{\\s*${variable}\\s*}}|{{\\s*${variable}\\.`,
+        );
+        if (!variablePattern.test(template)) {
+          missingVariables.push(variable);
+        }
+      }
+
+      if (missingVariables.length > 0) {
+        result[language as TemplateLanguage] = missingVariables;
+      }
+    }
+
+    return result;
   }
 
   /**
