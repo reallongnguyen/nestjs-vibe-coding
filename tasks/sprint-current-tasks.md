@@ -213,19 +213,25 @@ Enhance the notification templates management system to standardize notification
 - Basic template system exists with Handlebars for template rendering
 - Templates are defined in a static object in notification.template.ts
 - Basic decorator system exists for rich text formatting
+- Database schema for templates with I18N support has been implemented
+- Repository layer has been updated to use the database models
+- API endpoints now support I18N for template creation and updates
 
 **Tasks:**
 
-1. Create dynamic template storage system with versioning
-2. Enhance template validation and rendering
-3. Add hot reload capability for template updates
-4. Create admin API endpoints for template management
-5. Implement unit and integration tests
+1. ✅ Create dynamic template storage system with versioning
+2. ✅ Add I18N support for templates
+3. ✅ Update API endpoints to support I18N for template updates
+4. Enhance template validation and rendering
+5. Add hot reload capability for template updates
+6. Create admin API endpoints for template management
+7. Implement unit and integration tests
 
 **Technical Notes:**
 
 - Leverage the existing Handlebars integration
-- Implement database storage for templates instead of static objects
+- ✅ Implement database storage for templates instead of static objects
+- ✅ Support multiple languages in template content
 - Add validation for template syntax and variables
 - Implement caching for frequently used templates
 
@@ -240,7 +246,9 @@ Enhance the notification templates management system to standardize notification
 **Acceptance Criteria:**
 
 - Templates can be created, updated, and deleted by admins
-- Template versioning tracks changes over time
+- ✅ Template versioning tracks changes over time
+- ✅ Templates support multiple languages (I18N)
+- ✅ API endpoints support I18N for template updates
 - Hot reload updates templates without service restart
 - Template validation prevents invalid templates
 - Unit and integration tests verify template functionality

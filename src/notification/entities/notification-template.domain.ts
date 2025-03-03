@@ -8,8 +8,8 @@
  * Supported languages for notification templates
  */
 export enum TemplateLanguage {
-  EN = 'en',
-  VI = 'vi',
+  EN = 'EN',
+  VI = 'VI',
 }
 
 /**

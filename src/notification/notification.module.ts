@@ -68,18 +68,22 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { NotificationController } from './presentation/notification.controller';
 import { NotificationPreferenceController } from './presentation/notification-preference.controller';
+import { NotificationTemplateController } from './presentation/notification-template.controller';
 import { NotificationProcessor } from './presentation/notification.processor';
 import { EventSubscriber } from './presentation/handlers/event.subscriber';
 import { NotificationService } from './services/notification.service';
 import { NotificationPreferenceService } from './services/notification-preference.service';
+import { NotificationTemplateService } from './services/notification-template.service';
 import { NotificationConsumerService } from './services/notification-consumer.service';
 import { NotificationProducerService } from './services/notification-producer.service';
 import { NotificationDeliveryService } from './services/notification-delivery.service';
 import { NotificationMonitoringService } from './services/notification-monitoring.service';
 import { NotificationRepository } from './repositories/notification.repository';
 import { NotificationPreferenceRepository } from './repositories/notification-preference.repository';
+import { NotificationTemplateRepository } from './repositories/notification-template.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
 
@@ -98,12 +102,18 @@ import moduleConfig from './notification.config';
         }),
       },
     ]),
+    EventBusModule,
   ],
-  controllers: [NotificationController, NotificationPreferenceController],
+  controllers: [
+    NotificationController,
+    NotificationPreferenceController,
+    NotificationTemplateController,
+  ],
   providers: [
     // Services
     NotificationService,
     NotificationPreferenceService,
+    NotificationTemplateService,
     NotificationConsumerService,
     NotificationProducerService,
     NotificationDeliveryService,
@@ -118,8 +128,13 @@ import moduleConfig from './notification.config';
       provide: 'INotificationPreferenceRepository',
       useClass: NotificationPreferenceRepository,
     },
+    {
+      provide: 'INotificationTemplateRepository',
+      useClass: NotificationTemplateRepository,
+    },
     NotificationRepository,
     NotificationPreferenceRepository,
+    NotificationTemplateRepository,
     RedlockMutex,
 
     // Event handlers

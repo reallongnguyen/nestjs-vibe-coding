@@ -551,3 +551,40 @@ model UserFollow {
   @@index([followingId])
   @@map("user_follows")
 }
+
+enum TemplateLanguage {
+  EN
+  VI
+
+  @@map("template_language")
+}
+
+model NotificationTemplate {
+  id          String    @id @default(uuid())
+  name        String
+  type        String    @unique
+  version     String
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relation to template contents (for I18N)
+  contents    NotificationTemplateContent[]
+
+  @@map("notification_templates")
+}
+
+model NotificationTemplateContent {
+  id          String           @id @default(uuid())
+  templateId  String           @map("template_id")
+  language    TemplateLanguage
+  content     String           @db.Text
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relation to template
+  template    NotificationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, language])
+  @@map("notification_template_contents")
+}
