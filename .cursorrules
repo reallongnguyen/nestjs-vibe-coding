@@ -223,7 +223,7 @@ As a Product Owner, follow these feature design principles:
 
 - Read data model in `/prisma/schema.prisma`
 - Read business notes in `/docs/business.md`
-- Read status in `/tasks/backlog.md`
+- Read defined tasks in `/tasks/backlog.md`
 
 ### STEP 2: Design the feature
 

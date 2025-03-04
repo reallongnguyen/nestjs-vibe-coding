@@ -121,11 +121,41 @@ export class NotificationTemplateController {
   @Post(':id/hot-reload')
   @RequireAnyRoles(Role.ADMIN, Role.ROOT)
   @ApiOperation({ summary: 'Hot reload a notification template' })
-  @OkResponse(null)
+  @OkResponse(Boolean)
   @ErrorResponse('notification.template.hotReload', notificationErrorMap)
-  async hotReloadTemplate(@Param('id') id: string): Promise<void> {
+  async hotReloadTemplate(
+    @Param('id') id: string,
+  ): Promise<{ success: boolean }> {
     const template = await this.templateService.getTemplateById(id);
-    await this.templateService.hotReloadTemplate(template.type);
+    const success = await this.templateService.hotReloadTemplate(template.type);
+    return { success };
+  }
+
+  @Post('hot-reload-all')
+  @RequireAnyRoles(Role.ADMIN, Role.ROOT)
+  @ApiOperation({ summary: 'Hot reload all notification templates' })
+  @OkResponse(Boolean)
+  @ErrorResponse('notification.template.hotReload', notificationErrorMap)
+  async hotReloadAllTemplates(): Promise<{
+    success: boolean;
+    reloadedCount: number;
+  }> {
+    const templates = await this.templateService.getAllTemplates();
+
+    // Use Promise.all to avoid await in a loop
+    const reloadResults = await Promise.all(
+      templates.map((template) =>
+        this.templateService.hotReloadTemplate(template.type),
+      ),
+    );
+
+    // Count successful reloads
+    const reloadedCount = reloadResults.filter((success) => success).length;
+
+    return {
+      success: reloadedCount > 0,
+      reloadedCount,
+    };
   }
 
   @Post(':id/validate')
@@ -138,10 +168,60 @@ export class NotificationTemplateController {
     @Body() body: ValidateTemplateDto,
   ): Promise<ValidationResultDto> {
     const template = await this.templateService.getTemplateById(id);
-    return this.templateService.validateTemplateVariables(
+
+    // Perform basic syntax validation
+    const syntaxValid = template.validate();
+
+    // Validate required variables if provided
+    const variableValidation = this.templateService.validateTemplateVariables(
       template,
-      body.requiredVariables,
+      body.requiredVariables || [],
     );
+
+    // Test render with sample data if provided
+    const renderResults: Record<
+      string,
+      { success: boolean; result?: string; error?: string }
+    > = {};
+
+    if (body.sampleData && Object.keys(body.sampleData).length > 0) {
+      const languages = Object.keys(template.content);
+
+      // Use Promise.all to avoid await in a loop
+      const renderPromises = languages.map(async (lang) => {
+        try {
+          const rendered = await this.templateService.renderTemplate(
+            template.type,
+            body.sampleData,
+            lang as TemplateLanguage,
+          );
+          return { lang, success: true, result: rendered };
+        } catch (error) {
+          return {
+            lang,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
+        }
+      });
+
+      // Process all render results
+      const results = await Promise.all(renderPromises);
+
+      // Add results to the renderResults object
+      for (const result of results) {
+        const { lang, ...rest } = result;
+        renderResults[lang] = rest;
+      }
+    }
+
+    return {
+      syntaxValid,
+      variablesValid: variableValidation.isValid,
+      missingVariables: variableValidation.missingVariables,
+      renderResults:
+        Object.keys(renderResults).length > 0 ? renderResults : undefined,
+    };
   }
 
   @Post(':id/test-render')
@@ -154,68 +234,59 @@ export class NotificationTemplateController {
     @Body() body: TestRenderTemplateDto,
   ): Promise<TestRenderResultDto> {
     const template = await this.templateService.getTemplateById(id);
-    const result: Record<TemplateLanguage, string> = {} as Record<
-      TemplateLanguage,
-      string
-    >;
+    const results: Record<
+      string,
+      { rendered: string; success: boolean; error?: string }
+    > = {};
 
-    if (body.language) {
-      try {
-        // Render for specific language
-        const rendered = await this.templateService.renderTemplate(
-          template.type,
-          body.data,
-          body.language,
-        );
-        result[body.language] = rendered;
-      } catch (error) {
-        result[body.language] = `Error: ${error.message}`;
-      }
-    } else {
-      // Render for all available languages
-      const languages = Object.keys(template.content) as TemplateLanguage[];
+    // Get languages to render
+    const languages =
+      body.languages && body.languages.length > 0
+        ? body.languages
+        : Object.keys(template.content).map((lang) => lang as TemplateLanguage);
 
-      // Use Promise.all to avoid await in loop
-      const renderPromises = languages.map(async (language) => {
+    // Render for each language
+    await Promise.all(
+      languages.map(async (lang) => {
         try {
-          const rendered = await this.templateService.renderTemplate(
-            template.type,
-            body.data,
-            language,
-          );
-          return { language, rendered };
+          if (template.content[lang]) {
+            const rendered = await this.templateService.renderTemplate(
+              template.type,
+              body.data,
+              lang as TemplateLanguage,
+            );
+            results[lang] = { rendered, success: true };
+          } else {
+            results[lang] = {
+              rendered: '',
+              success: false,
+              error: `Language ${lang} not available in template`,
+            };
+          }
         } catch (error) {
-          return { language, rendered: `Error: ${error.message}` };
+          results[lang] = {
+            rendered: '',
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
         }
-      });
+      }),
+    );
 
-      const renderResults = await Promise.all(renderPromises);
-
-      // Populate the result object
-      for (const { language, rendered } of renderResults) {
-        result[language] = rendered;
-      }
-    }
-
-    return { rendered: result };
+    return {
+      templateId: id,
+      templateType: template.type,
+      results,
+    };
   }
 
   @Get('types')
   @RequireAnyRoles(Role.ADMIN, Role.ROOT)
   @ApiOperation({ summary: 'Get all notification template types' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of template types',
-    schema: {
-      type: 'object',
-      properties: {
-        types: { type: 'array', items: { type: 'string' } },
-      },
-    },
-  })
+  @OkResponse(Object)
   async getTemplateTypes(): Promise<{ types: string[] }> {
     const templates = await this.templateService.getAllTemplates();
-    const types = [...new Set(templates.map((t) => t.type))];
-    return { types };
+    const types = templates.map((template) => template.type);
+    return { types: [...new Set(types)] }; // Return unique types
   }
 }

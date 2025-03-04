@@ -242,46 +242,110 @@ export class NotificationTemplateService {
    * @param type Template type
    * @param data Data to render the template with
    * @param language Language to render the template in
-   * @returns Rendered template string
-   * @throws NotFoundException if template not found
+   * @returns Rendered template
+   * @throws AppError if template not found or rendering fails
    */
   async renderTemplate(
     type: string,
     data: Record<string, any>,
     language: TemplateLanguage = TemplateLanguage.VI,
   ): Promise<string> {
-    const template = await this.getTemplateByType(type);
-    const templateContent = template.getContent(language);
+    try {
+      // Try to get from cache first
+      const cacheKey = `${type}:${language}`;
+      let template = this.templateCache.get(cacheKey);
 
-    if (!templateContent) {
-      throw new AppError('notification.template.render.notFound', {
-        type,
-        language,
-      });
-    }
+      // If not in cache, load from database and compile
+      if (!template) {
+        const templateDomain = await this.templateRepository.findByType(type);
+        if (!templateDomain) {
+          this.logger.error(`Template not found: ${type}`);
+          throw new AppError('notification.template.render.notFound', {
+            type,
+          });
+        }
 
-    // Get or compile template
-    let compiledTemplate = this.templateCache.get(`${type}_${language}`);
-    if (!compiledTemplate) {
+        const templateContent = templateDomain.getContent(language);
+        if (!templateContent) {
+          this.logger.error(
+            `Template content not found for language: ${language}`,
+          );
+
+          // Try to fall back to another language if available
+          const availableLanguages = Object.keys(templateDomain.content);
+          if (availableLanguages.length > 0) {
+            const fallbackLanguage = availableLanguages[0] as TemplateLanguage;
+            this.logger.log(`Falling back to language: ${fallbackLanguage}`);
+
+            const fallbackContent = templateDomain.getContent(fallbackLanguage);
+            if (fallbackContent) {
+              try {
+                template = Handlebars.compile(fallbackContent);
+                this.templateCache.set(cacheKey, template);
+              } catch (compileError) {
+                this.logger.error(
+                  `Error compiling fallback template: ${compileError.message}`,
+                );
+                throw new AppError(
+                  'notification.template.render.compileError',
+                  {
+                    type,
+                    language: fallbackLanguage,
+                  },
+                );
+              }
+            }
+          }
+
+          if (!template) {
+            throw new AppError(
+              'notification.template.render.languageNotFound',
+              {
+                type,
+                language,
+              },
+            );
+          }
+        } else {
+          try {
+            template = Handlebars.compile(templateContent);
+            this.templateCache.set(cacheKey, template);
+          } catch (compileError) {
+            this.logger.error(
+              `Error compiling template: ${compileError.message}`,
+            );
+            throw new AppError('notification.template.render.compileError', {
+              type,
+              language,
+            });
+          }
+        }
+      }
+
+      // Render the template with data
       try {
-        compiledTemplate = Handlebars.compile(templateContent);
-        this.templateCache.set(`${type}_${language}`, compiledTemplate);
-      } catch (error) {
-        this.logger.error(`Error compiling template ${type}: ${error.message}`);
-        throw new AppError('notification.template.render.compileError', {
+        return template(data);
+      } catch (renderError) {
+        this.logger.error(`Error rendering template: ${renderError.message}`);
+
+        // Clear cache in case the template is invalid
+        this.templateCache.delete(cacheKey);
+
+        throw new AppError('notification.template.render.renderError', {
           type,
           language,
-          error: error.message,
+          error: renderError.message,
         });
       }
-    }
-
-    // Render template with data
-    try {
-      return compiledTemplate(data);
     } catch (error) {
-      this.logger.error(`Error rendering template ${type}: ${error.message}`);
-      throw new AppError('notification.template.render.renderError', {
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Unexpected error rendering template: ${error.message}`,
+      );
+      throw new AppError('notification.template.render.unexpectedError', {
         type,
         language,
         error: error.message,
@@ -290,82 +354,108 @@ export class NotificationTemplateService {
   }
 
   /**
-   * Hot reload a notification template
-   * @param type Template type
-   * @returns True if reloaded successfully
-   * @throws AppError if template not found or compilation fails
-   */
-  async hotReloadTemplate(type: string): Promise<boolean> {
-    try {
-      const template = await this.getTemplateByType(type);
-
-      // Clear cache for this template type
-      this.clearTemplateCache(type);
-
-      // Pre-compile templates for all languages to ensure they're valid
-      for (const [language, content] of Object.entries(template.content)) {
-        try {
-          const compiledTemplate = Handlebars.compile(content);
-          this.templateCache.set(`${type}_${language}`, compiledTemplate);
-          this.logger.log(
-            `Successfully reloaded template ${type} for language ${language}`,
-          );
-        } catch (error) {
-          this.logger.error(
-            `Error compiling template ${type} for language ${language}: ${error.message}`,
-          );
-          throw new AppError('notification.template.hotReload.compileError', {
-            type,
-            language,
-          });
-        }
-      }
-
-      return true;
-    } catch (err) {
-      if (err instanceof AppError) {
-        throw err;
-      }
-
-      this.logger.error(`Error hot reloading template ${type}: ${err.message}`);
-      throw new AppError('notification.template.hotReload.notFound', {
-        type,
-      });
-    }
-  }
-
-  /**
-   * Clear template cache for a specific type
-   * @param type Template type
-   */
-  private clearTemplateCache(type: string): void {
-    // Remove all cached templates for this type (all languages)
-    for (const key of Array.from(this.templateCache.keys())) {
-      if (key.startsWith(`${type}_`)) {
-        this.templateCache.delete(key);
-      }
-    }
-  }
-
-  /**
-   * Validate template variables against required variables
+   * Validate a template for syntax errors and required variables
    * @param template Template to validate
-   * @param requiredVariables Array of required variable names
-   * @returns Validation result with missing variables if any
+   * @param requiredVariables Optional array of variable names that must be present in the template
+   * @returns Validation result with detailed information
    */
   validateTemplateVariables(
     template: NotificationTemplateDomain,
     requiredVariables: string[],
   ): { isValid: boolean; missingVariables?: Record<string, string[]> } {
-    const missingVariables = template.checkRequiredVariables(requiredVariables);
+    // Check if template has content
+    if (!template?.content || Object.keys(template.content).length === 0) {
+      return {
+        isValid: false,
+        missingVariables: { general: ['Template content is missing'] },
+      };
+    }
 
-    // If no missing variables in any language, template is valid
-    const isValid = Object.keys(missingVariables).length === 0;
+    // Check for required variables in each language
+    const missingVariables = template.checkRequiredVariables(requiredVariables);
+    const hasAllVariables = Object.keys(missingVariables).length === 0;
+
+    // Validate template syntax
+    const syntaxValid = template.validate();
+
+    if (!syntaxValid) {
+      return {
+        isValid: false,
+        missingVariables: {
+          ...missingVariables,
+          syntax: ['Template contains syntax errors'],
+        },
+      };
+    }
 
     return {
-      isValid,
-      missingVariables: isValid ? undefined : missingVariables,
+      isValid: hasAllVariables && syntaxValid,
+      missingVariables: hasAllVariables ? undefined : missingVariables,
     };
+  }
+
+  /**
+   * Hot reload a template by type
+   * This method clears the template cache and forces a reload from the database
+   * @param type Template type
+   * @returns True if template was reloaded, false otherwise
+   */
+  async hotReloadTemplate(type: string): Promise<boolean> {
+    this.logger.log(`Hot reloading template: ${type}`);
+
+    try {
+      // Clear the template cache
+      this.clearTemplateCache(type);
+
+      // Reload the template from the database
+      const template = await this.templateRepository.findByType(type);
+      if (!template) {
+        this.logger.warn(`Template not found for hot reload: ${type}`);
+        return false;
+      }
+
+      // Pre-compile the template for each language
+      for (const [lang, content] of Object.entries(template.content)) {
+        try {
+          const compiledTemplate = Handlebars.compile(content);
+          const cacheKey = `${type}:${lang}`;
+          this.templateCache.set(cacheKey, compiledTemplate);
+          this.logger.log(`Template reloaded and compiled: ${cacheKey}`);
+        } catch (error) {
+          this.logger.error(
+            `Error compiling template ${type} for language ${lang}:`,
+            error,
+          );
+          // Continue with other languages even if one fails
+        }
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Error hot reloading template ${type}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Clear the template cache for a specific type
+   * @param type Template type
+   */
+  private clearTemplateCache(type: string): void {
+    // Find all cache keys for this template type
+    const keysToRemove: string[] = [];
+
+    this.templateCache.forEach((_, key) => {
+      if (key.startsWith(`${type}:`)) {
+        keysToRemove.push(key);
+      }
+    });
+
+    // Remove all matching keys
+    keysToRemove.forEach((key) => {
+      this.templateCache.delete(key);
+      this.logger.log(`Cleared template cache for: ${key}`);
+    });
   }
 
   /**
@@ -375,7 +465,7 @@ export class NotificationTemplateService {
     // Helper for pluralization
     Handlebars.registerHelper(
       'plural',
-      function (count: number, singular: string, plural: string) {
+      (count: number, singular: string, plural: string) => {
         return count === 1 ? singular : plural;
       },
     );
@@ -383,7 +473,7 @@ export class NotificationTemplateService {
     // Helper for conditional text
     Handlebars.registerHelper(
       'ifCond',
-      function (v1: any, operator: string, v2: any, options: any) {
+      (v1: any, operator: string, v2: any, options: any) => {
         switch (operator) {
           case '==':
             return v1 === v2 ? options.fn(this) : options.inverse(this);
@@ -408,12 +498,12 @@ export class NotificationTemplateService {
     );
 
     // Helper for greater than comparison
-    Handlebars.registerHelper('gt', function (v1, v2) {
+    Handlebars.registerHelper('gt', (v1: number, v2: number) => {
       return v1 > v2;
     });
 
     // Helper for math operations
-    Handlebars.registerHelper('math', function (lvalue, operator, rvalue) {
+    Handlebars.registerHelper('math', (lvalue, operator, rvalue) => {
       const left = parseFloat(lvalue);
       const right = parseFloat(rvalue);
 

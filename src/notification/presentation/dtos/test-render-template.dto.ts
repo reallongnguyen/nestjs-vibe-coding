@@ -1,41 +1,46 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsObject, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsEnum,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TemplateLanguage } from '../../entities/notification-template.domain';
 
 /**
- * DTO for test rendering a notification template
+ * DTO for test rendering a template
  */
 export class TestRenderTemplateDto {
   @ApiProperty({
-    description: 'Data to be used for rendering the template',
+    description: 'Data to render the template with',
     example: {
-      subjects: [
-        {
-          id: '123',
-          name: 'John Doe',
-          avatar: 'https://example.com/avatar.jpg',
-        },
-      ],
-      content: {
-        title: 'My First Post',
-        id: '456',
-      },
+      subjects: [{ id: '1', name: 'John Doe' }],
+      diObject: { id: '2', name: 'Post Title' },
     },
-    type: Object,
   })
   @IsObject()
   data: Record<string, any>;
 
-  @ApiProperty({
-    description:
-      'Optional language to render the template in. If not provided, all available languages will be rendered.',
+  @ApiPropertyOptional({
+    description: 'Specific language to render (optional)',
     enum: TemplateLanguage,
     example: TemplateLanguage.EN,
-    required: false,
   })
-  @IsEnum(TemplateLanguage)
   @IsOptional()
+  @IsEnum(TemplateLanguage)
   language?: TemplateLanguage;
+
+  @ApiPropertyOptional({
+    description: 'Array of languages to render (optional, overrides language)',
+    enum: TemplateLanguage,
+    isArray: true,
+    example: [TemplateLanguage.EN, TemplateLanguage.VI],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(TemplateLanguage, { each: true })
+  languages?: TemplateLanguage[];
 }
 
 /**
@@ -43,12 +48,39 @@ export class TestRenderTemplateDto {
  */
 export class TestRenderResultDto {
   @ApiProperty({
-    description: 'Rendered template content by language',
-    example: {
-      EN: '<d class="font-semibold" type="user">John Doe</d> liked your post',
-      VI: '<d class="font-semibold" type="user">John Doe</d> đã thích bài viết của bạn',
-    },
-    type: Object,
+    description: 'Template ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  rendered: Record<TemplateLanguage, string>;
+  @IsString()
+  templateId: string;
+
+  @ApiProperty({
+    description: 'Template type',
+    example: 'likePost',
+  })
+  @IsString()
+  templateType: string;
+
+  @ApiProperty({
+    description: 'Rendered template by language',
+    example: {
+      EN: {
+        rendered: 'John Doe liked your post',
+        success: true,
+      },
+      VI: {
+        rendered: '',
+        success: false,
+        error: 'Cannot read property "name" of undefined',
+      },
+    },
+  })
+  results: Record<
+    string,
+    {
+      rendered: string;
+      success: boolean;
+      error?: string;
+    }
+  >;
 }
