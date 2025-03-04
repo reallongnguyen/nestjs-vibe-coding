@@ -670,4 +670,23 @@ export class RedisBatchProcessor<T> {
   async add(item: T): Promise<void> {
     // ...
   }
+}
 ```
+
+## Technical Debt
+
+### Social module
+
+- Use social event in common module instead of creating it in social
+- Prevent user like a post multiple time
+- Prevent user unlike a post that he hasn't liked yet
+
+### Notification module
+
+- Combine notification by key
+- Change column name di_object -> direct_object
+- Notification template API may not work
+
+### Identity
+
+- Don't emit profile.updated event if user use upsert account API

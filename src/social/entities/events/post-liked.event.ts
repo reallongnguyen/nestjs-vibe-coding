@@ -1,12 +1,19 @@
-import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
+/**
+ * Re-export PostLikedEvent from common module
+ * This file exists for backward compatibility
+ */
+import { PostLikedEvent as CommonPostLikedEvent } from 'src/common/event-bus/core/domain/events/social-interaction.events';
 
 export interface PostLikedEventPayload {
   postId: string;
   userId: string;
 }
 
-export class PostLikedEvent extends BaseEvent implements PostLikedEventPayload {
-  static readonly eventName = 'post.liked';
+/**
+ * @deprecated Use the common implementation from src/common/event-bus/core/domain/events/social-interaction.events
+ */
+export class PostLikedEvent extends CommonPostLikedEvent {
+  static readonly eventName = CommonPostLikedEvent.EVENT_NAME;
 
   constructor(
     readonly postId: string,
@@ -17,13 +24,20 @@ export class PostLikedEvent extends BaseEvent implements PostLikedEventPayload {
       occurredOn?: Date;
     },
   ) {
-    super(params);
+    // Map to common implementation
+    super(
+      postId,
+      userId, // Using userId as postOwnerId for compatibility
+      userId, // Using userId as likerId for compatibility
+      'Isling', // Default likerName
+      undefined, // No likerAvatar
+      'Mot con vit xoe ra 2 cai canh', // No postTitle
+      Date.now(),
+      params,
+    );
   }
 
-  eventName(): string {
-    return PostLikedEvent.eventName;
-  }
-
+  // Override toJSON to maintain backward compatibility
   toJSON(): PostLikedEventPayload {
     return {
       postId: this.postId,

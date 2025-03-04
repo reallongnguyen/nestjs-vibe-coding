@@ -34,4 +34,5 @@ export class Notification implements NotificationIf {
   viewedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  metadata: Record<string, unknown> | null;
 }

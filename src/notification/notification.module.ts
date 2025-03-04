@@ -38,6 +38,7 @@
  *    - Notification grouping for better UX
  *    - Real-time delivery via MQTT
  *    - Support for rich text and decorated content
+ *    - User-configurable notification preferences
  *
  * Database Schema:
  * The module uses the Notification model from Prisma schema with the following key fields:
@@ -48,6 +49,13 @@
  * - text: Notification message
  * - notificationTime: Time when notification should be shown
  * - viewedAt: When the user viewed the notification
+ *
+ * The module also uses the NotificationPreference model with the following key fields:
+ * - id: Unique identifier
+ * - userId: User the preference belongs to
+ * - type: Notification type the preference applies to
+ * - channels: Array of channels to deliver notifications on
+ * - enabled: Whether notifications of this type are enabled
  *
  * Integration Points:
  * - Integrates with EventBus for cross-module communication
@@ -60,15 +68,25 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { NotificationController } from './presentation/notification.controller';
+import { NotificationPreferenceController } from './presentation/notification-preference.controller';
+import { NotificationTemplateController } from './presentation/notification-template.controller';
 import { NotificationProcessor } from './presentation/notification.processor';
-import { EventSubscriber } from './presentation/handlers/event.subscriber';
+import { NotificationHandler } from './presentation/handlers/notification.handler';
 import { NotificationService } from './services/notification.service';
+import { NotificationPreferenceService } from './services/notification-preference.service';
+import { NotificationTemplateService } from './services/notification-template.service';
 import { NotificationConsumerService } from './services/notification-consumer.service';
 import { NotificationProducerService } from './services/notification-producer.service';
+import { NotificationDeliveryService } from './services/notification-delivery.service';
+import { NotificationMonitoringService } from './services/notification-monitoring.service';
 import { NotificationRepository } from './repositories/notification.repository';
+import { NotificationPreferenceRepository } from './repositories/notification-preference.repository';
+import { NotificationTemplateRepository } from './repositories/notification-template.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
+import { SocialEventHandler } from './presentation/handlers/social-event.handler';
 
 @Module({
   imports: [
@@ -85,24 +103,44 @@ import moduleConfig from './notification.config';
         }),
       },
     ]),
+    EventBusModule,
   ],
-  controllers: [NotificationController],
+  controllers: [
+    NotificationController,
+    NotificationPreferenceController,
+    NotificationTemplateController,
+  ],
   providers: [
     // Services
     NotificationService,
+    NotificationPreferenceService,
+    NotificationTemplateService,
     NotificationConsumerService,
     NotificationProducerService,
+    NotificationDeliveryService,
+    NotificationMonitoringService,
 
     // Repositories
     {
       provide: 'INotificationRepository',
       useClass: NotificationRepository,
     },
+    {
+      provide: 'INotificationPreferenceRepository',
+      useClass: NotificationPreferenceRepository,
+    },
+    {
+      provide: 'INotificationTemplateRepository',
+      useClass: NotificationTemplateRepository,
+    },
     NotificationRepository,
+    NotificationPreferenceRepository,
+    NotificationTemplateRepository,
     RedlockMutex,
 
     // Event handlers
-    EventSubscriber,
+    NotificationHandler,
+    SocialEventHandler,
     NotificationProcessor,
   ],
 })

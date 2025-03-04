@@ -31,6 +31,7 @@ export class NotificationCreateInput
   inObject?: PrismaJson.NotificationObjectType;
   prObject?: PrismaJson.NotificationObjectType;
   link?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export class NotificationListQuery {

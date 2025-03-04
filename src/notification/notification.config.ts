@@ -19,5 +19,13 @@ export default registerAs('notification', () => {
     mqttUrl: process.env.NOTIFICATION_MQTT_URL || 'mqtt://localhost:1883',
     mergeNotificationThreshold:
       parseInt(process.env.NOTIFICATION_MERGE_THRESHOLD, 10) || 1800,
+    maxSubjectsPerNotification:
+      parseInt(process.env.NOTIFICATION_MAX_SUBJECTS, 10) || 10,
+    // Delivery configuration
+    deliveryTimeout:
+      parseInt(process.env.NOTIFICATION_DELIVERY_TIMEOUT, 10) || 5000,
+    maxDeliveryRetries:
+      parseInt(process.env.NOTIFICATION_MAX_DELIVERY_RETRIES, 10) || 3,
+    retryDelayMs: parseInt(process.env.NOTIFICATION_RETRY_DELAY_MS, 10) || 1000,
   };
 });

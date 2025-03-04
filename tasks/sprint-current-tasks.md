@@ -124,43 +124,41 @@ Implement the notification preferences management system to allow users to contr
 - Proper validation and error handling is implemented
 - Unit and integration tests cover all functionality
 
-##### NOT-001.3: Notification Grouping Logic Enhancement (2 points)
+##### NOT-001.3: Notification Grouping Logic Enhancement (3 points)
 
-**Status:** Partially Completed
+**Status:** Completed
 **Priority:** High
-**Assignee:** Backend Developer
+**Assignee:** Dev Team
 
 **Description:**
-Enhance the existing notification grouping logic to efficiently handle high-volume activities and provide a better user experience.
+Enhance the notification grouping logic to improve performance and add more sophisticated grouping strategies based on notification types.
 
 **Current Implementation:**
 
-- Basic grouping logic exists in the NotificationConsumerService
-- Notifications with the same key are merged if they occur within a configurable time threshold
-- Subject lists are combined when merging notifications
+- Basic grouping logic implemented in the consumer service
+- Notifications are grouped based on key and time threshold
+- Enhanced with type-specific grouping strategies
+- Added performance optimizations for finding grouping candidates
+- Implemented maximum subjects per notification to prevent overly large groups
+- Added metadata merging for grouped notifications
 
 **Tasks:**
 
-1. Enhance grouping strategies for different notification types
-2. Improve group processors for handling grouped notifications
-3. Optimize group update mechanisms for real-time updates
-4. Add performance optimizations for high-volume scenarios
-5. Create comprehensive unit and integration tests
-
-**Technical Notes:**
-
-- Leverage the existing mutex implementation for concurrent updates
-- Improve batch processing for group updates
-- Optimize database queries with proper indexing
-- Implement caching strategies for frequently accessed groups
+- ✅ Analyze current notification grouping implementation
+- ✅ Design improved grouping strategies for different notification types
+- ✅ Implement type-specific grouping logic
+- ✅ Add performance optimizations for finding grouping candidates
+- ✅ Implement maximum subjects per notification limit
+- ✅ Add metadata merging for grouped notifications
+- ✅ Update documentation
 
 **Acceptance Criteria:**
 
-- Notifications are properly grouped by type and source
-- Group updates are processed efficiently
-- Performance is optimized for high-volume scenarios
-- Unit and integration tests verify grouping logic
-- Grouping works correctly for social interactions (likes, comments, etc.)
+- ✅ Notifications are grouped based on type-specific strategies
+- ✅ Performance is improved for notification grouping operations
+- ✅ Notification groups have a reasonable maximum size
+- ✅ Metadata is properly merged when notifications are grouped
+- ✅ Code follows established patterns and is well-documented
 
 ##### NOT-001.4: Real-time Notification Delivery Enhancement (2 points)
 
@@ -215,19 +213,25 @@ Enhance the notification templates management system to standardize notification
 - Basic template system exists with Handlebars for template rendering
 - Templates are defined in a static object in notification.template.ts
 - Basic decorator system exists for rich text formatting
+- Database schema for templates with I18N support has been implemented
+- Repository layer has been updated to use the database models
+- API endpoints now support I18N for template creation and updates
 
 **Tasks:**
 
-1. Create dynamic template storage system with versioning
-2. Enhance template validation and rendering
-3. Add hot reload capability for template updates
-4. Create admin API endpoints for template management
-5. Implement unit and integration tests
+1. ✅ Create dynamic template storage system with versioning
+2. ✅ Add I18N support for templates
+3. ✅ Update API endpoints to support I18N for template updates
+4. Enhance template validation and rendering
+5. Add hot reload capability for template updates
+6. Create admin API endpoints for template management
+7. Implement unit and integration tests
 
 **Technical Notes:**
 
 - Leverage the existing Handlebars integration
-- Implement database storage for templates instead of static objects
+- ✅ Implement database storage for templates instead of static objects
+- ✅ Support multiple languages in template content
 - Add validation for template syntax and variables
 - Implement caching for frequently used templates
 
@@ -242,54 +246,60 @@ Enhance the notification templates management system to standardize notification
 **Acceptance Criteria:**
 
 - Templates can be created, updated, and deleted by admins
-- Template versioning tracks changes over time
+- ✅ Template versioning tracks changes over time
+- ✅ Templates support multiple languages (I18N)
+- ✅ API endpoints support I18N for template updates
 - Hot reload updates templates without service restart
 - Template validation prevents invalid templates
 - Unit and integration tests verify template functionality
 
-##### NOT-001.6: Social Interaction Notification Triggers (3 points)
+##### NOT-001.6: Implement Social Interaction Notification Triggers
 
-**Status:** Partially Completed
-**Priority:** High
-**Assignee:** Backend Developer
+**Status**: Completed  
+**Story Points**: 5  
+**Assigned to**: Backend Developer  
+**Priority**: High  
+**Due Date**: 2023-06-15  
 
-**Description:**
-Implement comprehensive notification triggers for social interactions such as likes, comments, and mentions to ensure users are notified of relevant activities.
+### Description
 
-**Current Implementation:**
+Implement notification triggers for social interactions such as likes, comments, mentions, and follows. These notifications should be sent to users when someone interacts with their content or profile.
 
-- Basic event subscriber exists with a demo implementation for profile updates
-- Event handling infrastructure is in place
-- Producer service has a method for handling profile updates
+### Current Implementation
 
-**Tasks:**
+- Event interfaces for social interactions (PostLikedEvent, CommentAddedEvent, UserMentionedEvent, UserFollowedEvent) have been defined
+- Notification producer service methods have been implemented to handle these events
+- Event subscriber is already set up to listen for these events and call the appropriate producer methods
+- Unit tests have been added for the notification producer service methods
+- Integration tests have been implemented to verify end-to-end functionality
 
-1. Implement event handlers for likes, comments, and mentions
-2. Create notification content generators for each interaction type
-3. Add notification routing logic based on user preferences
-4. Implement user-specific filtering for notifications
-5. Create comprehensive unit and integration tests
+### Tasks
 
-**Technical Notes:**
+- ✅ Define event interfaces for social interactions
+- ✅ Implement notification producer service methods for social interactions
+- ✅ Verify event subscriber handlers for social interactions
+- ✅ Add unit tests for social interaction notification handlers
+- ✅ Implement integration tests for social interaction notifications
 
-- Leverage the existing event-driven architecture
-- Implement efficient content generation for notifications
-- Add proper error handling for event processing
-- Implement batching for high-volume events
+### Technical Notes
 
-**Event Handlers:**
+- Social interaction events are defined in `src/notification/entities/events/social-interaction.events.ts`
+- Notification producer service methods are implemented in `src/notification/services/notification-producer.service.ts`
+- Event subscriber handlers are in `src/notification/presentation/handlers/event.subscriber.ts`
+- Each social interaction type (like, comment, mention, follow) has its own event class and handler
+- The notification system uses Bull queue for processing notifications asynchronously
+- Notifications include relevant information about the interaction (who performed it, what content was involved, etc.)
+- Integration tests verify the end-to-end flow of social interaction notifications
 
-- `PostLikedNotificationEvent` - Handle post like notifications
-- `CommentAddedNotificationEvent` - Handle comment notifications
-- `UserMentionedNotificationEvent` - Handle mention notifications
+### Acceptance Criteria
 
-**Acceptance Criteria:**
-
-- Users receive notifications for likes on their posts
-- Users receive notifications for comments on their posts
-- Users receive notifications for mentions in posts and comments
-- Notifications respect user preferences
-- Unit and integration tests verify notification triggers
+- When a user likes a post, the post owner should receive a notification
+- When a user comments on a post, the post owner should receive a notification
+- When a user mentions another user in a post or comment, the mentioned user should receive a notification
+- When a user follows another user, the followed user should receive a notification
+- Notifications should include relevant information about the interaction
+- Notifications should be delivered in real-time
+- Users should not receive notifications for their own actions (e.g., liking their own post)
 
 **API Specification:**
 

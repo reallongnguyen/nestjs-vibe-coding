@@ -80,6 +80,7 @@ export interface CreateNotificationTemplateCommand {
   name: string;
   type: string;
   template: string;
+  templateContent?: Record<string, string>;
   version: string;
   description?: string;
 }
@@ -90,6 +91,7 @@ export interface CreateNotificationTemplateCommand {
 export interface UpdateNotificationTemplateCommand {
   templateId: string;
   template: string;
+  templateContent?: Record<string, string>;
   version: string;
   description?: string;
 }

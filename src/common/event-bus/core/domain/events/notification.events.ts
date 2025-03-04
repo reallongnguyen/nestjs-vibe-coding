@@ -155,3 +155,83 @@ export class NotificationDeliveryFailedEvent extends BaseEvent {
     };
   }
 }
+
+/**
+ * Event emitted when a notification template is created
+ */
+export class NotificationTemplateCreatedEvent extends BaseEvent {
+  constructor(
+    public readonly templateId: string,
+    public readonly type: string,
+    public readonly name: string,
+    public readonly version: string,
+    public readonly metadata?: Record<string, unknown>,
+  ) {
+    super({ metadata });
+  }
+
+  eventName(): string {
+    return 'notification.template.created';
+  }
+
+  toJSON(): unknown {
+    return {
+      templateId: this.templateId,
+      type: this.type,
+      name: this.name,
+      version: this.version,
+    };
+  }
+}
+
+/**
+ * Event emitted when a notification template is updated
+ */
+export class NotificationTemplateUpdatedEvent extends BaseEvent {
+  constructor(
+    public readonly templateId: string,
+    public readonly type: string,
+    public readonly name: string,
+    public readonly version: string,
+    public readonly metadata?: Record<string, unknown>,
+  ) {
+    super({ metadata });
+  }
+
+  eventName(): string {
+    return 'notification.template.updated';
+  }
+
+  toJSON(): unknown {
+    return {
+      templateId: this.templateId,
+      type: this.type,
+      name: this.name,
+      version: this.version,
+    };
+  }
+}
+
+/**
+ * Event emitted when a notification template is deleted
+ */
+export class NotificationTemplateDeletedEvent extends BaseEvent {
+  constructor(
+    public readonly templateId: string,
+    public readonly type: string,
+    public readonly metadata?: Record<string, unknown>,
+  ) {
+    super({ metadata });
+  }
+
+  eventName(): string {
+    return 'notification.template.deleted';
+  }
+
+  toJSON(): unknown {
+    return {
+      templateId: this.templateId,
+      type: this.type,
+    };
+  }
+}

@@ -6,9 +6,9 @@ Create `.cursorrules` first
 
 ```plaintext
 Analyze source code of this frontend project
-- write folder structure to @folder-structure.md 
-- write business to @business.md 
-- write technical to @technical.md 
+- write folder structure to @folder-structure.md
+- write business to @business.md
+- write technical to @technical.md
 ```
 
 ## Application scope
@@ -139,10 +139,11 @@ Let create short note as technical blog in @image-proxy.md then design infrastur
 
 ```plaintext
 As a Technical Leader
-- design API specification and Event Interface, Command Interface for each tasks in @sprint-current-tasks.md. Follow API style in identity module @user.controller.ts, @user.input.ts, @user.output.ts.
-- Design Event, Command Interface in common module.
-then update design to task description.
+- design API Input and Output if need if need for each tasks in @sprint-current-tasks.md. Follow API style in social module.
+- Review Technical notes. Keep in mind this system is microservice ready
+- Check if database schema in @schema.prisma and system architecture align with requirement
 
+Once you completed update task description.
 Do not implement code.
 ```
 
@@ -164,7 +165,8 @@ As Technical Leader, investigate current feature and technical in /src/notificat
 ### Implement the feature
 
 ```plaintext
-As a senior developer, follow the development process you implement tasks XXXX in @sprint-current-tasks.md. Follow code style in @technical.md and `/src/social`. After implementing the feature, update @sprint-current-tasks.md and @sprint-current-status.md.
+As a senior developer, follow the Implementation process let implement tasks NOT-001.1 to NOT-00.3 in @sprint-current-tasks.md. Follow code style in social module.
+After implementing the feature, update @sprint-current-tasks.md and @sprint-current-status.md.
 ```
 
 Attach files:
