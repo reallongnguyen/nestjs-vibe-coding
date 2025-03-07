@@ -363,3 +363,112 @@ Implement short-term improvements to enhance event system type safety, validatio
 - Documentation:
   - Technical: Update event-system.md
   - Examples: Add code samples
+
+### INF-002: Implement imgproxy Monitoring Dashboard
+
+**Quick Start**:
+
+- Similar Feature: Existing Grafana dashboards for other services
+- Example Test: N/A
+- Key Files:
+  - infra/grafana/dashboards/imgproxy.json
+  - infra/prometheus/imgproxy.rules.yml
+- Setup Steps:
+  1. Enable Prometheus metrics in imgproxy
+  2. Configure Prometheus scraping
+  3. Create Grafana dashboard
+  4. Set up alerting rules
+
+**Priority**: Medium
+**Dependencies**: INF-001
+**Story Points**: 3
+
+**Description**:
+Create a comprehensive monitoring dashboard for imgproxy service to track performance metrics, resource usage, and system health. This will help in proactive monitoring and troubleshooting of the image processing service.
+
+**Context**:
+
+- Feature Goal: Establish robust monitoring for imgproxy service
+- Similar Features: Existing service monitoring dashboards
+- Code Patterns: Prometheus metrics, Grafana dashboard JSON
+- Common Pitfalls:
+  - Missing critical metrics
+  - Inefficient metric collection
+  - Alert fatigue from improper thresholds
+  - Dashboard performance issues
+
+**Implementation Guide**:
+
+- Architecture Pattern: Prometheus + Grafana
+- Performance Requirements:
+  - Metric collection interval: 15s
+  - Dashboard refresh rate: 1m
+  - Metric retention: 15 days
+  - Alert notification latency < 1m
+
+**Tasks**:
+
+1. Configure imgproxy metrics exposure
+   - Enable Prometheus metrics endpoint
+   - Configure metric labels
+   - Set up metric collection interval
+2. Set up Prometheus scraping
+   - Add scrape configuration
+   - Configure target labels
+   - Set up service discovery
+3. Create Grafana dashboard
+   - System metrics (CPU, Memory, Network)
+   - Application metrics (Request rate, Latency, Cache hits)
+   - Error rates and types
+   - Resource utilization
+4. Configure alerting rules
+   - High error rate alerts
+   - Resource utilization alerts
+   - Service health alerts
+   - Performance degradation alerts
+
+**Technical Notes**:
+
+- Use official imgproxy Prometheus metrics
+- Follow Grafana dashboard best practices
+- Implement proper alert thresholds
+- Consider metric cardinality
+
+**Quality Checklist**:
+
+- [ ] Metrics endpoint configured and accessible
+- [ ] Prometheus scraping configured correctly
+- [ ] Dashboard provides comprehensive view
+- [ ] Alerting rules are properly configured
+- [ ] Documentation is complete
+
+**Acceptance Criteria**:
+
+- Metrics are being collected correctly
+- Dashboard shows all critical metrics
+- Alerts are firing appropriately
+- Documentation is complete and accurate
+- Dashboard performs efficiently
+
+**Required Metrics**:
+
+1. System Metrics:
+   - CPU Usage
+   - Memory Usage
+   - Network I/O
+   - Disk I/O
+2. Application Metrics:
+   - Request Rate
+   - Error Rate
+   - Response Time (p50, p95, p99)
+   - Cache Hit/Miss Rate
+3. Processing Metrics:
+   - Image Processing Time
+   - Image Size Distribution
+   - Format Distribution
+   - Transformation Types
+4. Resource Metrics:
+   - GCS Operations
+   - Connection Pool Status
+   - Queue Length
+   - Worker Status

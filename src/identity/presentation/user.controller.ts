@@ -26,8 +26,12 @@ import {
   PaginatedResponse,
   RestExceptionFilter,
 } from 'src/common';
-
+import {
+  ImageSize,
+  ImageUrlService,
+} from 'src/common/img-proxy/services/image-url.service';
 import { InjectEventBus, IEventBus } from 'src/common/event-bus';
+import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin';
 
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from './dtos/user.input';
@@ -65,6 +69,7 @@ export class UserController {
     @InjectEventBus()
     eventBus: IEventBus,
     userActivityRepository: UserActivityRepository,
+    private readonly imageUrlService: ImageUrlService,
   ) {
     this.userService = new UserService(
       logger,
@@ -108,7 +113,21 @@ export class UserController {
   ): Promise<Collection<UserDto>> {
     const userCollection = await this.userService.searchUsers(filters);
 
-    return Collection.transform(userCollection, UserDto.fromApplication);
+    const dtoCollection = Collection.transform(
+      userCollection,
+      UserDto.fromApplication,
+    );
+
+    const collectionWithUrls = await withImageUrlMap(this.imageUrlService)(
+      dtoCollection,
+      {
+        width: ImageSize.SMALL,
+        height: ImageSize.SMALL,
+        resizeType: 'fill',
+      },
+    );
+
+    return collectionWithUrls;
   }
 
   @Post('/bulk')
@@ -133,7 +152,14 @@ export class UserController {
   async getUser(@Param('id') userId: string): Promise<UserDto> {
     const user = await this.userService.getUserById(userId);
 
-    return UserDto.fromApplication(user);
+    return withImageUrlMap(this.imageUrlService)(
+      UserDto.fromApplication(user),
+      {
+        width: ImageSize.MEDIUM,
+        height: ImageSize.MEDIUM,
+        resizeType: 'fill',
+      },
+    );
   }
 
   @Get('/:id/activity')

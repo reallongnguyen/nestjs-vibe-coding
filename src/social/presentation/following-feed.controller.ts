@@ -10,6 +10,12 @@ import {
   AuthContextUser,
   OkResponse,
 } from 'src/common';
+import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin';
+import {
+  ImageSize,
+  ImageUrlService,
+} from 'src/common/img-proxy/services/image-url.service';
+
 import { FollowingFeedService } from '../services/following-feed.service';
 import { ContentDto } from './dtos/content.dto';
 import { socialErrorMap } from '../entities/social-error.map';
@@ -23,7 +29,10 @@ import { socialErrorMap } from '../entities/social-error.map';
 @UseFilters(new RestExceptionFilter(socialErrorMap))
 @ErrorResponse('common', socialErrorMap)
 export class FollowingFeedController {
-  constructor(private readonly followingFeedService: FollowingFeedService) {}
+  constructor(
+    private readonly followingFeedService: FollowingFeedService,
+    private readonly imageUrlService: ImageUrlService,
+  ) {}
 
   @Get('following')
   @ApiOperation({ summary: 'Get feed of content from followed users' })
@@ -39,10 +48,17 @@ export class FollowingFeedController {
     @Query() pagination: PaginationQueryDto,
     @Query('sortBy') sortBy?: string,
   ): Promise<Collection<ContentDto>> {
-    return this.followingFeedService.getFollowingFeed(
+    const collection = await this.followingFeedService.getFollowingFeed(
       userId,
       pagination,
       sortBy,
     );
+
+    return withImageUrlMap(this.imageUrlService)(collection, {
+      width: ImageSize.CONTENT_XL,
+      height: ImageSize.CONTENT_XL,
+      resizeType: 'fill',
+      generateThumbnail: true,
+    });
   }
 }

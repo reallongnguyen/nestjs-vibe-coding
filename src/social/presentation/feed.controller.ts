@@ -9,6 +9,11 @@ import {
   OptionalAuthContext,
   AuthCtx,
 } from 'src/common';
+import {
+  ImageSize,
+  ImageUrlService,
+} from 'src/common/img-proxy/services/image-url.service';
+import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin';
 
 import { FeedService } from '../services/feed.service';
 import { GetFeedFiltersDto } from './dtos/get-feed-filters.dto';
@@ -28,7 +33,10 @@ const REST_CONFIG = {
 @ApiTags('feeds')
 @ErrorResponse('common', feedErrorMap)
 export class FeedController {
-  constructor(private readonly feedService: FeedService) {}
+  constructor(
+    private readonly feedService: FeedService,
+    private readonly imageUrlService: ImageUrlService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get user feed' })
@@ -44,10 +52,17 @@ export class FeedController {
       limit: filters.limit || 16,
     });
 
-    return new Collection(items.map(FeedItemDto.fromApplication), {
+    const collection = new Collection(items.map(FeedItemDto.fromApplication), {
       limit: filters.limit || 16,
       offset: filters.offset || 0,
       total,
+    });
+
+    return withImageUrlMap(this.imageUrlService)(collection, {
+      width: ImageSize.CONTENT_XL,
+      height: ImageSize.CONTENT_XL,
+      resizeType: 'fill',
+      generateThumbnail: true,
     });
   }
 }

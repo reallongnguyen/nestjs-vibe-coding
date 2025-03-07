@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigService, ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { RedisClientOptions } from 'redis';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -11,6 +11,7 @@ import { AppConfigModule } from './configuration/config.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ImgProxyModule } from './img-proxy/img-proxy.module';
 
 @Module({
   imports: [
@@ -35,6 +36,8 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     HealthModule,
     PrismaModule,
+    ConfigModule,
+    ImgProxyModule,
   ],
 })
 export class CommonModule {}

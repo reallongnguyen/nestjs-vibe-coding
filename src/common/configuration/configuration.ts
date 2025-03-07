@@ -21,4 +21,9 @@ export default () => ({
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379/0',
   },
+  imageProxy: {
+    url: process.env.IMGPROXY_URL || '',
+    key: process.env.IMGPROXY_KEY || '',
+    salt: process.env.IMGPROXY_SALT || '',
+  },
 });

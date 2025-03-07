@@ -19,8 +19,12 @@ import {
   OkResponse,
   RestExceptionFilter,
 } from 'src/common';
-
+import {
+  ImageSize,
+  ImageUrlService,
+} from 'src/common/img-proxy/services/image-url.service';
 import { InjectEventBus, IEventBus } from 'src/common/event-bus';
+import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin';
 
 import { UserService } from '../services/user.service';
 import { PatchProfileDto } from './dtos/profile.input';
@@ -52,6 +56,7 @@ export class UserProfileController {
     @InjectEventBus()
     eventBus: IEventBus,
     userActivityRepository: UserActivityRepository,
+    private readonly imageUrlService: ImageUrlService,
   ) {
     this.userService = new UserService(
       logger,
@@ -69,7 +74,16 @@ export class UserProfileController {
   async get(@AuthContextUser() user: User): Promise<ProfileDto> {
     const profile = await this.userService.getProfile(user.id);
 
-    return ProfileDto.fromApplication(profile);
+    return withImageUrlMap(this.imageUrlService)(
+      ProfileDto.fromApplication(profile),
+      {
+        width: ImageSize.MEDIUM,
+        height: ImageSize.MEDIUM,
+        resizeType: 'fill',
+        generateThumbnail: true,
+        thumbnailSize: ImageSize.SMALL,
+      },
+    );
   }
 
   @Patch('/')
