@@ -7,7 +7,7 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
+import { PaginationQueryDto } from '../../../common/presentation/dtos/pagination-query.dto';
 
 export enum DraftPostSortField {
   CREATED_AT = 'createdAt',

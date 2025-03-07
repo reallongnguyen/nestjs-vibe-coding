@@ -173,6 +173,36 @@ interface EmotionUnlikedSchema {
 }
 
 /**
+ * Schema for like events
+ */
+interface LikeEventSchema {
+  actorId: string;
+  contentType: 'POST' | 'EMOTION';
+  contentId: string;
+  targetUserId: string;
+}
+
+/**
+ * Schema for comment events
+ */
+interface CommentEventSchema {
+  actorId: string;
+  contentType: 'POST' | 'EMOTION';
+  contentId: string;
+  commentId: string;
+  targetUserId: string;
+  preview?: string;
+}
+
+/**
+ * Schema for follow events
+ */
+interface FollowEventSchema {
+  followerId: string;
+  followingId: string;
+}
+
+/**
  * All social related event schemas
  */
 export const SocialEventSchemas = {
@@ -279,4 +309,52 @@ export const SocialEventSchemas = {
     module: 'social',
     description: 'Emitted when a user unlikes an emotion',
   } as EventSchema<EmotionUnlikedSchema>,
+
+  LIKE_CREATED: {
+    eventName: 'social.like.created',
+    schema: {} as LikeEventSchema,
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user likes content',
+  } as EventSchema<LikeEventSchema>,
+
+  LIKE_DELETED: {
+    eventName: 'social.like.deleted',
+    schema: {} as LikeEventSchema,
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user unlikes content',
+  } as EventSchema<LikeEventSchema>,
+
+  COMMENT_CREATED: {
+    eventName: 'social.comment.created',
+    schema: {} as CommentEventSchema,
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user comments on content',
+  } as EventSchema<CommentEventSchema>,
+
+  COMMENT_REPLIED: {
+    eventName: 'social.comment.replied',
+    schema: {} as CommentEventSchema,
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user replies to a comment',
+  } as EventSchema<CommentEventSchema>,
+
+  FOLLOW_CREATED: {
+    eventName: 'social.follow.created',
+    schema: {} as FollowEventSchema,
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user follows another user',
+  } as EventSchema<FollowEventSchema>,
+
+  FOLLOW_DELETED: {
+    eventName: 'social.follow.deleted',
+    schema: {} as FollowEventSchema,
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user unfollows another user',
+  } as EventSchema<FollowEventSchema>,
 } as const;

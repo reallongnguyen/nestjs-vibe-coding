@@ -1,11 +1,11 @@
 import { v7 as uuidv7 } from 'uuid';
-import { EventBusMessage, EventMetadata, EventSchema } from './event.interface';
+import { EventMetadata, EventSchema } from './event.interface';
 
 /**
  * Base event class that all domain events must extend
  * Implements both event-driven and message-driven patterns
  */
-export abstract class BaseEvent<T = unknown> implements EventBusMessage<T> {
+export abstract class BaseEvent<T = unknown> {
   /**
    * Unique identifier for this event instance
    */

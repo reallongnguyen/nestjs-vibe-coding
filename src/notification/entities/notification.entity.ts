@@ -24,15 +24,18 @@ export class Notification implements NotificationIf {
   userId: string;
   subjects: NotificationObject[];
   subjectCount: number;
-  diObject: NotificationObject;
-  inObject: NotificationObject;
-  prObject: NotificationObject;
+  diObject: NotificationObject | null;
+  inObject: NotificationObject | null;
+  prObject: NotificationObject | null;
   text: string;
   decorators: NotificationDecorator[];
-  link: string;
+  link: string | null;
+  metadata: Record<string, unknown> | null;
   notificationTime: Date;
-  viewedAt: Date;
+  viewedAt: Date | null;
+  groupKey: string | null;
+  groupCount: number;
+  lastEventId: string | null;
   createdAt: Date;
   updatedAt: Date;
-  metadata: Record<string, unknown> | null;
 }

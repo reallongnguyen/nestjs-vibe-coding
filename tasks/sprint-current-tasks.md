@@ -316,6 +316,127 @@ Implement notifications for post comments and replies with content preview and d
 4. Mentions are detected and handled
 5. System handles high volume efficiently
 
+### NOT-003.4: Implement Redis Counter Service
+
+**Metadata**:
+  Type: Technical
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 3
+  Sprint: 007
+
+**Time Tracking**:
+  Estimated Hours: 12
+  Start Date: 2024-03-22
+  Due Date: 2024-03-25
+
+**Status**:
+  State: In Progress
+  Phase: Development
+  Labels: [Backend, Redis]
+
+**Quick Start**:
+  Similar Feature: src/social/services/feed-cache.service.ts
+  Example Test: src/social/services/**tests**/feed-cache.service.spec.ts
+  Key Files:
+    - src/notification/services/notification-counter.service.ts
+    - src/notification/services/**tests**/notification-counter.service.spec.ts
+  Setup Steps:
+    1. Review Redis configuration
+    2. Set up test Redis instance
+    3. Implement counter service
+    4. Add unit tests
+
+**Dependencies**:
+  Blocks: NOT-003.5
+  Blocked By: None
+  Related: NOT-003.TEST.1
+
+**Description**:
+Implement a Redis-based counter service for tracking notification-related metrics and detecting milestones. This service will be used to track various counters like likes, comments, and views, with support for atomic operations and expiration.
+
+**Context**:
+  Feature Goal: Track notification metrics efficiently using Redis
+  Similar Features: Feed cache service in social module
+  Code Patterns: Redis atomic operations, key expiration
+  Common Pitfalls:
+    - Race conditions in counter updates
+    - Key expiration management
+    - Memory usage optimization
+    - Error handling for Redis failures
+
+**Implementation Guide**:
+  Architecture Pattern: Repository pattern with Redis
+  Code Style: Follow notification module patterns
+  Performance Requirements:
+    - Counter operations < 10ms
+    - Memory usage < 100MB
+    - Atomic operations for accuracy
+
+**Tasks**:
+
+1. [ ] Create NotificationCounterService
+   - Implement increment/decrement operations
+   - Add atomic counter operations
+   - Implement key expiration
+   - Add error handling
+2. [ ] Add unit tests
+   - Test counter operations
+   - Test expiration handling
+   - Test error scenarios
+   - Test concurrent operations
+3. [ ] Add integration tests
+   - Test with Redis instance
+   - Test milestone detection
+   - Test performance requirements
+4. [ ] Add documentation
+   - API documentation
+   - Usage examples
+   - Performance considerations
+
+**Technical Notes**:
+
+- Use Redis MULTI for atomic operations
+- Implement proper key namespacing
+- Add retry mechanism for Redis operations
+- Consider memory usage patterns
+- Implement proper cleanup for expired keys
+
+**Quality Checklist**:
+
+- [ ] Counter operations are atomic
+- [ ] Error handling is comprehensive
+- [ ] Tests cover edge cases
+- [ ] Documentation is complete
+- [ ] Performance requirements are met
+
+**Acceptance Criteria**:
+
+1. Counter operations work correctly
+   - Increment/decrement are atomic
+   - Values are persisted correctly
+   - Expiration works as expected
+2. Milestone detection is accurate
+   - Thresholds are detected correctly
+   - No false positives/negatives
+   - Events are emitted properly
+3. Error handling is robust
+   - Redis failures are handled
+   - Retries work correctly
+   - Error reporting is clear
+4. Performance meets requirements
+   - Operations complete in < 10ms
+   - Memory usage is optimized
+   - No memory leaks
+
+**Notes**:
+
+- Consider implementing a cleanup job for expired keys
+- Add monitoring for counter operations
+- Document key naming conventions
+- Consider implementing a backup strategy
+
 ### INF-002: Implement imgproxy Monitoring
 
 **Metadata**:

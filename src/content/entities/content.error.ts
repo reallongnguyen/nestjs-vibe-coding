@@ -1,4 +1,4 @@
-import { AppError } from 'src/common/models';
+import { AppError } from '../../common/models';
 
 export class TopicNotFoundError extends AppError {
   constructor(topicIds: string[]) {

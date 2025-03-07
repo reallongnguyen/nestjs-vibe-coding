@@ -46,7 +46,7 @@ Follow task feature design process.
 
 ## Backend workflow
 
-### Design the feature and Create Task specification
+## Feature design and Task specification
 
 ```plaintext
 As a Product Owner, design follow feature between user follow Feature design process. This feature use in notification and content distribution feature.
@@ -132,7 +132,7 @@ Hey Technical Leader, please review the tasks in @backlog.md. List any tasks whe
 If you find any such tasks, please request the Product Owner and Solution Architect to revise the task descriptions.
 ```
 
-### Technical design
+## Technical design
 
 ```plaintext
 Hey Product Owner, let's review the tasks in @sprint-current-tasks.md. Please confirm if the task descriptions are up to date. After your confirmation, we'll ask the Solution Architect and Technical Lead to start designing these tasks:
@@ -186,6 +186,12 @@ Do we need to refactor anything?
 
 ## Code implementation
 
+### Preparation
+
+```plaintext
+hey scrum master, let ask developer implement NOT-003.1. Remind him follow implement process.
+```
+
 ### Implement the feature
 
 ```plaintext
@@ -225,6 +231,19 @@ Attach files:
 - `/docs/module-structure.md`
 - `/prisma/schema.prisma`
 - `/docs/architecture.mermaid`
+
+### Review code & review task goal
+
+```plaintext
+hey technical leader, let review code in this task
+confirm if we met this task goal
+```
+
+## Test
+
+```plaintext
+hey scrum master, ask senior tester start test this ticket by create end to end automation test. Before starting test, ask product owner transfer to she task requirement.
+```
 
 ## Sprint Review
 

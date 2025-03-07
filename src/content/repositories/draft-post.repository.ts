@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { BaseRepository } from 'src/common/repositories/base.repository';
-import { Collection } from 'src/common/models';
 import { Prisma } from '@prisma/client';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { BaseRepository } from '../../common/repositories/base.repository';
+import { Collection } from '../../common/models';
 import { DraftPost } from '../entities/draft-post.entity';
 import { PublishedPost } from '../entities/published-post.entity';
 import { IDraftPostRepository } from '../services/interfaces/draft-post.repository.interface';

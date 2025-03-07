@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { PrismaService } from 'src/common/prisma/prisma.service';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import { PrismaService } from '../../../common/prisma/prisma.service';
 import { DraftPostRepository } from '../draft-post.repository';
 import { CreateDraftPostData } from '../../services/dtos/create-daft-post.dto';
 
