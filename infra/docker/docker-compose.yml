@@ -212,6 +212,10 @@ services:
       MUTEX_REDIS2_PORT: 6379
       MUTEX_REDIS3_HOST: api-redis
       MUTEX_REDIS3_PORT: 6379
+      ## Image proxy
+      IMGPROXY_URL: ${API_SERVICE_IMGPROXY_URL}
+      IMGPROXY_KEY: ${API_SERVICE_IMGPROXY_KEY}
+      IMGPROXY_SALT: ${API_SERVICE_IMGPROXY_SALT}
 
   imgproxy:
     image: darthsim/imgproxy:v3
