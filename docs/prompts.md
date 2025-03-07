@@ -125,6 +125,13 @@ Attach files:
 - `/docs/business.md`
 - `/docs/technical.md`
 
+#### Task clarity
+
+```plaintext
+Hey Technical Leader, please review the tasks in @backlog.md. List any tasks where the description is unclear or not implementable.
+If you find any such tasks, please request the Product Owner and Solution Architect to revise the task descriptions.
+```
+
 ### Quick Design
 
 #### Infrastructure investigate
@@ -158,6 +165,15 @@ Attach files:
 ```plaintext
 Task NOT-001 and sub-taks are implemented partially in notification module.
 As Technical Leader, investigate current feature and technical in /src/notification module then update task specification in @sprint-current-tasks.md 
+```
+
+or
+
+```plaintext
+Hey PO and SA, let's go back to the new event system. First, let's explore the existing code in src/common/event-manager.
+
+This is how we manage system-scope events. Let's analyze the solution and source code.
+Do we need to refactor anything?
 ```
 
 ## Code implementation

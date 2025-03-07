@@ -17,50 +17,137 @@
 
 ## Tasks Breakdown
 
-### INF-001: Deploy imgproxy for Image Processing and Optimization (13 points)
+### INF-001: Deploy imgproxy for Image Processing and Optimization
 
-**Status:** To Do
-**Priority:** High
-**Dependencies:** None
-**Assignee:** DevOps Engineer
-**Reviewer:** Technical Leader
+**Quick Start**:
 
-**Description:**
-Deploy and configure imgproxy service to optimize image delivery for the frontend, enabling efficient image transformations and improved performance.
+- Similar Feature: None (new infrastructure component)
+- Example Test: src/common/test/health/http-health.check.spec.ts
+- Key Files:
+  - infra/docker/docker-compose.yml
+  - infra/docker/.env.example
+  - src/common/config/image-proxy.config.ts
+  - src/common/services/image/image.service.ts
+  - src/common/services/image/image.types.ts
+  - src/common/services/image/image-url.generator.ts
+  - src/common/test/image/image.service.spec.ts
+- Setup Steps:
+  1. Install Docker and Docker Compose
+  2. Set up GCP service account with Storage Object Viewer role
+  3. Configure environment variables (IMGPROXY_KEY, IMGPROXY_SALT, GCS_KEY_JSON)
+  4. Configure allowed source buckets and domains
+
+**Priority**: High
+**Dependencies**: None
+**Story Points**: 13
+
+**Description**:
+Deploy and configure imgproxy service to optimize image delivery for the frontend, enabling efficient image transformations and improved performance. The service will handle image resizing, format conversion, and delivery optimization while maintaining security through URL signing and proper access controls.
+
+**Context**:
+
+- Feature Goal: Optimize image delivery and processing for better user experience
+- Similar Features: None (first image processing service)
+- Code Patterns:
+  - Health Check: src/common/services/health/health.check.ts
+  - Service Configuration: src/common/config/config.base.ts
+  - URL Generation: src/common/utils/url.utils.ts
+- Common Pitfalls:
+  - Incorrect GCS permissions or bucket configuration
+  - Insecure URL signing implementation
+  - Missing CORS configuration for frontend access
+  - Insufficient resource limits for high-traffic scenarios
+  - Incorrect content-type handling
+  - Missing error handling for failed transformations
+
+**Implementation Guide**:
+
+- Architecture Pattern: Microservice with Docker
+- Code Style: Follow common module patterns
+- Performance Requirements:
+  - Image processing latency < 500ms for images up to 5MB
+  - Cache hit ratio > 80% for repeated requests
+  - Response time < 200ms for cached images
+  - Support concurrent processing of up to 50 images/second
+  - Memory usage < 512MB under normal load
+
+**Dependencies Map**:
+
+- Upstream:
+  - Google Cloud Storage (read access to asset buckets)
+  - Environment configuration service
+- Downstream:
+  - Frontend image components
+  - Content creation services
+  - User profile services
+- External:
+  - imgproxy service (v3.19.0)
+  - GCS API
+  - Docker runtime
+
+**Development Guidelines**:
+
+- Module Structure:
+  - Follow: src/common/services pattern
+  - Key patterns: Health checks, Configuration, URL Generation
+- Error Handling:
+  - Use: ImageProcessingError class with specific error types
+  - Pattern: Global exception filter with proper error mapping
+  - Implement retry mechanism for transient failures
+- Testing Strategy:
+  - Unit: Configuration, URL generation, and service classes
+  - Integration: GCS connectivity, image processing flows
+  - E2E: Full image processing pipeline
+  - Performance: Load testing with various image sizes
+- Documentation:
+  - API: Swagger for health endpoints and configuration
+  - Technical: Update architecture diagram
+  - Operations: Monitoring and alerting setup
+  - Security: URL signing and access control documentation
 
 #### Sub-Tasks
 
-##### INF-001.1: Docker Deployment Setup (3 points)
+##### INF-001.1: Docker Deployment Setup
 
-**Status:** To Do
-**Priority:** High
-**Assignee:** DevOps Engineer
+**Quick Start**:
 
-**Description:**
-Set up the Docker deployment for imgproxy, including configuration, environment variables, health checks, and logging.
+- Similar Feature: src/common/docker/redis
+- Example Test: src/common/test/docker-health.spec.ts
+- Key Files: docker-compose.yml, Dockerfile
+- Setup Steps: Install Docker
 
-**Tasks:**
+**Priority**: High
+**Story Points**: 3
 
-1. Create Docker Compose configuration with proper networking
-2. Configure environment variables for security and performance
-3. Set up health check endpoints and monitoring integration
-4. Implement logging with proper levels and rotation
-5. Create deployment documentation
+**Context**:
 
-**Technical Notes:**
+- Feature Goal: Set up reliable Docker deployment for imgproxy
+- Similar Features: Redis Docker setup
+- Code Patterns: Docker health checks
+- Common Pitfalls: Resource limits, networking issues
 
-- Use the official imgproxy Docker image (darthsim/imgproxy)
-- Configure proper resource limits for containers
-- Implement proper logging with structured format
-- Set up health checks with appropriate thresholds
+**Tasks**:
 
-**Acceptance Criteria:**
+1. Create Docker Compose configuration
+2. Configure environment variables
+3. Set up health checks
+4. Implement logging
+5. Create documentation
 
-- Docker Compose configuration is created and tested
-- Environment variables are properly configured
-- Health checks are implemented and working
-- Logging is configured with proper levels and rotation
-- Documentation is created for deployment process
+**Technical Notes**:
+
+- Use official imgproxy image
+- Configure resource limits
+- Implement structured logging
+- Set up health checks
+
+**Quality Checklist**:
+
+- [ ] Docker configuration complete
+- [ ] Environment variables documented
+- [ ] Health checks implemented
+- [ ] Logging configured
+- [ ] Documentation updated
 
 ##### INF-001.2: Google Cloud Storage Integration (3 points)
 
@@ -96,7 +183,7 @@ Configure the integration between imgproxy and Google Cloud Storage to enable im
 
 ##### INF-001.3: URL Signing and Security Implementation (2 points)
 
-**Status:** To Do
+**Status:** Completed
 **Priority:** High
 **Assignee:** DevOps Engineer
 
@@ -105,27 +192,27 @@ Implement URL signing and security measures for imgproxy to prevent unauthorized
 
 **Tasks:**
 
-1. Generate and configure key/salt pairs for URL signing
-2. Create URL signing utilities for backend and frontend
-3. Configure allowed sources and referrers
-4. Implement CORS settings for frontend access
-5. Create documentation for security configuration
+1. ✓ Generate and configure key/salt pairs for URL signing
+2. ✓ Create URL signing utilities for backend and frontend
+3. ✓ Configure allowed sources and referrers
+4. ✓ Implement CORS settings for frontend access
+5. ✓ Create documentation for security configuration
 
 **Technical Notes:**
 
-- Generate strong key/salt pairs for URL signing
-- Implement proper URL signing algorithm
-- Configure allowed sources and referrers
+- Generated strong key/salt pairs for URL signing
+- Implemented proper URL signing algorithm
+- Configured allowed sources and referrers
 - Set up CORS for frontend access
-- Document security best practices
+- Documented security best practices
 
 **Acceptance Criteria:**
 
-- URL signing is implemented and working correctly
-- Only signed URLs can access protected images
-- Allowed sources and referrers are properly configured
-- CORS settings allow frontend access
-- Documentation is created for security configuration
+- [x] URL signing is implemented and working correctly
+- [x] Only signed URLs can access protected images
+- [x] Allowed sources and referrers are properly configured
+- [x] CORS settings allow frontend access
+- [x] Documentation is created for security configuration
 
 ##### INF-001.4: Image Processing Configuration (2 points)
 

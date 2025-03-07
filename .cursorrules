@@ -138,7 +138,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 ## Implementation process
 
-### STEP 1: Confirm task requirements
+### STEP 1: Task Analysis
 
 - Read the file: `/tasks/sprint-current-tasks.md`
 - Extract and understand:
@@ -146,10 +146,21 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - Acceptance criteria
   - Technical notes
   - Dependencies task
+- Review similar implementations in codebase
+- Identify reusable patterns and components
+- List potential technical challenges
+- Document assumptions and questions
 - If task is not clear, ask for clarification
 - If dependencies task is not completed, ask for clarification
 
-### STEP 2: Confirm current context
+### STEP 2: Development Environment Setup
+
+- Verify required dependencies
+- Set up necessary tools and configurations
+- Create feature branch with correct naming
+- Set up test environment if needed
+
+### STEP 3: Confirm current context
 
 - Read the file: `/docs/architecture.mermaid`
   - Extract and understand:
@@ -173,7 +184,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - Consistent error mapping
   - Proper use of dependency injection
 
-### STEP 3: Task Workflow
+### STEP 4: Implementation Planning
 
 Required understanding files:
 
@@ -181,24 +192,62 @@ Required understanding files:
 - `/tasks/sprint-current-status.md`: Progress tracking
 - `/docs/technical.md`: Implementation guidelines
 
-Workflow steps:
+Complex task implementation steps:
 
-- Update task status `/tasks/sprint-current-status.md`:
-  - Mark task as in-progress
-- Define Implementation Steps in `/tasks/sprint-current-tasks.md` following:
-  - If task is complex, programming following steps:
-    - Create module structure. Just create empty files for now.
-    - Implement data layer
-    - Implement presentation layer with mock business logic
-    - Implement business logic in services
-    - Add end to end tests
-  - If task is simple, programming following steps:
-    - Implement code
-    - Add end to end tests
-- Document any blockers
-- Implement following implementation steps in `/tasks/sprint-current-status.md`
+1. Create skeleton:
+   - Module structure following patterns
+   - Interface definitions
+   - Type definitions
+2. Add tests structure:
+   - Unit test files
+   - Integration test points
+   - E2E test structure
+3. Implement data layer:
+   - Entities/Models
+   - Repositories
+   - Data validation
+   - Unit tests
+4. Implement business logic:
+   - Services with clean interfaces
+   - Error handling
+   - Event handling
+   - Unit tests
+5. Implement presentation layer:
+   - Controllers/Resolvers
+   - DTOs with validation
+   - API documentation
+   - Unit tests
+6. Add end-to-end tests:
+   - Happy path scenarios
+   - Error scenarios
+   - Edge cases
+7. Add documentation:
+   - API documentation
+   - Technical documentation
+   - Update architecture diagrams
 
-### STEP 4: Keep documentation updated
+Simple task implementation steps:
+
+1. Add tests structure:
+   - Unit test files
+   - Integration points if needed
+2. Implement with TDD approach:
+   - Write failing test
+   - Implement feature
+   - Refactor
+3. Add documentation:
+   - Update relevant docs
+   - Add code comments
+
+### STEP 5: Quality Checks
+
+- Run linter and fix issues
+- Run tests and ensure coverage
+- Review code against style guide
+- Self-review changes
+- Update relevant documentation
+
+### STEP 6: Keep documentation updated
 
 - UPDATE `/tasks/sprint-current-status.md` with:
   - Current progress
@@ -208,45 +257,149 @@ Workflow steps:
 - Update `/docs/technical.md` if needed
 - Add tech debt notes to `/docs/technical.md` if needed
 
-## Feature design process
+## Feature Design Process
 
-As a Product Owner, follow these feature design principles:
+### Pre-design Checklist
 
-- User-Centric Design
-- Simplicity and Clarity
-- Consistency
-- Scalability
-- Data-Driven Decisions
-- Security and Privacy
+- System capabilities and limitations
+- Similar features in system
+- Integration points and dependencies
+- Performance requirements
+- Security requirements
+- Monitoring requirements
 
-### STEP 1: Read context
+### Scenario 1: Combined Feature and Task Design
 
-- Read data model in `/prisma/schema.prisma`
-- Read business notes in `/docs/business.md`
-- Read defined tasks in `/tasks/backlog.md`
+1. **Context Analysis**
+   - Read current codebase structure:
+     - Data model in `/prisma/schema.prisma`
+     - Business rules in `/docs/business.md`
+     - Architecture in `/docs/architecture.mermaid`
+     - Code style in `/docs/technical.md`
+   - Identify related existing features and modules
+   - Review current system constraints and patterns
 
-### STEP 2: Design the feature
+2. **Feature Specification**
+   - Write feature overview in `/docs/business.md`:
+     - Business value and goals
+     - User stories and use cases
+     - Integration points with existing features
+     - Performance and scalability requirements
+     - Security considerations
 
-- Design the feature, compare this feature with similar feature of major platforms
-- Write feature specification to `/docs/business.md`
-- Request Solution Architecture helps you
-  - Update `/prisma/schema.prisma` if needed
-  - If this task is complex, design architecture then update to `/docs/technical.md` follow business
+3. **Technical Design**
+   - Update data model if needed
+   - Define API contracts and interfaces
+   - Identify architectural changes
+   - Document technical constraints
+   - Plan for monitoring and metrics
 
-### STEP 3: Task specification
+4. **Task Breakdown**
+   Create tasks in `/tasks/backlog.md` using the Developer-Friendly Task Template:
 
-- Write task specifications in `/tasks/backlog.md`
-- Break feature to smaller tasks, each tasks must testable and should less than 5 story point
-- Define Implementation Steps following:
-  - If task is complex, programming following steps:
-    - Create module structure. Just create empty files for now.
-    - Implement entities layer
-    - Implement presentation layer with mockup services
-    - Implement business logic in services
-    - Implement repository layer
-    - Add end to end tests
-  - If task is simple, programming following steps:
-    - Implement code
-    - Add end to end tests
-- Define entities and API interfaces to be used in the feature
-- Remind developer follow the folder structure in `/docs/module-structure.md` and code style in module `/src/content`
+   ```markdown
+   ### {TASK-ID}: {Task Name}
+
+   **Quick Start**:
+   - Similar Feature: {path to similar feature}
+   - Example Test: {path to reference test}
+   - Key Files: {list of important files to understand}
+   - Setup Steps: {any special setup needed}
+
+   **Priority**: {High|Medium|Low}
+   **Dependencies**: {List of dependent tasks}
+   **Story Points**: {1-13}
+
+   **Description**:
+   {Clear description of what needs to be done}
+
+   **Context**:
+   - Feature Goal: {One-line business goal}
+   - Similar Features: {List similar implementations to reference}
+   - Code Patterns: {Link to relevant examples in codebase}
+   - Common Pitfalls: {List of things to watch out for}
+
+   **Implementation Guide**:
+   - Architecture Pattern: {link to pattern doc}
+   - Code Style: {link to specific style rules}
+   - Common Pitfalls: {list of things to watch out for}
+   - Performance Requirements: {specific metrics}
+
+   **Dependencies Map**:
+   - Upstream: {what this depends on}
+   - Downstream: {what depends on this}
+   - External: {external service dependencies}
+
+   **Development Guidelines**:
+   - Module Structure:
+     - Follow: {example module path}
+     - Key patterns: {list patterns}
+   - Error Handling:
+     - Use: {error classes to use}
+     - Pattern: {error handling pattern}
+   - Testing Strategy:
+     - Unit: {what to unit test}
+     - Integration: {integration points}
+     - E2E: {e2e scenarios}
+   - Documentation:
+     - API: {swagger examples}
+     - Technical: {what to document}
+
+   **Tasks**:
+   1. {Detailed steps}...
+
+   **Technical Notes**:
+   - Architecture patterns to follow
+   - Common pitfalls to avoid
+   - Performance considerations
+   - Testing requirements
+
+   **Quality Checklist**:
+   - [ ] Follows module structure
+   - [ ] Implements error handling
+   - [ ] Includes required tests
+   - [ ] Meets performance requirements
+   - [ ] Documentation updated
+   - [ ] Swagger docs added
+   - [ ] Logging implemented
+
+   **Acceptance Criteria**:
+   - Functional requirements
+   - Non-functional requirements
+   - Test coverage requirements
+   - Documentation requirements
+   ```
+
+### Scenario 2: Sequential Feature and Task Design
+
+1. **Feature Design Phase**
+   - **Context Analysis**
+     - Same as Scenario 1
+
+   - **Feature Specification**
+     - Write feature overview in `/docs/business.md`
+     - Focus on business requirements
+     - Define success metrics
+     - Document user stories
+
+   - **High-level Technical Assessment**
+     - Identify major technical components
+     - Note potential challenges
+     - Suggest possible approaches
+
+2. **Task Design Phase** (When requested)
+   - **Review Feature Context**
+     - Re-read feature specification
+     - Review any updates since feature design
+     - Check for new related features/changes
+
+   - **Detailed Technical Design**
+     - Create detailed technical specifications
+     - Define interfaces and contracts
+     - Plan implementation phases
+
+   - **Task Creation**
+     - Break down implementation into tasks
+     - Use the Developer-Friendly Task Template
+     - Add more detailed technical guidance
+     - Include references to similar implementations
