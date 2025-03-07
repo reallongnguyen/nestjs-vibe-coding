@@ -132,7 +132,15 @@ Hey Technical Leader, please review the tasks in @backlog.md. List any tasks whe
 If you find any such tasks, please request the Product Owner and Solution Architect to revise the task descriptions.
 ```
 
-### Quick Design
+### Technical design
+
+```plaintext
+Hey Product Owner, let's review the tasks in @sprint-current-tasks.md. Please confirm if the task descriptions are up to date. After your confirmation, we'll ask the Solution Architect and Technical Lead to start designing these tasks:
+- Define API inputs/outputs where needed
+- Define event schemas where needed 
+- Update database design in @schema.prisma if needed
+- Update technical documentation if needed
+```
 
 #### Infrastructure investigate
 

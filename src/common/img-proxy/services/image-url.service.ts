@@ -46,14 +46,14 @@ const DEFAULT_OPTIONS: Required<ImageProcessingOptions> = {
   width: undefined,
   height: undefined,
   format: 'webp',
-  quality: 85,
-  resizeType: 'fit',
+  quality: undefined,
+  resizeType: undefined,
 
   // Thumbnail defaults
   generateThumbnail: false,
   thumbnailSize: ImageSize.SMALL,
   thumbnailResizeType: 'fill',
-  thumbnailQuality: 80,
+  thumbnailQuality: undefined,
 };
 
 @Injectable()

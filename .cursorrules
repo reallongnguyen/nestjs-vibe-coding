@@ -257,6 +257,126 @@ Simple task implementation steps:
 - Update `/docs/technical.md` if needed
 - Add tech debt notes to `/docs/technical.md` if needed
 
+## Task Format Specification
+
+### Task Template Structure
+
+```markdown
+### {TASK-ID}: {Task Name}
+
+**Metadata**:
+  Type: Feature | Bug | Technical Debt | Infrastructure
+  Component: Frontend | Backend | Infrastructure | Documentation
+  Priority: Low | Medium | High
+  Risk Level: Low | Medium | High
+  Story Points: N
+  Sprint: NNN
+
+**Time Tracking**:
+  Estimated Hours: N
+  Start Date: YYYY-MM-DD
+  Due Date: YYYY-MM-DD
+
+**Status**:
+  State: Backlog | In Progress | Review | Done
+  Phase: Planning | Development | Testing | Review | Done
+  Labels: [Blocked, High-Risk, Need-Review]
+
+**Quick Start**:
+  Similar Feature: path/to/similar
+  Example Test: path/to/test
+  Key Files:
+    - path/to/key/file1
+    - path/to/key/file2
+  Setup Steps:
+    1. Step one
+    2. Step two
+
+**Dependencies**:
+  Blocks: [Task-IDs]
+  Blocked By: [Task-IDs]
+  Related: [Task-IDs]
+
+**Description**:
+{Clear description of what needs to be done}
+
+**Context**:
+  Feature Goal: {One-line business goal}
+  Similar Features: {List similar implementations}
+  Code Patterns: {Link to relevant patterns}
+  Common Pitfalls: {List of things to watch out for}
+
+**Implementation Guide**:
+  Architecture Pattern: {pattern name}
+  Code Style: {link to style guide}
+  Performance Requirements:
+    - Metric 1: target
+    - Metric 2: target
+
+**Tasks**:
+1. [ ] Task 1
+   - Sub-task 1.1
+   - Sub-task 1.2
+2. [ ] Task 2
+   - Sub-task 2.1
+   - Sub-task 2.2
+
+**Technical Notes**:
+- Technical consideration 1
+- Technical consideration 2
+
+**Quality Checklist**:
+- [ ] Technical Design Review
+- [ ] Implementation Complete
+- [ ] Unit Tests Added
+- [ ] Integration Tests Added
+- [ ] Documentation Updated
+- [ ] Code Review Completed
+- [ ] Performance Requirements Met
+
+**Acceptance Criteria**:
+1. Criterion 1
+2. Criterion 2
+
+**Notes**:
+- Additional note 1
+- Additional note 2
+```
+
+### Task Format Guidelines
+
+1. **Task ID Format**:
+   - Module prefix (e.g., NOT, INF, TECH)
+   - Sequential number (e.g., 001)
+   - Sub-task suffix if applicable (e.g., .1, .2)
+
+2. **Required Fields**:
+   - Task ID and Name
+   - Metadata
+   - Status
+   - Description
+   - Tasks
+   - Acceptance Criteria
+
+3. **Optional Fields**:
+   - Time Tracking
+   - Quick Start
+   - Technical Notes
+   - Notes
+
+4. **Field Guidelines**:
+   - Keep descriptions clear and concise
+   - Use bullet points for lists
+   - Include specific metrics where applicable
+   - Link to relevant documentation
+   - Update status regularly
+
+5. **Status Updates**:
+   - Update state and phase regularly
+   - Add labels as needed
+   - Track progress in tasks checklist
+   - Note blockers and risks
+
 ## Feature Design Process
 
 ### Pre-design Checklist

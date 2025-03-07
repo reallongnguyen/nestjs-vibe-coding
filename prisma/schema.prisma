@@ -150,6 +150,32 @@ model UserInSpaces {
   @@map("user_in_spaces")
 }
 
+enum EventType {
+  LIKE_CREATED
+  LIKE_DELETED
+  COMMENT_CREATED
+  COMMENT_REPLIED
+  FOLLOW_CREATED
+  FOLLOW_DELETED
+
+  @@map("event_type")
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  type        EventType
+  version     String
+  producer    String
+  payload     Json
+  metadata    Json      @default("{}")
+  processedAt DateTime? @map("processed_at") @db.Timestamptz()
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@index([type])
+  @@index([processedAt])
+  @@map("events")
+}
+
 model Notification {
   id               String    @id @default(uuid())
   key              String
@@ -172,6 +198,9 @@ model Notification {
   metadata         Json?     @default("{}")
   notificationTime DateTime  @default(now()) @map("notification_time") @db.Timestamptz()
   viewedAt         DateTime? @map("viewed_at") @db.Timestamptz()
+  groupKey         String?   @map("group_key")
+  groupCount       Int       @default(1) @map("group_count")
+  lastEventId      String?   @map("last_event_id")
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -179,6 +208,8 @@ model Notification {
   @@index([userId, viewedAt])
   @@index([key], type: Hash)
   @@index([type], type: Hash)
+  @@index([groupKey])
+  @@index([userId, type, createdAt])
   @@map("notifications")
 }
 

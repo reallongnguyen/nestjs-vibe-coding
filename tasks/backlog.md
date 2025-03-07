@@ -472,3 +472,75 @@ Create a comprehensive monitoring dashboard for imgproxy service to track perfor
    - Connection Pool Status
    - Queue Length
    - Worker Status
+
+### INF-001.5: Frontend Integration for imgproxy
+
+**Priority**: Medium
+**Story Points**: 3
+**Dependencies**: INF-001.1, INF-001.2, INF-001.3, INF-001.4
+
+**Description**:
+Develop frontend integration for imgproxy to enable efficient image loading and transformations in the NextJS application.
+
+**Context**:
+
+- imgproxy service is deployed and configured
+- Backend APIs for image URL generation are implemented
+- Need to integrate with frontend components
+
+**Tasks**:
+
+1. Create TypeScript utility functions for URL generation:
+   - Implement URL generation helpers
+   - Add type definitions
+   - Create unit tests
+   - Document usage patterns
+
+2. Implement responsive image components:
+   - Create base Image component with imgproxy support
+   - Add responsive image handling with srcset
+   - Implement lazy loading
+   - Add proper error handling
+   - Create component tests
+
+3. Add browser compatibility features:
+   - Implement format detection (WebP, AVIF)
+   - Add fallback mechanisms
+   - Test in different browsers
+   - Document browser support
+
+4. Performance optimization:
+   - Implement proper caching strategy
+   - Add preloading for critical images
+   - Optimize loading patterns
+   - Add performance tests
+
+5. Documentation:
+   - Create usage documentation
+   - Add code examples
+   - Document best practices
+   - Create troubleshooting guide
+
+**Technical Notes**:
+
+- Use TypeScript for all implementations
+- Follow React best practices
+- Implement proper error handling
+- Add comprehensive testing
+- Document usage patterns
+
+**Quality Checklist**:
+
+- [ ] TypeScript utilities implemented and tested
+- [ ] Responsive image components working
+- [ ] Browser compatibility verified
+- [ ] Performance optimizations implemented
+- [ ] Documentation completed
+
+**Acceptance Criteria**:
+
+1. TypeScript utilities generate correct imgproxy URLs
+2. Responsive image components work on all devices
+3. Images load efficiently with proper caching
+4. Browser compatibility is handled properly
+5. Documentation is complete and accurate
