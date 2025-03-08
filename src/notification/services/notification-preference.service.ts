@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AppError, Collection } from 'src/common/models';
+import { AppError, Collection } from '../../common/models';
 import {
   NotificationPreference,
   NotificationType,

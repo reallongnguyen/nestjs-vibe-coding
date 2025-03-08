@@ -153,49 +153,231 @@ Prefer use event bus to communicate between modules. Use event bus instead of Ev
 ### Event Bus Configuration
 
 ```typescript
-// src/common/event-bus/event-bus.module.ts
+// src/common/event-manager/event-bus.module.ts
 @Module({
-  imports: [EventEmitterModule.forRoot()],
-  providers: [
-    {
-      provide: EVENT_BUS_TOKEN,
-      useClass: EventBusAdapter,
-    },
+  imports: [
+    EventEmitterModule.forRoot({
+      wildcard: true,      // Enable wildcard event listeners
+      delimiter: '.',      // Event name delimiter for namespacing
+      maxListeners: 20,    // Maximum listeners per event
+      verboseMemoryLeak: true, // Log warnings for potential memory leaks
+    }),
   ],
   exports: [EVENT_BUS_TOKEN],
 })
 export class EventBusModule {}
 ```
 
-### Publish event
+### Event Handling Patterns
+
+1. **Publishing Events**
 
 ```typescript
-// src/identity/presentation/events/user-activity.handler.ts
 @Injectable()
-export class UserActivityHandler {
-  constructor(
-    @InjectEventBus()
-    private readonly eventBus: IEventBus,
-  ) {}
-}
-```
+export class UserService {
+  constructor(private readonly eventBus: EventBusAdapter) {}
 
-### Event Handlers
+  async createUser(data: CreateUserDto): Promise<User> {
+    const user = await this.userRepository.create(data);
+    
+    // Publish event
+    await this.eventBus.publish(
+      new UserCreatedEvent({
+        userId: user.id,
+        email: user.email,
+      })
+    );
 
-```typescript
-// src/identity/presentation/events/user-activity.handler.ts
-@Injectable()
-export class UserActivityHandler {
-  constructor(
-    // AI-powered code
-  ) {}
-
-  @OnEvent(RoleChangeEvent.getEventName())
-  async handleRoleChange(event: RoleChangeEvent) {
-    // AI-powered code
+    return user;
   }
 }
 ```
+
+2. **Handling Events**
+
+```typescript
+@Injectable()
+export class UserActivityHandler {
+  constructor(private readonly activityService: UserActivityService) {}
+
+  @OnEvent('user.created')
+  async handleUserCreated(event: EventBusMessage<UserCreatedPayload>) {
+    await this.activityService.logActivity({
+      userId: event.payload.userId,
+      type: UserActivityType.ACCOUNT_CREATED,
+      metadata: event.metadata,
+    });
+  }
+
+  @OnEvent('user.*') // Wildcard pattern to handle all user events
+  async logAllUserEvents(event: EventBusMessage<unknown>) {
+    this.logger.debug(`User event received: ${event.eventName}`);
+  }
+}
+```
+
+3. **Event Validation**
+
+```typescript
+// Define event payload validation
+export class UserCreatedPayload {
+  @IsUUID()
+  userId: string;
+
+  @IsEmail()
+  email: string;
+}
+
+// Create event class
+export class UserCreatedEvent extends BaseEvent<UserCreatedPayload> {
+  constructor(payload: UserCreatedPayload) {
+    super({
+      eventName: 'user.created',
+      schema: payload,
+      version: '1.0.0',
+      module: 'identity',
+      description: 'Emitted when a new user is created',
+    });
+  }
+
+  toJSON(): UserCreatedPayload {
+    return this.schema.schema;
+  }
+}
+```
+
+### Best Practices
+
+1. **Event Naming**
+   - Use dot notation for namespacing: `module.entity.action`
+   - Examples: `user.created`, `post.published`, `comment.deleted`
+   - Keep names consistent across the application
+
+2. **Event Payload**
+   - Keep payloads minimal and focused
+   - Include only necessary data
+   - Use proper validation
+   - Consider versioning for schema changes
+
+3. **Error Handling**
+   - Always use try-catch in event handlers
+   - Log errors appropriately
+   - Consider retry mechanisms for critical events
+
+```typescript
+@Injectable()
+export class NotificationHandler {
+  @OnEvent('user.created')
+  async handleUserCreated(event: EventBusMessage<UserCreatedPayload>) {
+    try {
+      await this.sendWelcomeEmail(event.payload);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send welcome email to user ${event.payload.userId}`,
+        error.stack,
+      );
+      // Consider retry or fallback mechanism
+    }
+  }
+}
+```
+
+4. **Testing Events**
+
+```typescript
+describe('UserService', () => {
+  it('should publish user.created event', async () => {
+    const eventBus = app.get<EventBusAdapter>(EventBusAdapter);
+    const publishSpy = jest.spyOn(eventBus, 'publish');
+
+    await userService.createUser(userData);
+
+    expect(publishSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: 'user.created',
+        payload: expect.objectContaining({
+          userId: expect.any(String),
+          email: userData.email,
+        }),
+      }),
+    );
+  });
+});
+```
+
+### Common Event Patterns
+
+1. **Notification Events**
+
+```typescript
+// Event payload
+interface NotificationEventPayload {
+  userId: string;
+  type: string;
+  data: Record<string, unknown>;
+}
+
+// Event handler
+@Injectable()
+export class NotificationHandler {
+  @OnEvent('*.notification')
+  async handleNotification(event: EventBusMessage<NotificationEventPayload>) {
+    await this.notificationService.send(event.payload);
+  }
+}
+```
+
+2. **Audit Events**
+
+```typescript
+// Event payload
+interface AuditEventPayload {
+  userId: string;
+  action: string;
+  resource: string;
+  changes?: Record<string, unknown>;
+}
+
+// Event handler
+@Injectable()
+export class AuditHandler {
+  @OnEvent('*.audit')
+  async handleAudit(event: EventBusMessage<AuditEventPayload>) {
+    await this.auditService.log(event.payload);
+  }
+}
+```
+
+3. **Cache Invalidation Events**
+
+```typescript
+// Event handler
+@Injectable()
+export class CacheHandler {
+  @OnEvent('*.updated')
+  async handleUpdate(event: EventBusMessage<unknown>) {
+    const cacheKey = this.getCacheKey(event);
+    await this.cacheService.invalidate(cacheKey);
+  }
+}
+```
+
+### Performance Considerations
+
+1. **Async Event Handling**
+   - Use `emitAsync` for asynchronous event handling
+   - Consider using queues for long-running tasks
+   - Monitor event processing times
+
+2. **Memory Management**
+   - Set appropriate maxListeners
+   - Clean up listeners when no longer needed
+   - Monitor for memory leaks
+
+3. **Error Recovery**
+   - Implement retry mechanisms
+   - Use dead letter queues
+   - Log failed events for manual recovery
 
 ## Database Schema
 

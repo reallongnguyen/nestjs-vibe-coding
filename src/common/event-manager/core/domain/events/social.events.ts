@@ -1,19 +1,24 @@
 import { BaseEvent } from './base.event';
 import { EventMetadata, EventSchema } from './event.interface';
-import { SocialEventSchemas } from './schemas/social.events';
+import {
+  SocialEventSchemas,
+  LikeCreatedPayload,
+  LikeDeletedPayload,
+} from './schemas/social.events';
 
 /**
  * Base class for social events
  */
-abstract class SocialEvent<T> extends BaseEvent<T> {
+abstract class SocialEvent<T extends object> extends BaseEvent<T> {
   private readonly eventPayload: T;
 
   constructor(
     schema: EventSchema<T>,
+    payload: T,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
     super(schema, metadata);
-    this.eventPayload = schema.schema;
+    this.eventPayload = payload;
   }
 
   getPartitionKey(): string {
@@ -28,40 +33,24 @@ abstract class SocialEvent<T> extends BaseEvent<T> {
 /**
  * Event emitted when a user likes content
  */
-export class LikeCreatedEvent extends SocialEvent<
-  typeof SocialEventSchemas.LIKE_CREATED.schema
-> {
+export class LikeCreatedEvent extends SocialEvent<LikeCreatedPayload> {
   constructor(
-    payload: typeof SocialEventSchemas.LIKE_CREATED.schema,
+    payload: LikeCreatedPayload,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(
-      {
-        ...SocialEventSchemas.LIKE_CREATED,
-        schema: payload,
-      },
-      metadata,
-    );
+    super(SocialEventSchemas.LIKE_CREATED, payload, metadata);
   }
 }
 
 /**
  * Event emitted when a user unlikes content
  */
-export class LikeDeletedEvent extends SocialEvent<
-  typeof SocialEventSchemas.LIKE_DELETED.schema
-> {
+export class LikeDeletedEvent extends SocialEvent<LikeDeletedPayload> {
   constructor(
-    payload: typeof SocialEventSchemas.LIKE_DELETED.schema,
+    payload: LikeDeletedPayload,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(
-      {
-        ...SocialEventSchemas.LIKE_DELETED,
-        schema: payload,
-      },
-      metadata,
-    );
+    super(SocialEventSchemas.LIKE_DELETED, payload, metadata);
   }
 }
 
@@ -75,13 +64,7 @@ export class CommentCreatedEvent extends SocialEvent<
     payload: typeof SocialEventSchemas.COMMENT_CREATED.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(
-      {
-        ...SocialEventSchemas.COMMENT_CREATED,
-        schema: payload,
-      },
-      metadata,
-    );
+    super(SocialEventSchemas.COMMENT_CREATED, payload, metadata);
   }
 }
 
@@ -95,13 +78,7 @@ export class CommentRepliedEvent extends SocialEvent<
     payload: typeof SocialEventSchemas.COMMENT_REPLIED.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(
-      {
-        ...SocialEventSchemas.COMMENT_REPLIED,
-        schema: payload,
-      },
-      metadata,
-    );
+    super(SocialEventSchemas.COMMENT_REPLIED, payload, metadata);
   }
 }
 
@@ -115,13 +92,7 @@ export class FollowCreatedEvent extends SocialEvent<
     payload: typeof SocialEventSchemas.FOLLOW_CREATED.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(
-      {
-        ...SocialEventSchemas.FOLLOW_CREATED,
-        schema: payload,
-      },
-      metadata,
-    );
+    super(SocialEventSchemas.FOLLOW_CREATED, payload, metadata);
   }
 }
 
@@ -135,12 +106,6 @@ export class FollowDeletedEvent extends SocialEvent<
     payload: typeof SocialEventSchemas.FOLLOW_DELETED.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(
-      {
-        ...SocialEventSchemas.FOLLOW_DELETED,
-        schema: payload,
-      },
-      metadata,
-    );
+    super(SocialEventSchemas.FOLLOW_DELETED, payload, metadata);
   }
 }

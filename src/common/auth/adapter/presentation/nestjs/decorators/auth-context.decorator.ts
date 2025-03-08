@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AppError } from 'src/common/models';
+import { AppError } from '../../../../../models';
 
 import { AuthCtx } from '../../../../core/domain/entities/auth-ctx.model';
 import { User } from '../../../../core/domain/entities/user.entity';

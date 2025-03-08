@@ -1,6 +1,6 @@
 import { Logger } from 'nestjs-pino';
 import { Cache } from 'cache-manager';
-import { AppError } from 'src/common/models';
+import { AppError } from '../../../../models';
 
 import { AuthCtx, shouldCache } from '../../domain/entities/auth-ctx.model';
 import { AuthCtxRepoPort } from '../../ports/auth-ctx-repo.port';

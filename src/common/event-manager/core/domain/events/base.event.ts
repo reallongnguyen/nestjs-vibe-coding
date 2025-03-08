@@ -1,11 +1,12 @@
 import { v7 as uuidv7 } from 'uuid';
 import { EventMetadata, EventSchema } from './event.interface';
+import { EventValidator } from '../validation/event.validator';
 
 /**
  * Base event class that all domain events must extend
  * Implements both event-driven and message-driven patterns
  */
-export abstract class BaseEvent<T = unknown> {
+export abstract class BaseEvent<T extends object = object> {
   /**
    * Unique identifier for this event instance
    */
@@ -68,5 +69,13 @@ export abstract class BaseEvent<T = unknown> {
    */
   getPartitionKey(): string {
     return this.eventId;
+  }
+
+  /**
+   * Validate the event payload against its schema
+   * @throws EventValidationError if validation fails
+   */
+  async validate(): Promise<void> {
+    await EventValidator.validate(this.schema, this.payload);
   }
 }

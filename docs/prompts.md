@@ -235,14 +235,14 @@ Attach files:
 ### Review code & review task goal
 
 ```plaintext
-hey technical leader, let review code in this task
-confirm if we met this task goal
+Hey Technical Leader, please review the code changes in this task using git diff.
+Please confirm if we have met the task goals.
 ```
 
 ## Test
 
 ```plaintext
-hey scrum master, ask senior tester start test this ticket by create end to end automation test. Before starting test, ask product owner transfer to she task requirement.
+Hey Scrum Master, please ask the senior tester to start testing this ticket by creating end-to-end automation tests. Before starting the tests, please request the product owner to transfer the task requirements to her.
 ```
 
 ## Sprint Review

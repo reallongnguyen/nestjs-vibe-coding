@@ -1,17 +1,17 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as Handlebars from 'handlebars';
 import {
+  NotificationTemplateCreatedEvent,
+  NotificationTemplateDeletedEvent,
+  NotificationTemplateUpdatedEvent,
+} from '../../common/event-bus/core/domain/events/notification.events';
+import {
   IEventBus,
   InjectEventBus,
   CreateNotificationTemplateCommand,
   UpdateNotificationTemplateCommand,
   AppError,
-} from 'src/common';
-import {
-  NotificationTemplateCreatedEvent,
-  NotificationTemplateDeletedEvent,
-  NotificationTemplateUpdatedEvent,
-} from 'src/common/event-bus/core/domain/events/notification.events';
+} from '../../common';
 import {
   NotificationTemplateDomain,
   TemplateLanguage,

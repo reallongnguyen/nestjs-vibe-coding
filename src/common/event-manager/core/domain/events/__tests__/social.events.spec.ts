@@ -3,26 +3,55 @@ import {
   CommentCreatedEvent,
   FollowCreatedEvent,
 } from '../social.events';
-import { SocialEventSchemas } from '../schemas/social.events';
+import { SocialEventSchemas, ContentType } from '../schemas/social.events';
 
 describe('Social Events', () => {
   describe('LikeCreatedEvent', () => {
-    it('should create a like event with correct schema', () => {
+    it('should create event with correct schema', () => {
       const payload = {
-        actorId: 'user1',
-        contentType: 'POST' as const,
-        contentId: 'post1',
-        targetUserId: 'user2',
+        actorId: '123e4567-e89b-12d3-a456-426614174000',
+        contentType: ContentType.POST,
+        contentId: '123e4567-e89b-12d3-a456-426614174001',
+        targetUserId: '123e4567-e89b-12d3-a456-426614174002',
       };
 
       const event = new LikeCreatedEvent(payload);
 
-      expect(event.eventName).toBe(SocialEventSchemas.LIKE_CREATED.eventName);
+      expect(event.eventName).toBe('social.like.created');
       expect(event.payload).toEqual(payload);
-      expect(event.metadata.version).toBe(
-        SocialEventSchemas.LIKE_CREATED.version,
-      );
-      expect(event.getPartitionKey()).toBe('social');
+      expect(event.metadata).toEqual({
+        correlationId: undefined,
+        metadata: undefined,
+        timestamp: expect.any(Number),
+        version: '1.0.0',
+      });
+    });
+
+    it('should create event with metadata', () => {
+      const payload = {
+        actorId: '123e4567-e89b-12d3-a456-426614174000',
+        contentType: ContentType.POST,
+        contentId: '123e4567-e89b-12d3-a456-426614174001',
+        targetUserId: '123e4567-e89b-12d3-a456-426614174002',
+      };
+
+      const metadata = {
+        correlationId: '123e4567-e89b-12d3-a456-426614174003',
+        metadata: {
+          key: 'value',
+        },
+      };
+
+      const event = new LikeCreatedEvent(payload, metadata);
+
+      expect(event.eventName).toBe('social.like.created');
+      expect(event.payload).toEqual(payload);
+      expect(event.metadata).toEqual({
+        correlationId: metadata.correlationId,
+        metadata: metadata.metadata,
+        timestamp: expect.any(Number),
+        version: '1.0.0',
+      });
     });
   });
 
@@ -30,7 +59,7 @@ describe('Social Events', () => {
     it('should create a comment event with correct schema', () => {
       const payload = {
         actorId: 'user1',
-        contentType: 'POST' as const,
+        contentType: ContentType.POST as ContentType.POST | ContentType.EMOTION,
         contentId: 'post1',
         commentId: 'comment1',
         targetUserId: 'user2',
@@ -72,7 +101,7 @@ describe('Social Events', () => {
     it('should include custom metadata when provided', () => {
       const payload = {
         actorId: 'user1',
-        contentType: 'POST' as const,
+        contentType: ContentType.POST,
         contentId: 'post1',
         targetUserId: 'user2',
       };

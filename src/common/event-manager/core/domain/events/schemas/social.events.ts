@@ -1,3 +1,4 @@
+import { IsEnum, IsString, IsUUID } from 'class-validator';
 import { EventSchema } from '../event.interface';
 
 export enum ContentType {
@@ -172,25 +173,54 @@ interface EmotionUnlikedSchema {
   timestamp: number;
 }
 
-/**
- * Schema for like events
- */
-interface LikeEventSchema {
+export class LikeCreatedPayload {
+  @IsUUID()
   actorId: string;
-  contentType: 'POST' | 'EMOTION';
+
+  @IsEnum(ContentType)
+  contentType: ContentType;
+
+  @IsUUID()
   contentId: string;
+
+  @IsUUID()
+  targetUserId: string;
+}
+
+export class LikeDeletedPayload {
+  @IsUUID()
+  actorId: string;
+
+  @IsEnum(ContentType)
+  contentType: ContentType;
+
+  @IsUUID()
+  contentId: string;
+
+  @IsUUID()
   targetUserId: string;
 }
 
 /**
  * Schema for comment events
  */
-interface CommentEventSchema {
+export class CommentEventSchema {
+  @IsUUID()
   actorId: string;
-  contentType: 'POST' | 'EMOTION';
+
+  @IsEnum(ContentType)
+  contentType: ContentType.POST | ContentType.EMOTION;
+
+  @IsUUID()
   contentId: string;
+
+  @IsUUID()
   commentId: string;
+
+  @IsUUID()
   targetUserId: string;
+
+  @IsString()
   preview?: string;
 }
 
@@ -312,23 +342,23 @@ export const SocialEventSchemas = {
 
   LIKE_CREATED: {
     eventName: 'social.like.created',
-    schema: {} as LikeEventSchema,
+    schema: new LikeCreatedPayload(),
     version: '1.0.0',
     module: 'social',
     description: 'Emitted when a user likes content',
-  } as EventSchema<LikeEventSchema>,
+  } as EventSchema<LikeCreatedPayload>,
 
   LIKE_DELETED: {
     eventName: 'social.like.deleted',
-    schema: {} as LikeEventSchema,
+    schema: new LikeDeletedPayload(),
     version: '1.0.0',
     module: 'social',
     description: 'Emitted when a user unlikes content',
-  } as EventSchema<LikeEventSchema>,
+  } as EventSchema<LikeDeletedPayload>,
 
   COMMENT_CREATED: {
     eventName: 'social.comment.created',
-    schema: {} as CommentEventSchema,
+    schema: new CommentEventSchema(),
     version: '1.0.0',
     module: 'social',
     description: 'Emitted when a user comments on content',
@@ -336,7 +366,7 @@ export const SocialEventSchemas = {
 
   COMMENT_REPLIED: {
     eventName: 'social.comment.replied',
-    schema: {} as CommentEventSchema,
+    schema: new CommentEventSchema(),
     version: '1.0.0',
     module: 'social',
     description: 'Emitted when a user replies to a comment',

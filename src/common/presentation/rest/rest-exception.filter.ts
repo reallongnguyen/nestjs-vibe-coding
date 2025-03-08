@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { AppError } from 'src/common/models/AppError';
+import { AppError } from '../../models/AppError';
 
 import RestResponse from './RestResponse';
 

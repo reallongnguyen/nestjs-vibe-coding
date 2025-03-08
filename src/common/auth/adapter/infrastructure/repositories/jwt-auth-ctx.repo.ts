@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from 'nestjs-pino';
 import { Request } from 'express';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { AppError } from 'src/common/models/AppError';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { AppError } from '../../../../models/AppError';
 import { AuthCtx } from '../../../core/domain/entities/auth-ctx.model';
 import { AuthCtxRepoPort } from '../../../core/ports/auth-ctx-repo.port';
 

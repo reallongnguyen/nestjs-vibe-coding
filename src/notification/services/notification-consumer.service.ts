@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AppResult } from 'src/common/models';
+import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bull';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Logger } from 'nestjs-pino';
 import { Queue } from 'bull';
+import { Prisma } from '@prisma/client';
 import { cloneDeep } from 'lodash';
 import dayjs from 'dayjs';
-import { ConfigService } from '@nestjs/config';
+
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { AppResult } from '../../common/models';
 import { TemplateHelper } from './helpers/template.helper';
 import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 import { RedlockMutex } from '../repositories/redlock.mutex';

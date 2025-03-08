@@ -457,3 +457,86 @@ export abstract class BaseEvent<T> {
    - Automated migration generation
    - Schema compatibility testing
    - Documentation generation
+
+## Event Validation
+
+The event system now includes runtime validation using class-validator. Each event type has a corresponding validation schema that enforces:
+
+1. Type safety through TypeScript interfaces
+2. Runtime validation through class-validator decorators
+3. Schema versioning and compatibility
+
+### Validation Schema Example
+
+```typescript
+@Injectable()
+export class EventValidator {
+  // TODO: update EventValidator logic
+}
+```
+
+### Validation Rules
+
+### Error Handling
+
+When validation fails, an `EventValidationError` is thrown with:
+
+- Event name
+- List of validation errors
+- Detailed error message
+
+Example error:
+
+```typescript
+throw new EventValidationError(
+  'social.like.created',
+  [
+    {
+      property: 'actorId',
+      constraints: { isUuid: 'actorId must be a UUID' }
+    }
+  ]
+);
+```
+
+### Integration with Event Bus
+
+The event bus automatically validates events before publishing:
+
+```typescript
+@Injectable()
+export class EventBusAdapter implements EventBus {
+  constructor(
+    private readonly eventEmitter: EventEmitter2,
+    private readonly eventValidator: EventValidator,
+  ) {}
+
+  async publish<T>(event: BaseEvent<T>): Promise<void> {
+    // Validate event before publishing
+    await this.eventValidator.validateEvent(event);
+    await this.eventEmitter.emitAsync(event.eventName, event);
+  }
+}
+```
+
+### Best Practices
+
+1. **Schema Design**:
+   - Keep validation rules focused and minimal
+   - Use appropriate decorators for each field type
+   - Document validation rules in JSDoc comments
+
+2. **Error Handling**:
+   - Always catch validation errors
+   - Log validation failures with context
+   - Provide clear error messages
+
+3. **Testing**:
+   - Write tests for both valid and invalid cases
+   - Test edge cases and boundary conditions
+   - Verify error messages and details
+
+4. **Performance**:
+   - Validation overhead should be < 1ms
+   - Cache validation results when appropriate
+   - Monitor validation performance

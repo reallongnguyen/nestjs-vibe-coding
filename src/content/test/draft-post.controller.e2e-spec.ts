@@ -9,7 +9,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 import { DatabaseHelper } from 'src/common/test/database.helper';
 import { LoggerHelper } from 'src/common/test/logger.helper';
 import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
-import { EventBusAdapter } from 'src/common/event-bus/adapters/infrastructure/event-bus.adapter';
+import { EventBusAdapter } from 'src/common/event-manager/adapters/event-bus.adapter';
 import { generateSlug } from '../services/utils/content.utils';
 import { ContentModule } from '../content.module';
 import {
