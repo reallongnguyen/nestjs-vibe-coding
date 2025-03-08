@@ -19,7 +19,7 @@ async function seedNotificationTemplates() {
   const templates = [
     {
       name: 'Like Post Template',
-      type: 'likePost',
+      type: 'post_like',
       version: '1.0.0',
       contents: {
         VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã thích bài viết {{ diObject.name }} của bạn{{#if prObject}} trong {{ prObject.name }}{{/if}}',

@@ -868,7 +868,112 @@ export class RedisBatchProcessor<T> {
 - Combine notification by key
 - Change column name di_object -> direct_object
 - Notification template API may not work
+- Remove redundant groupKey, groupCount, and lastEventId fields from notification table
+  - Currently using key field for grouping
+  - groupKey and related fields are unused
+  - This will simplify the grouping logic and database schema
 
 ### Identity
 
 - Don't emit profile.updated event if user use upsert account API
+
+## Notification System Architecture
+
+### Overview
+
+The notification system follows a three-stage pipeline architecture: Producer → Consumer → Delivery. This design ensures reliable notification processing, proper grouping, and efficient delivery across multiple channels.
+
+### Components Flow
+
+#### 1. Producer Stage (NotificationProducerService)
+
+**Responsibility**: Converts domain events into notification requests
+
+- **Input**: Domain events (PostLikedEvent, CommentAddedEvent, etc.)
+- **Processing**:
+  - Creates NotificationCreateInput
+  - Assigns unique grouping key
+  - Sets notification type and target user
+  - Configures content metadata and deep links
+- **Output**: Queued notification request (via Bull Queue)
+
+#### 2. Consumer Stage (NotificationConsumerService)
+
+**Responsibility**: Processes notification requests with grouping and rendering
+
+- **Input**: NotificationCreateInput from queue
+- **Processing**:
+  - Validates user notification preferences
+  - Applies notification grouping strategies
+  - Renders notification text using templates
+  - Manages concurrent updates with RedLock
+- **Output**: Persisted Notification entity
+
+#### 3. Delivery Stage (NotificationDeliveryService)
+
+**Responsibility**: Delivers notifications through configured channels
+
+- **Input**: Notification entity
+- **Processing**:
+  - Checks channel preferences
+  - Formats for each channel
+  - Implements retry logic
+  - Records delivery metrics
+- **Output**: Channel-specific deliveries (MQTT, etc.)
+
+### Implementing New Notification Types
+
+When adding a new notification type:
+
+1. **Producer Changes**:
+   - Create event type in domain
+   - Add handler method in NotificationProducerService
+   - Configure notification metadata and grouping key
+
+2. **Consumer Changes**:
+   - Add grouping strategy if needed
+   - Create notification templates
+   - Configure template rendering
+
+3. **Delivery Changes**:
+   - Add channel-specific formatting if needed
+   - Configure delivery preferences
+
+### Best Practices
+
+1. **Event Design**:
+   - Use descriptive event names
+   - Include all necessary context
+   - Follow existing event patterns
+
+2. **Notification Grouping**:
+   - Define clear grouping rules
+   - Consider time windows
+   - Handle edge cases
+
+3. **Template Management**:
+   - Support multiple languages
+   - Use consistent variables
+   - Include proper escaping
+
+4. **Error Handling**:
+   - Implement proper retries
+   - Log failures appropriately
+   - Monitor delivery rates
+
+### Performance Considerations
+
+1. **Producer**:
+   - Queue configuration
+   - Backoff strategies
+   - Concurrency limits
+
+2. **Consumer**:
+   - Grouping window size
+   - Lock timeouts
+   - Database optimization
+
+3. **Delivery**:
+   - Channel timeouts
+   - Retry policies
+   - Resource limits

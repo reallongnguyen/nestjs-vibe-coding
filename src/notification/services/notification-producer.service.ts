@@ -1,255 +1,127 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AppResult } from 'src/common/models';
-import { IProfileUpdatedEvent } from 'src/common/event-bus/core/domain/events/event.interface';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import {
-  PostLikedEvent,
-  CommentAddedEvent,
-  UserMentionedEvent,
-  UserFollowedEvent,
-} from '../entities/events/social-interaction.events';
+import { SocialEventSchemas } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { PrismaService } from 'src/common/prisma/prisma.service';
+import { EventBusMessage } from 'src/common/event-manager/core/domain/events/event.interface';
+import { Retry } from 'src/common';
+
 import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
+import { NotificationType } from '../entities/notification-preference.entity';
 
 @Injectable()
 export class NotificationProducerService {
   constructor(
     private readonly logger: Logger,
+    private readonly prisma: PrismaService,
     @InjectQueue('notification') private readonly notiQueue: Queue,
   ) {}
 
-  async handleProfileUpdated(
-    payload: IProfileUpdatedEvent,
-  ): Promise<AppResult<string, string>> {
-    const notification = new NotificationCreateInput();
-    notification.key = `updateProfile:${payload.id}:${payload.id}`;
-    notification.type = 'updateProfile';
-    notification.userId = payload.id;
-    notification.subjects = [
-      {
-        id: payload.id,
-        type: 'user',
-        name: payload.name,
-        image: payload.avatar,
-      },
-    ];
-    notification.subjectCount = 1;
-    notification.link = `/users/${payload.id}/profile`;
+  /**
+   * Handle like created event
+   * @param event Like created event
+   * @returns Result with empty string on success, error message on failure
+   */
+  @Retry()
+  async handleLikeCreated(
+    event: EventBusMessage<typeof SocialEventSchemas.LIKE_CREATED.schema>,
+  ): Promise<void> {
+    const { targetUserId, actorId, contentId, contentType } = event.payload;
 
-    try {
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
-
-      return { data: '' };
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-producer.service: handleProfileUpdated: ${err.message}`,
+    if (actorId === targetUserId) {
+      this.logger.debug(
+        `notification: notification-producer.service: handleLikeCreated: skipping because actorId is the same as targetUserId`,
       );
 
-      return { err: 'serverError' };
+      return;
     }
-  }
 
-  async handlePostLiked(
-    payload: PostLikedEvent,
-  ): Promise<AppResult<string, string>> {
-    // Skip self-likes
-    // if (payload.likerId === payload.postOwnerId) {
-    //   return { data: '' };
-    // }
-
-    const notification = new NotificationCreateInput();
-    notification.key = `likePost:${payload.postId}`;
-    notification.type = 'likePost';
-    notification.userId = payload.postOwnerId;
-    notification.subjects = [
-      {
-        id: payload.likerId,
-        type: 'user',
-        name: payload.likerName,
-        image: payload.likerAvatar,
+    // Get actor details
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorId },
+      select: {
+        firstName: true,
+        lastName: true,
+        avatar: true,
       },
-    ];
-    notification.subjectCount = 1;
-    notification.diObject = {
-      id: payload.postId,
-      type: 'post',
-      name: payload.postTitle || 'a post',
-    };
-    notification.link = `/posts/${payload.postId}`;
+    });
 
-    try {
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
+    if (!actor) {
+      return;
+    }
+
+    // Get content details
+    let contentName = '';
+    let parentPost = null;
+    if (contentType === 'POST') {
+      const post = await this.prisma.publishedPost.findUnique({
+        where: { id: contentId },
+        select: { title: true },
+      });
+      contentName = post?.title || 'a post';
+    } else if (contentType === 'EMOTION') {
+      const emotion = await this.prisma.userEmotion.findUnique({
+        where: { id: contentId },
+        select: { emotion: true },
+      });
+      contentName = emotion?.emotion || 'an emotion';
+    } else if (contentType === 'COMMENT') {
+      const comment = await this.prisma.comment.findUnique({
+        where: { id: contentId },
+        select: {
+          content: true,
+          postId: true,
+          post: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
         },
       });
-
-      return { data: '' };
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-producer.service: handlePostLiked: ${err.message}`,
-      );
-
-      return { err: 'serverError' };
-    }
-  }
-
-  async handleCommentAdded(
-    payload: CommentAddedEvent,
-  ): Promise<AppResult<string, string>> {
-    // Skip self-comments
-    if (payload.commenterId === payload.postOwnerId) {
-      return { data: '' };
+      contentName = comment?.content || 'a comment';
+      parentPost = comment?.post;
     }
 
     const notification = new NotificationCreateInput();
-    notification.key = `commentPost:${payload.postId}`;
-    notification.type = 'commentPost';
-    notification.userId = payload.postOwnerId;
+    notification.key = `like:${contentType}:${contentId}`;
+    notification.type = NotificationType.POST_LIKE;
+    notification.userId = targetUserId;
     notification.subjects = [
       {
-        id: payload.commenterId,
-        type: 'user',
-        name: payload.commenterName,
-        image: payload.commenterAvatar,
+        id: actorId,
+        type: 'USER',
+        name: `${actor.firstName}${actor.lastName ? ` ${actor.lastName}` : ''}`,
+        image: actor.avatar,
       },
     ];
     notification.subjectCount = 1;
     notification.diObject = {
-      id: payload.postId,
-      type: 'post',
-      name: payload.postTitle || 'your post',
+      id: contentId,
+      type: contentType,
+      name: contentName,
     };
-    notification.prObject = {
-      id: payload.commentId,
-      type: 'comment',
-      name: payload.commentText,
-    };
-    notification.link = `/posts/${payload.postId}?comment=${payload.commentId}`;
 
-    try {
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
-
-      return { data: '' };
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-producer.service: handleCommentAdded: ${err.message}`,
-      );
-
-      return { err: 'serverError' };
-    }
-  }
-
-  async handleUserMentioned(
-    payload: UserMentionedEvent,
-  ): Promise<AppResult<string, string>> {
-    // Skip self-mentions
-    if (payload.mentioningUserId === payload.mentionedUserId) {
-      return { data: '' };
+    // For comments, add the parent post as prObject
+    if (contentType === 'COMMENT' && parentPost) {
+      notification.prObject = {
+        id: parentPost.id,
+        type: 'POST',
+        name: parentPost.title || 'a post',
+      };
+      notification.link = `/posts/${parentPost.id}?comment=${contentId}`;
+    } else {
+      notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
     }
 
-    const notification = new NotificationCreateInput();
-    notification.key = `mention:${payload.contentType}:${payload.contentId}:${payload.mentionedUserId}`;
-    notification.type = 'mention';
-    notification.userId = payload.mentionedUserId;
-    notification.subjects = [
-      {
-        id: payload.mentioningUserId,
-        type: 'user',
-        name: payload.mentioningUserName,
-        image: payload.mentioningUserAvatar,
+    await this.notiQueue.add(notification, {
+      attempts: 3,
+      timeout: 60000,
+      backoff: {
+        type: 'exponential',
+        delay: 32000,
       },
-    ];
-    notification.subjectCount = 1;
-    notification.inObject = {
-      id: payload.contentId,
-      type: payload.contentType,
-      name: payload.contentText || `a ${payload.contentType}`,
-    };
-
-    // Set link based on content type
-    if (payload.contentType === 'post') {
-      notification.link = `/posts/${payload.contentId}`;
-    } else if (payload.contentType === 'comment') {
-      // For comments, we need to link to the parent post with the comment highlighted
-      // This assumes we have the post ID in the content title or can extract it
-      const postId = payload.contentTitle || payload.contentId.split('-')[0];
-      notification.link = `/posts/${postId}?comment=${payload.contentId}`;
-    }
-
-    try {
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
-
-      return { data: '' };
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-producer.service: handleUserMentioned: ${err.message}`,
-      );
-
-      return { err: 'serverError' };
-    }
-  }
-
-  async handleUserFollowed(
-    payload: UserFollowedEvent,
-  ): Promise<AppResult<string, string>> {
-    const notification = new NotificationCreateInput();
-    notification.key = `follow:${payload.followerId}:${payload.followingId}`;
-    notification.type = 'follow';
-    notification.userId = payload.followingId;
-    notification.subjects = [
-      {
-        id: payload.followerId,
-        type: 'user',
-        name: payload.followerName,
-        image: payload.followerAvatar,
-      },
-    ];
-    notification.subjectCount = 1;
-    notification.link = `/users/${payload.followerId}/profile`;
-
-    try {
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
-
-      return { data: '' };
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-producer.service: handleUserFollowed: ${err.message}`,
-      );
-
-      return { err: 'serverError' };
-    }
+    });
   }
 }

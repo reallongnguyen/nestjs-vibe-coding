@@ -78,24 +78,3 @@ export interface EventBusMessage<T = unknown> {
    */
   readonly metadata: EventMetadata;
 }
-
-/**
- * Interface that all event handlers must implement
- */
-export interface EventHandler<T = unknown> {
-  /**
-   * Handle an event
-   * @param event The event to handle
-   */
-  handle(event: EventBusMessage<T>): Promise<void>;
-}
-
-/**
- * Interface for modules to declare which events they handle
- */
-export interface EventSubscriber {
-  /**
-   * Get the events this subscriber handles
-   */
-  getSubscribedEvents(): EventSchema[];
-}

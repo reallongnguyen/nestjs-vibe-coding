@@ -1,34 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
-import { NotificationConsumerService } from '../../services/notification-consumer.service';
-import { LikeNotificationEvent } from '../../entities/events/like-notification.event';
+import { EventBusMessage } from 'src/common/event-manager/core/domain/events/event.interface';
+import { SocialEventSchemas } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { NotificationProducerService } from '../../services/notification-producer.service';
+import { NotificationPreferenceService } from '../../services/notification-preference.service';
+import { NotificationType } from '../../entities/notification-preference.entity';
 
 @Injectable()
 export class LikeNotificationHandler {
   constructor(
     private readonly logger: Logger,
-    private readonly notificationConsumer: NotificationConsumerService,
+    private readonly notificationProducer: NotificationProducerService,
+    private readonly preferenceService: NotificationPreferenceService,
   ) {}
 
-  @OnEvent(LikeNotificationEvent.EVENT_NAME)
-  async handleLikeNotification(event: LikeNotificationEvent): Promise<void> {
+  @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
+  async handleLikeCreated(
+    event: EventBusMessage<typeof SocialEventSchemas.LIKE_CREATED.schema>,
+  ): Promise<void> {
     try {
-      this.logger.debug(
-        `notification: processing like notification for user ${event.userId}`,
-      );
-
-      // Convert event to notification input
-      const notificationInput = event.toNotificationInput();
-
-      // Create notification
-      await this.notificationConsumer.upsertNotificationSerialByKey(
-        notificationInput,
-      );
+      const { targetUserId } = event.payload;
 
       this.logger.debug(
-        `notification: like notification processed for user ${event.userId}`,
+        `notification: processing like notification for user ${targetUserId}`,
       );
+
+      // Get user's notification preference
+      const preference = await this.preferenceService.getPreferenceByType(
+        targetUserId,
+        NotificationType.POST_LIKE,
+      );
+
+      // Skip notification if preference is disabled
+      if (!preference.enabled) {
+        this.logger.debug(
+          `notification: skipping like notification for user ${targetUserId} (disabled)`,
+        );
+        return;
+      }
+
+      // Forward to producer service
+      await this.notificationProducer.handleLikeCreated(event);
     } catch (err) {
       this.logger.error(
         `notification: error processing like notification: ${err.message}`,

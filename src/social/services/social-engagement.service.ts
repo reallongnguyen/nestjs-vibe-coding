@@ -1,15 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { IEventBus, InjectEventBus } from 'src/common/event-bus';
+import { ContentType } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { IEventBus, InjectEventBus } from 'src/common/event-manager';
+import {
+  LikeCreatedEvent,
+  LikeDeletedEvent,
+} from 'src/common/event-manager/core/domain/events/social.events';
 
 import { EngagementStatsDto } from '../presentation/dtos/engagement-stats.dto';
 import { EngageableNotFoundError } from '../entities/social.error';
-import { PostViewedEvent } from '../entities/events/post-viewed.event';
-import { EmotionViewedEvent } from '../entities/events/emotion-viewed.event';
-import { PostUnlikedEvent } from '../entities/events/post-unliked.event';
-import { EmotionUnlikedEvent } from '../entities/events/emotion-unliked.event';
-import { PostLikedEvent } from '../entities/events/post-liked.event';
-import { EmotionLikedEvent } from '../entities/events/emotion-liked.event';
 import { IViewRepository } from './interfaces/view-repository.interface';
 
 interface CommentCountUpdate {
@@ -24,7 +23,7 @@ export class SocialEngagementService {
     @InjectEventBus()
     private readonly eventBus: IEventBus,
     @Inject('IViewRepository')
-    private readonly viewEngagementHelper: IViewRepository,
+    private readonly viewRepository: IViewRepository,
   ) {}
 
   async batchUpdateCommentCount(updates: CommentCountUpdate[]) {
@@ -107,26 +106,41 @@ export class SocialEngagementService {
     contentId: string,
     userId: string,
   ): Promise<void> {
-    const upperType = type.toUpperCase();
+    const upperType = type.toUpperCase() as ContentType;
 
     // Validate content exists
     await this.validateContentExists(upperType, contentId);
 
-    if (upperType === 'POST') {
-      await this.eventBus.publish(
-        new PostLikedEvent(contentId, userId, {
-          occurredOn: new Date(),
-        }),
-      );
+    // Get target user ID based on content type
+    let targetUserId = '';
+    if (upperType === ContentType.POST) {
+      const post = await this.prisma.publishedPost.findUnique({
+        where: { id: contentId },
+        select: { userId: true },
+      });
+      targetUserId = post?.userId || '';
+    } else if (upperType === ContentType.EMOTION) {
+      const emotion = await this.prisma.userEmotion.findUnique({
+        where: { id: contentId },
+        select: { userId: true },
+      });
+      targetUserId = emotion?.userId || '';
+    } else if (upperType === ContentType.COMMENT) {
+      const comment = await this.prisma.comment.findUnique({
+        where: { id: contentId },
+        select: { userId: true },
+      });
+      targetUserId = comment?.userId || '';
     }
 
-    if (upperType === 'EMOTION') {
-      await this.eventBus.publish(
-        new EmotionLikedEvent(contentId, userId, {
-          occurredOn: new Date(),
-        }),
-      );
-    }
+    const event = new LikeCreatedEvent({
+      actorId: userId,
+      contentType: upperType,
+      contentId,
+      targetUserId,
+    });
+
+    await this.eventBus.publish(event);
   }
 
   /**
@@ -140,26 +154,41 @@ export class SocialEngagementService {
     contentId: string,
     userId: string,
   ): Promise<void> {
-    const upperType = type.toUpperCase();
+    const upperType = type.toUpperCase() as ContentType;
 
     // Validate content exists
     await this.validateContentExists(upperType, contentId);
 
-    if (upperType === 'POST') {
-      await this.eventBus.publish(
-        new PostUnlikedEvent(contentId, userId, {
-          occurredOn: new Date(),
-        }),
-      );
+    // Get target user ID based on content type
+    let targetUserId = '';
+    if (upperType === ContentType.POST) {
+      const post = await this.prisma.publishedPost.findUnique({
+        where: { id: contentId },
+        select: { userId: true },
+      });
+      targetUserId = post?.userId || '';
+    } else if (upperType === ContentType.EMOTION) {
+      const emotion = await this.prisma.userEmotion.findUnique({
+        where: { id: contentId },
+        select: { userId: true },
+      });
+      targetUserId = emotion?.userId || '';
+    } else if (upperType === ContentType.COMMENT) {
+      const comment = await this.prisma.comment.findUnique({
+        where: { id: contentId },
+        select: { userId: true },
+      });
+      targetUserId = comment?.userId || '';
     }
 
-    if (upperType === 'EMOTION') {
-      await this.eventBus.publish(
-        new EmotionUnlikedEvent(contentId, userId, {
-          occurredOn: new Date(),
-        }),
-      );
-    }
+    const event = new LikeDeletedEvent({
+      actorId: userId,
+      contentType: upperType,
+      contentId,
+      targetUserId,
+    });
+
+    await this.eventBus.publish(event);
   }
 
   /**
@@ -175,38 +204,20 @@ export class SocialEngagementService {
     viewerHash: string,
     viewerId?: string,
   ): Promise<void> {
-    const upperType = type.toUpperCase();
+    const upperType = type.toUpperCase() as ContentType;
 
     // Validate content exists
     await this.validateContentExists(upperType, contentId);
 
     // Insert view record
-    const { isNewView } = await this.viewEngagementHelper.insertView(
+    await this.viewRepository.insertView(
       contentId,
       upperType,
       viewerHash,
       viewerId,
     );
 
-    if (!isNewView) {
-      return;
-    }
-
-    if (upperType === 'POST') {
-      // Use handler to record view
-      await this.eventBus.publish(
-        new PostViewedEvent(contentId, viewerHash, viewerId, {
-          occurredOn: new Date(),
-        }),
-      );
-    }
-    if (upperType === 'EMOTION') {
-      await this.eventBus.publish(
-        new EmotionViewedEvent(contentId, viewerHash, viewerId, {
-          occurredOn: new Date(),
-        }),
-      );
-    }
+    // TODO: Emit content viewed event if it's a new view
   }
 
   /**
@@ -251,6 +262,11 @@ export class SocialEngagementService {
       exists = count > 0;
     } else if (type === 'EMOTION') {
       const count = await this.prisma.userEmotion.count({
+        where: { id },
+      });
+      exists = count > 0;
+    } else if (type === 'COMMENT') {
+      const count = await this.prisma.comment.count({
         where: { id },
       });
       exists = count > 0;

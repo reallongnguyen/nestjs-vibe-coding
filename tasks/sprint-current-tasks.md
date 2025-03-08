@@ -125,6 +125,7 @@ Migrate social interaction events to a standardized event system with type safet
   Risk Level: Low
   Story Points: 3
   Sprint: 007
+  Change Type: Integration
 
 **Time Tracking**:
   Estimated Hours: 12
@@ -132,20 +133,62 @@ Migrate social interaction events to a standardized event system with type safet
   Due Date: 2024-03-29
 
 **Status**:
-  State: To Do
-  Phase: Planning
-  Labels: []
+  State: In Progress
+  Phase: Development
+  Labels: [Backend, Notification, Integration-Heavy]
+
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Notification Module (Producer, Consumer, Delivery)
+    - Social Module (Like events)
+    - Template System
+  Current Implementation:
+    - NotificationProducerService: Converts events to notifications
+    - NotificationConsumerService: Groups and processes notifications
+    - NotificationDeliveryService: Handles multi-channel delivery
+    - Current grouping uses key field for aggregation
+    - Templates support multiple languages
+  Integration Points:
+    - Social events to notification pipeline
+    - Template rendering system
+    - MQTT delivery system
+    - User preference system
+  Breaking Changes: None
 
 **Quick Start**:
   Similar Feature: src/notification/comment-notification
   Example Test: src/notification/tests/notification.service.spec.ts
   Key Files:
-    - src/notification/services/
-    - src/social/events/
+    - src/notification/services/notification-producer.service.ts: Handles event to notification conversion
+    - src/notification/services/notification-consumer.service.ts: Manages grouping and processing
+    - src/notification/services/notification-delivery.service.ts: Handles delivery
+    - src/social/events/social-interaction.events.ts: Social event definitions
   Setup Steps:
-    1. Review notification patterns
-    2. Set up test data
-    3. Configure notification templates
+    1. Review notification pipeline documentation
+    2. Understand current grouping mechanism
+    3. Review template system
+  Required Reading:
+    - /docs/technical.md#notification-system-architecture
+    - /docs/module-structure.md
+    - Current notification templates
+
+**Pre-Implementation Checklist**:
+  Code Analysis:
+    - [ ] Review notification pipeline flow
+    - [ ] Understand current grouping mechanism
+    - [ ] Review template system
+    - [ ] Check existing event handlers
+    - [ ] Verify integration points
+  Design Review:
+    - [ ] Confirm alignment with notification architecture
+    - [ ] Verify grouping strategy
+    - [ ] Check performance impact
+    - [ ] Review security implications
+  Integration Planning:
+    - [ ] Map event to notification flow
+    - [ ] Plan template integration
+    - [ ] Define delivery configuration
 
 **Dependencies**:
   Blocks: []
@@ -172,31 +215,100 @@ Implement real-time notifications for post and emotion likes with proper groupin
     - Notification delivery < 1s
     - Grouping window < 5s
 
+  **Notification Flow Guidelines**:
+
+  1. Producer Stage (NotificationProducerService):
+     - Create PostLikedEvent with required fields:
+       - likerId, likerName, likerAvatar
+       - postId, postTitle, postOwnerId
+     - Implement handlePostLiked method:
+       - Generate unique grouping key: `likePost:${postId}`
+       - Set notification type as 'likePost'
+       - Configure subjects array with liker info
+       - Set diObject with post details
+       - Add deep link to post
+     - Use proper queue configuration:
+       - Set retry attempts: 3
+       - Configure timeout: 60s
+       - Use exponential backoff
+
+  2. Consumer Stage (NotificationConsumerService):
+     - Implement grouping strategy:
+       - Group by postId within time window
+       - Maintain subject order
+       - Handle concurrent likes
+     - Add template rendering:
+       - Support multiple languages
+       - Handle subject count variations
+       - Include proper content escaping
+     - Use RedLock for concurrency:
+       - Set appropriate lock timeout
+       - Handle lock failures
+       - Implement retry logic
+
+  3. Delivery Stage (NotificationDeliveryService):
+     - Configure MQTT delivery:
+       - Set proper QoS level
+       - Implement timeout handling
+       - Add retry mechanism
+     - Handle delivery tracking:
+       - Log delivery attempts
+       - Record success/failure
+       - Monitor performance
+
 **Tasks**:
 
 1. [ ] Create notification handlers
-   - Implement like event handler
-   - Add notification grouping
-   - Create delivery service
-2. [ ] Add notification templates
-   - Design message templates
-   - Add localization support
-   - Create preview generator
-3. [ ] Implement delivery system
-   - Add MQTT publishing
-   - Implement retry logic
+   - Implement PostLikedEvent handler
+   - Configure notification grouping
+   - Set up template rendering
    - Add error handling
+
+2. [ ] Add notification templates
+   - Create base templates
+   - Add language variations
+   - Implement preview logic
+   - Test rendering
+
+3. [ ] Implement delivery system
+   - Configure MQTT topics
+   - Set up retry logic
+   - Add monitoring
+   - Handle errors
+
 4. [ ] Add testing
-   - Unit tests for handlers
-   - Integration tests for delivery
-   - Load tests for grouping
+   - Test event handling
+   - Verify grouping logic
+   - Check delivery flow
+   - Load test system
 
 **Technical Notes**:
 
-- Use notification grouping for high volume
-- Implement efficient actor aggregation
-- Add proper error handling
-- Include user preference checking
+- Follow the three-stage pipeline: Producer → Consumer → Delivery
+- Use proper error handling at each stage
+- Implement comprehensive logging
+- Monitor performance metrics
+- Follow existing patterns in codebase
+
+**Common Pitfalls to Avoid**:
+
+1. Producer Stage:
+   - Missing event fields
+   - Incorrect grouping keys
+   - Queue configuration issues
+   - Error handling gaps
+
+2. Consumer Stage:
+   - Race conditions in grouping
+   - Template rendering errors
+   - Lock handling issues
+   - Database performance
+
+3. Delivery Stage:
+   - Channel timeout issues
+   - Missing retry logic
+   - Resource leaks
+   - Monitoring gaps
 
 **Quality Checklist**:
 
@@ -436,6 +548,110 @@ Implement a Redis-based counter service for tracking notification-related metric
 - Add monitoring for counter operations
 - Document key naming conventions
 - Consider implementing a backup strategy
+
+### NOT-003.5: Remove Redundant Notification Grouping Fields
+
+**Metadata**:
+  Type: Technical Debt
+  Component: Backend
+  Priority: Medium
+  Risk Level: Low
+  Story Points: 1
+  Sprint: 007
+
+**Time Tracking**:
+  Estimated Hours: 4
+  Start Date: 2024-04-03
+  Due Date: 2024-04-04
+
+**Status**:
+  State: To Do
+  Phase: Planning
+  Labels: [Backend, Database, Cleanup]
+
+**Quick Start**:
+  Similar Feature: N/A
+  Example Test: src/notification/tests/notification.service.spec.ts
+  Key Files:
+    - prisma/schema.prisma
+    - src/notification/services/notification-consumer.service.ts
+  Setup Steps:
+    1. Review current notification grouping
+    2. Create database migration
+    3. Update affected code
+
+**Dependencies**:
+  Blocks: []
+  Blocked By: [NOT-003.2, NOT-003.3]
+  Related: []
+
+**Description**:
+Remove redundant grouping fields (groupKey, groupCount, lastEventId) from notification table as we're using the key field for grouping functionality.
+
+**Context**:
+  Feature Goal: Simplify notification data model
+  Similar Features: N/A
+  Code Patterns: Database migration
+  Common Pitfalls:
+    - Data migration issues
+    - Breaking changes
+    - Missing field references
+    - Migration rollback
+
+**Implementation Guide**:
+  Architecture Pattern: Database migration
+  Code Style: Follow Prisma migration patterns
+  Performance Requirements:
+    - Migration runtime < 5min
+    - No service downtime
+
+**Tasks**:
+
+1. [ ] Create database migration
+   - Remove groupKey column
+   - Remove groupCount column
+   - Remove lastEventId column
+   - Update indexes
+
+2. [ ] Update notification service
+   - Remove unused field references
+   - Update tests if needed
+   - Verify grouping still works
+
+3. [ ] Test migration
+   - Test on staging data
+   - Verify rollback works
+   - Check performance impact
+
+4. [ ] Update documentation
+   - Update schema docs
+   - Update API docs if needed
+   - Document migration process
+
+**Technical Notes**:
+
+- Current grouping uses key field with Hash index
+- groupKey and related fields are unused
+- Migration should be backward compatible
+- Consider data volume for migration time
+
+**Quality Checklist**:
+
+- [ ] Technical Design Review
+- [ ] Migration Script Created
+- [ ] Tests Updated
+- [ ] Migration Tested
+- [ ] Documentation Updated
+- [ ] Code Review Completed
+- [ ] Performance Verified
+
+**Acceptance Criteria**:
+
+1. Redundant fields removed from schema
+2. Migration runs successfully
+3. Notification grouping works as before
+4. No impact on existing functionality
+5. Documentation is updated
 
 ### INF-002: Implement imgproxy Monitoring
 

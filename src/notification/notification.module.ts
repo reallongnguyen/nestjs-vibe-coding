@@ -87,7 +87,6 @@ import { NotificationPreferenceRepository } from './repositories/notification-pr
 import { NotificationTemplateRepository } from './repositories/notification-template.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
-import { SocialEventHandler } from './presentation/handlers/social-event.handler';
 
 @Module({
   imports: [
@@ -142,7 +141,6 @@ import { SocialEventHandler } from './presentation/handlers/social-event.handler
     // Event handlers
     NotificationHandler,
     LikeNotificationHandler,
-    SocialEventHandler,
     NotificationProcessor,
   ],
 })

@@ -62,4 +62,4 @@ import { EventValidator } from './core/domain/validation/event.validator';
   ],
   exports: [EVENT_BUS_TOKEN],
 })
-export class EventBusModule {}
+export class EventManagerModule {}

@@ -1,5 +1,5 @@
 import { BaseEvent } from '../domain/events/base.event';
 
 export interface EventBus {
-  publish<T>(event: BaseEvent<T>): Promise<void>;
+  publish<T extends object>(event: BaseEvent<T>): Promise<void>;
 }

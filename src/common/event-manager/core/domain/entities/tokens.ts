@@ -1,1 +1,1 @@
-export const EVENT_BUS_TOKEN = 'EventBusPort';
+export const EVENT_BUS_TOKEN = 'IEventBus';

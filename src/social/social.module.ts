@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventBusModule } from 'src/common/event-bus/event-bus.module';
+import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CqrsModule } from '@nestjs/cqrs';
 import moduleConfig from './social.config';
@@ -38,6 +39,7 @@ import { FollowingFeedController } from './presentation/following-feed.controlle
       name: 'content-processing',
     }),
     EventBusModule,
+    EventManagerModule,
     RedisModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         config: configService.get('social.redis'),

@@ -9,10 +9,11 @@ import { EventValidationError } from '../core/domain/errors/event.errors';
  */
 @Injectable()
 export class EventBusAdapter {
-  constructor(
-    private readonly eventEmitter: EventEmitter2,
-    private readonly logger: Logger,
-  ) {}
+  private readonly logger: Logger;
+
+  constructor(private readonly eventEmitter: EventEmitter2) {
+    this.logger = new Logger(EventBusAdapter.name);
+  }
 
   /**
    * Publish an event to all subscribers
@@ -46,33 +47,5 @@ export class EventBusAdapter {
       );
       throw error;
     }
-  }
-
-  /**
-   * Subscribe to an event
-   * @deprecated Use @OnEvent() decorator instead
-   */
-  subscribe<T extends object>(
-    eventName: string,
-    handler: (event: EventBusMessage<T>) => Promise<void>,
-  ): void {
-    this.logger.warn(
-      'Using deprecated subscribe() method. Please use @OnEvent() decorator instead.',
-    );
-    this.eventEmitter.on(eventName, handler);
-  }
-
-  /**
-   * Unsubscribe from an event
-   * @deprecated Use @OnEvent() decorator instead
-   */
-  unsubscribe<T extends object>(
-    eventName: string,
-    handler: (event: EventBusMessage<T>) => Promise<void>,
-  ): void {
-    this.logger.warn(
-      'Using deprecated unsubscribe() method. Please use @OnEvent() decorator instead.',
-    );
-    this.eventEmitter.off(eventName, handler);
   }
 }

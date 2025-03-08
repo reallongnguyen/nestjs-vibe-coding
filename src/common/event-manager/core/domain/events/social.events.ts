@@ -81,31 +81,3 @@ export class CommentRepliedEvent extends SocialEvent<
     super(SocialEventSchemas.COMMENT_REPLIED, payload, metadata);
   }
 }
-
-/**
- * Event emitted when a user follows another user
- */
-export class FollowCreatedEvent extends SocialEvent<
-  typeof SocialEventSchemas.FOLLOW_CREATED.schema
-> {
-  constructor(
-    payload: typeof SocialEventSchemas.FOLLOW_CREATED.schema,
-    metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
-  ) {
-    super(SocialEventSchemas.FOLLOW_CREATED, payload, metadata);
-  }
-}
-
-/**
- * Event emitted when a user unfollows another user
- */
-export class FollowDeletedEvent extends SocialEvent<
-  typeof SocialEventSchemas.FOLLOW_DELETED.schema
-> {
-  constructor(
-    payload: typeof SocialEventSchemas.FOLLOW_DELETED.schema,
-    metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
-  ) {
-    super(SocialEventSchemas.FOLLOW_DELETED, payload, metadata);
-  }
-}
