@@ -9,7 +9,7 @@ import {
 /**
  * Base class for social events
  */
-abstract class SocialEvent<T extends object> extends BaseEvent<T> {
+export abstract class SocialEvent<T extends object> extends BaseEvent<T> {
   private readonly eventPayload: T;
 
   constructor(

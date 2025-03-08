@@ -75,6 +75,7 @@ import { NotificationTemplateController } from './presentation/notification-temp
 import { NotificationProcessor } from './presentation/notification.processor';
 import { NotificationHandler } from './presentation/handlers/notification.handler';
 import { LikeNotificationHandler } from './presentation/handlers/like-notification.handler';
+import { CommentNotificationHandler } from './presentation/handlers/comment-notification.handler';
 import { NotificationService } from './services/notification.service';
 import { NotificationPreferenceService } from './services/notification-preference.service';
 import { NotificationTemplateService } from './services/notification-template.service';
@@ -141,6 +142,7 @@ import moduleConfig from './notification.config';
     // Event handlers
     NotificationHandler,
     LikeNotificationHandler,
+    CommentNotificationHandler,
     NotificationProcessor,
   ],
 })

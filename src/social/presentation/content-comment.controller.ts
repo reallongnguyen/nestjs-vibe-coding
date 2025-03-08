@@ -27,6 +27,8 @@ import {
   Collection,
   PaginationQueryDto,
 } from 'src/common';
+import { ContentType } from 'src/common/event-manager/core/domain/events/schemas';
+
 import { CommentService } from '../services/comment.service';
 import {
   CommentDto,
@@ -51,19 +53,19 @@ export class ContentCommentController {
   @ApiOperation({ summary: 'Create comment for content' })
   @ApiParam({
     name: 'type',
-    enum: ['POST', 'EMOTION'],
+    enum: [ContentType.POST, ContentType.EMOTION],
     description: 'Content type',
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @CreatedResponse(CommentDto)
   @ErrorResponse('comment.create', commentErrorMap, { hasValidationErr: true })
   async createComment(
-    @Param('type') type: string,
+    @Param('type') type: ContentType.POST | ContentType.EMOTION,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: CreateCommentDto,
     @AuthContextUser() user: User,
   ): Promise<CommentDto> {
-    const comment = await this.commentService.createComment(
+    const comment = await this.commentService.create(
       type,
       id,
       user.id,

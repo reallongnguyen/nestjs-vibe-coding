@@ -22,8 +22,8 @@ async function seedNotificationTemplates() {
       type: 'post_like',
       version: '1.0.0',
       contents: {
-        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã thích bài viết {{ diObject.name }} của bạn{{#if prObject}} trong {{ prObject.name }}{{/if}}',
-        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} liked your post {{ diObject.name }}{{#if prObject}} in {{ prObject.name }}{{/if}}',
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã thích bài viết {{ diObject.name }} của bạn{{#if prObject}} trong {{ prObject.name }}{{/if}}',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} liked your post {{ diObject.name }}{{#if prObject}} in {{ prObject.name }}{{/if}}',
       },
     },
     {
@@ -31,8 +31,17 @@ async function seedNotificationTemplates() {
       type: 'commentPost',
       version: '1.0.0',
       contents: {
-        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã bình luận về bài viết {{ diObject.name }} của bạn',
-        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} commented on your post {{ diObject.name }}',
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã bình luận về bài viết {{ diObject.name }} của bạn',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} commented on your post {{ diObject.name }}',
+      },
+    },
+    {
+      name: 'Comment Emotion Template',
+      type: 'emotion_comment',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã bình luận về cảm xúc {{ diObject.name }} của bạn',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} commented on your emotion {{ diObject.name }}',
       },
     },
     {
@@ -40,8 +49,8 @@ async function seedNotificationTemplates() {
       type: 'mention',
       version: '1.0.0',
       contents: {
-        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d> đã nhắc đến bạn trong {{ inObject.type }} "{{ inObject.name }}"',
-        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d> mentioned you in a {{ inObject.type }} "{{ inObject.name }}"',
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d> đã nhắc đến bạn trong {{ inObject.type }} "{{ inObject.name }}"',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d> mentioned you in a {{ inObject.type }} "{{ inObject.name }}"',
       },
     },
     {
@@ -49,8 +58,8 @@ async function seedNotificationTemplates() {
       type: 'follow',
       version: '1.0.0',
       contents: {
-        VI: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã bắt đầu theo dõi bạn',
-        EN: '<d class="font-semibold" type="user">{{ subjects.0.name }}</d>{{#if (gt subject_count 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} started following you',
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã bắt đầu theo dõi bạn',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} started following you',
       },
     },
   ];

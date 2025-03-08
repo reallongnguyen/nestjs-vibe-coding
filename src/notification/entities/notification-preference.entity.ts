@@ -16,6 +16,8 @@ export enum NotificationType {
   PROFILE_UPDATE = 'profile_update',
   POST_LIKE = 'post_like',
   POST_COMMENT = 'post_comment',
+  EMOTION_LIKE = 'emotion_like',
+  EMOTION_COMMENT = 'emotion_comment',
   COMMENT_REPLY = 'comment_reply',
   USER_MENTION = 'user_mention',
   SYSTEM_ANNOUNCEMENT = 'system_announcement',

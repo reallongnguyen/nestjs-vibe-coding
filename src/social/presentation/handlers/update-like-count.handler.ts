@@ -7,9 +7,12 @@ import {
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { RedisBatchProcessor } from 'src/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import {
+  ContentType,
+  SocialEventSchemas,
+} from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { LikeCreatedEvent } from 'src/common/event-manager/core/domain/events/social.events';
 import { ILikeRepository } from '../../services/interfaces/like-repository.interface';
-import { EmotionLikedEvent } from '../../entities/events/emotion-liked.event';
-import { PostLikedEvent } from '../../entities/events/post-liked.event';
 import { PostUnlikedEvent } from '../../entities/events/post-unliked.event';
 import { EmotionUnlikedEvent } from '../../entities/events/emotion-unliked.event';
 
@@ -62,26 +65,34 @@ export class UpdateLikeCountHandler implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  @OnEvent(EmotionLikedEvent.eventName)
-  async handleEmotionLiked(event: EmotionLikedEvent) {
-    const payload = event.toJSON();
+  @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
+  async handleEmotionLiked(event: LikeCreatedEvent) {
+    const { contentId, contentType, actorId: userId } = event.payload;
+
+    if (contentType !== ContentType.EMOTION) {
+      return;
+    }
 
     await this.emotionLikeProcessor.add({
-      contentId: payload.emotionId,
-      contentType: 'EMOTION',
-      userId: payload.userId,
+      contentId,
+      contentType,
+      userId,
       operation: 'like',
     });
   }
 
-  @OnEvent(PostLikedEvent.eventName)
-  async handlePostLiked(event: PostLikedEvent) {
-    const payload = event.toJSON();
+  @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
+  async handlePostLiked(event: LikeCreatedEvent) {
+    const { contentId, contentType, actorId: userId } = event.payload;
+
+    if (contentType !== ContentType.POST) {
+      return;
+    }
 
     await this.postLikeProcessor.add({
-      contentId: payload.postId,
-      contentType: 'POST',
-      userId: payload.userId,
+      contentId,
+      contentType,
+      userId,
       operation: 'like',
     });
   }

@@ -250,105 +250,84 @@ export class NotificationTemplateService {
     data: Record<string, any>,
     language: TemplateLanguage = TemplateLanguage.VI,
   ): Promise<string> {
-    try {
-      // Try to get from cache first
-      const cacheKey = `${type}:${language}`;
-      let template = this.templateCache.get(cacheKey);
+    // Try to get from cache first
+    const cacheKey = `${type}:${language}`;
+    let template = this.templateCache.get(cacheKey);
 
-      // If not in cache, load from database and compile
-      if (!template) {
-        const templateDomain = await this.templateRepository.findByType(type);
-        if (!templateDomain) {
-          this.logger.error(`Template not found: ${type}`);
-          throw new AppError('notification.template.render.notFound', {
-            type,
-          });
-        }
-
-        const templateContent = templateDomain.getContent(language);
-        if (!templateContent) {
-          this.logger.error(
-            `Template content not found for language: ${language}`,
-          );
-
-          // Try to fall back to another language if available
-          const availableLanguages = Object.keys(templateDomain.content);
-          if (availableLanguages.length > 0) {
-            const fallbackLanguage = availableLanguages[0] as TemplateLanguage;
-            this.logger.log(`Falling back to language: ${fallbackLanguage}`);
-
-            const fallbackContent = templateDomain.getContent(fallbackLanguage);
-            if (fallbackContent) {
-              try {
-                template = Handlebars.compile(fallbackContent);
-                this.templateCache.set(cacheKey, template);
-              } catch (compileError) {
-                this.logger.error(
-                  `Error compiling fallback template: ${compileError.message}`,
-                );
-                throw new AppError(
-                  'notification.template.render.compileError',
-                  {
-                    type,
-                    language: fallbackLanguage,
-                  },
-                );
-              }
-            }
-          }
-
-          if (!template) {
-            throw new AppError(
-              'notification.template.render.languageNotFound',
-              {
-                type,
-                language,
-              },
-            );
-          }
-        } else {
-          try {
-            template = Handlebars.compile(templateContent);
-            this.templateCache.set(cacheKey, template);
-          } catch (compileError) {
-            this.logger.error(
-              `Error compiling template: ${compileError.message}`,
-            );
-            throw new AppError('notification.template.render.compileError', {
-              type,
-              language,
-            });
-          }
-        }
-      }
-
-      // Render the template with data
-      try {
-        return template(data);
-      } catch (renderError) {
-        this.logger.error(`Error rendering template: ${renderError.message}`);
-
-        // Clear cache in case the template is invalid
-        this.templateCache.delete(cacheKey);
-
-        throw new AppError('notification.template.render.renderError', {
+    // If not in cache, load from database and compile
+    if (!template) {
+      const templateDomain = await this.templateRepository.findByType(type);
+      if (!templateDomain) {
+        this.logger.error(`Template not found: ${type}`);
+        throw new AppError('notification.template.render.notFound', {
           type,
-          language,
-          error: renderError.message,
         });
       }
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
 
-      this.logger.error(
-        `Unexpected error rendering template: ${error.message}`,
-      );
-      throw new AppError('notification.template.render.unexpectedError', {
+      const templateContent = templateDomain.getContent(language);
+      if (!templateContent) {
+        this.logger.error(
+          `Template content not found for language: ${language}`,
+        );
+
+        // Try to fall back to another language if available
+        const availableLanguages = Object.keys(templateDomain.content);
+        if (availableLanguages.length > 0) {
+          const fallbackLanguage = availableLanguages[0] as TemplateLanguage;
+          this.logger.log(`Falling back to language: ${fallbackLanguage}`);
+
+          const fallbackContent = templateDomain.getContent(fallbackLanguage);
+          if (fallbackContent) {
+            try {
+              template = Handlebars.compile(fallbackContent);
+              this.templateCache.set(cacheKey, template);
+            } catch (compileError) {
+              this.logger.error(
+                `Error compiling fallback template: ${compileError.message}`,
+              );
+              throw new AppError('notification.template.render.compileError', {
+                type,
+                language: fallbackLanguage,
+              });
+            }
+          }
+        }
+
+        if (!template) {
+          throw new AppError('notification.template.render.languageNotFound', {
+            type,
+            language,
+          });
+        }
+      } else {
+        try {
+          template = Handlebars.compile(templateContent);
+          this.templateCache.set(cacheKey, template);
+        } catch (compileError) {
+          this.logger.error(
+            `Error compiling template: ${compileError.message}`,
+          );
+          throw new AppError('notification.template.render.compileError', {
+            type,
+            language,
+          });
+        }
+      }
+    }
+
+    // Render the template with data
+    try {
+      return template(data);
+    } catch (renderError) {
+      this.logger.error(`Error rendering template: ${renderError.message}`);
+
+      // Clear cache in case the template is invalid
+      this.templateCache.delete(cacheKey);
+
+      throw new AppError('notification.template.render.renderError', {
         type,
         language,
-        error: error.message,
+        error: renderError.message,
       });
     }
   }
@@ -494,6 +473,73 @@ export class NotificationTemplateService {
           default:
             return options.inverse(this);
         }
+      },
+    );
+
+    Handlebars.registerHelper(
+      'fullName',
+      (
+        person:
+          | {
+              name?: string;
+              fullName?: string;
+              firstName?: string;
+              lastName?: string;
+              language?: string;
+            }
+          | string,
+      ) => {
+        if (typeof person === 'string') {
+          return person;
+        }
+
+        if (person.fullName) {
+          return person.fullName;
+        }
+
+        if (person.name) {
+          return person.name;
+        }
+
+        if (person.language === 'VI') {
+          return [person.lastName, person.firstName]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+        }
+
+        return [person.firstName, person.lastName]
+          .filter(Boolean)
+          .join(' ')
+          .trim();
+      },
+    );
+
+    Handlebars.registerHelper(
+      'firstName',
+      (
+        person:
+          | {
+              name?: string;
+              fullName?: string;
+              firstName?: string;
+              language?: string;
+            }
+          | string,
+      ) => {
+        if (typeof person === 'string') {
+          return person;
+        }
+
+        if (person.fullName) {
+          return person.fullName;
+        }
+
+        if (person.name) {
+          return person.name;
+        }
+
+        return person.firstName;
       },
     );
 

@@ -2,11 +2,19 @@ export {};
 
 declare global {
   namespace PrismaJson {
+    type SubjectObjectType = {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      fullName?: string;
+      type: string;
+      avatar?: string;
+    };
     type NotificationObjectType = {
       id: string;
       name: string;
       type: string;
-      image?: string;
+      thumbnail?: string;
     };
     type NotificationDecoratorType = {
       offset: number;

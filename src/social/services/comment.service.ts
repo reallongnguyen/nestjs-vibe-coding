@@ -1,14 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  IEventBus,
-  InjectEventBus,
-  Collection,
-  AppError,
-  PrismaService,
-} from 'src/common';
+import { Collection, AppError, PrismaService } from 'src/common';
+import { IEventBus, InjectEventBus } from 'src/common/event-manager';
 import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
+import { CommentRepliedEvent } from 'src/common/event-manager/core/domain/events/social.events';
+import { ContentType } from 'src/common/event-manager/core/domain/events/schemas/social.events';
 import { ICommentRepository } from './interfaces/comment-repository.interface';
-import { CreateCommentInput, UpdateCommentInput } from './dtos/comment.input';
+import { UpdateCommentInput } from './dtos/comment.input';
 import { CommentOutput } from './dtos/comment.output';
 import { CommentCreatedEvent } from '../entities/events/comment-created.event';
 import {
@@ -28,20 +25,6 @@ export class CommentService {
     private readonly emotionPrivacyService: EmotionPrivacyService,
     @InjectEventBus() private readonly eventBus: IEventBus,
   ) {}
-
-  async create(
-    data: CreateCommentInput,
-    userId: string,
-  ): Promise<CommentOutput> {
-    const comment = await this.commentRepository.create({
-      ...data,
-      userId,
-    });
-
-    await this.eventBus.publish(new CommentCreatedEvent(comment));
-
-    return comment as CommentOutput;
-  }
 
   async findById(id: string): Promise<CommentOutput> {
     const comment = await this.commentRepository.findById(id);
@@ -106,17 +89,19 @@ export class CommentService {
     await this.commentRepository.delete(id);
   }
 
-  async createComment(
-    type: string,
+  async create(
+    type: ContentType.POST | ContentType.EMOTION,
     contentId: string,
     userId: string,
     content: string,
     parentId?: string,
   ): Promise<CommentOutput> {
-    const upperType = type.toUpperCase();
-
     // Validate content exists and user has permission
-    await this.validateContentAccess(upperType, contentId, userId);
+    const { authorId } = await this.validateContentAccess(
+      type,
+      contentId,
+      userId,
+    );
 
     // Check if parent comment exists if provided
     if (parentId) {
@@ -131,7 +116,7 @@ export class CommentService {
 
     // Create comment based on content type
     let comment;
-    if (upperType === 'POST') {
+    if (type === ContentType.POST) {
       comment = await this.prisma.comment.create({
         data: {
           content,
@@ -141,7 +126,7 @@ export class CommentService {
           authorType: 'USER',
         },
       });
-    } else if (upperType === 'EMOTION') {
+    } else if (type === ContentType.EMOTION) {
       comment = await this.prisma.comment.create({
         data: {
           content,
@@ -154,13 +139,37 @@ export class CommentService {
     }
 
     // Publish event
-    await this.eventBus.publish(new CommentCreatedEvent(comment));
+    if (parentId) {
+      // Get parent comment's user ID for notification
+      const parentComment = await this.prisma.comment.findUnique({
+        where: { id: parentId },
+        select: { userId: true },
+      });
+
+      if (parentComment) {
+        await this.eventBus.publish(
+          new CommentRepliedEvent({
+            targetUserId: parentComment.userId,
+            actorId: userId,
+            contentType: type,
+            contentId,
+            commentId: parentId,
+            preview:
+              content.length > 100 ? `${content.substring(0, 97)}...` : content,
+          }),
+        );
+      }
+    } else {
+      await this.eventBus.publish(
+        new CommentCreatedEvent(comment, authorId, type),
+      );
+    }
 
     return {
       id: comment.id,
       content: comment.content,
-      postId: upperType === 'POST' ? contentId : null,
-      emotionId: upperType === 'EMOTION' ? contentId : null,
+      postId: type === ContentType.POST ? contentId : null,
+      emotionId: type === ContentType.EMOTION ? contentId : null,
       userId: comment.userId,
       parentId: comment.parentId,
       createdAt: comment.createdAt,
@@ -236,19 +245,26 @@ export class CommentService {
   }
 
   private async validateContentAccess(
-    type: string,
+    type: ContentType.POST | ContentType.EMOTION,
     contentId: string,
     userId: string,
-  ): Promise<void> {
-    if (type === 'POST') {
-      const postExists = await this.prisma.publishedPost.count({
+  ): Promise<{ authorId: string; authorType: string }> {
+    if (type === ContentType.POST) {
+      const post = await this.prisma.publishedPost.findUnique({
         where: { id: contentId },
       });
 
-      if (!postExists) {
+      if (!post) {
         throw new EngageableNotFoundError(contentId, 'POST');
       }
-    } else if (type === 'EMOTION') {
+
+      return {
+        authorId: post.userId || post.botId,
+        authorType: post.authorType,
+      };
+    }
+
+    if (type === ContentType.EMOTION) {
       const canComment = await this.emotionPrivacyService.canComment(
         contentId,
         userId,
@@ -259,10 +275,23 @@ export class CommentService {
           cause: 'Cannot comment on this emotion due to privacy settings',
         });
       }
-    } else {
-      throw new AppError('common.serverError', {
-        cause: `Unsupported content type: ${type}`,
+
+      const emotion = await this.prisma.userEmotion.findUnique({
+        where: { id: contentId },
       });
+
+      if (!emotion) {
+        throw new EngageableNotFoundError(contentId, 'EMOTION');
+      }
+
+      return {
+        authorId: emotion.userId,
+        authorType: 'USER',
+      };
     }
+
+    throw new AppError('common.serverError', {
+      cause: `Unsupported content type: ${type}`,
+    });
   }
 }

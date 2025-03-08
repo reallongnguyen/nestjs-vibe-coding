@@ -4,7 +4,16 @@ export class NotificationObject implements PrismaJson.NotificationObjectType {
   id: string;
   name: string;
   type: string;
-  image?: string;
+  thumbnail?: string;
+}
+
+export class SubjectObject implements PrismaJson.SubjectObjectType {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  type: string;
+  avatar?: string;
 }
 
 export class NotificationDecorator
@@ -22,7 +31,7 @@ export class Notification implements NotificationIf {
   key: string;
   type: string;
   userId: string;
-  subjects: NotificationObject[];
+  subjects: SubjectObject[];
   subjectCount: number;
   diObject: NotificationObject | null;
   inObject: NotificationObject | null;

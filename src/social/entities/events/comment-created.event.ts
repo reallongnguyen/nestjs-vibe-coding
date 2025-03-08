@@ -1,32 +1,40 @@
-import { BaseEvent } from 'src/common/event-bus';
+import { BaseEvent } from 'src/common/event-manager/core/domain/events/base.event';
+import {
+  SocialEventSchemas,
+  ContentType,
+} from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { EventMetadata } from 'src/common/event-manager/core/domain/events/event.interface';
 import { Comment } from '../comment.entity';
 
-const EVENT_NAME = 'comment.created';
+/**
+ * Event emitted when a user creates a comment
+ */
+export class CommentCreatedEvent extends BaseEvent<
+  typeof SocialEventSchemas.COMMENT_CREATED.schema
+> {
+  private readonly eventPayload: typeof SocialEventSchemas.COMMENT_CREATED.schema;
 
-export class CommentCreatedEvent extends BaseEvent {
   constructor(
-    public readonly comment: Comment,
-    params?: ConstructorParameters<typeof BaseEvent>[0],
+    comment: Comment,
+    targetUserId: string,
+    contentType: ContentType.POST | ContentType.EMOTION,
+    metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(params);
-  }
-
-  eventName(): string {
-    return EVENT_NAME;
-  }
-
-  static getEventName(): string {
-    return EVENT_NAME;
-  }
-
-  toJSON(): Record<string, unknown> {
-    return {
-      id: this.comment.id,
-      content: this.comment.content,
-      postId: this.comment.postId,
-      userId: this.comment.userId,
-      parentId: this.comment.parentId,
-      createdAt: this.comment.createdAt,
+    super(SocialEventSchemas.COMMENT_CREATED, metadata);
+    this.eventPayload = {
+      targetUserId,
+      actorId: comment.userId,
+      contentType,
+      contentId: comment.postId || comment.emotionId,
+      commentId: comment.id,
+      preview:
+        comment.content.length > 100
+          ? `${comment.content.substring(0, 97)}...`
+          : comment.content,
     };
+  }
+
+  toJSON(): typeof SocialEventSchemas.COMMENT_CREATED.schema {
+    return this.eventPayload;
   }
 }

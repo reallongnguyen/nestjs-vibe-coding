@@ -14,6 +14,7 @@
 - Task breakdown and estimation done
 - NOT-003.1 (Event System Migration) completed
 - NOT-003.2 (Like Notification Implementation) completed
+- NOT-003.3 (Comment Notification Implementation) in progress
 - Architecture review completed
 - Initial technical design review completed
 
@@ -43,6 +44,40 @@
 - Tests passing
 - Documentation updated
 - Integration with event bus verified
+
+### NOT-003.3: Comment Notification Implementation (3 points)
+
+**Status**: In Progress
+**Progress**: 80%
+**Blockers**: Blocked by SOC-007
+**Notes**:
+
+- Implementation completed:
+  - Event handlers created
+  - Producer service updated
+  - Tests added
+  - Integration with event bus completed
+  - Templates created
+  - Grouping strategies implemented
+- Pending:
+  - End-to-end testing
+  - Documentation updates
+- Dependencies:
+  - Blocked by SOC-007: Comment Reply Event Implementation
+
+### SOC-007: Comment Reply Event Implementation (2 points)
+
+**Status**: Done
+**Progress**: 100%
+**Blockers**: None
+**Notes**:
+
+- Completed:
+  - Implemented `COMMENT_REPLIED` event publishing in `src/social/services/comment.service.ts`
+  - Added event schema validation
+  - Updated `CommentCreatedEvent` to use new event system
+  - Added unit tests for event publishing
+  - Added documentation in `docs/comment-notification-flow.md`
 
 ### SOC-006-5: Feed Distribution System Redesign (13 points)
 

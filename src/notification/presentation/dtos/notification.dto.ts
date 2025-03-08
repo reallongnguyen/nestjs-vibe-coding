@@ -25,7 +25,7 @@ export class NotificationCreateInput
   key: string;
   type: string;
   userId: string;
-  subjects?: PrismaJson.NotificationObjectType[];
+  subjects?: PrismaJson.SubjectObjectType[];
   subjectCount: number;
   diObject?: PrismaJson.NotificationObjectType;
   inObject?: PrismaJson.NotificationObjectType;

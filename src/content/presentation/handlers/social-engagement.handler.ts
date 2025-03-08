@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PostLikedEvent } from 'src/social/entities/events/post-liked.event';
 import { PostUnlikedEvent } from 'src/social/entities/events/post-unliked.event';
 import { PostViewedEvent } from 'src/social/entities/events/post-viewed.event';
+import {
+  ContentType,
+  SocialEventSchemas,
+} from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { LikeCreatedEvent } from 'src/common/event-manager/core/domain/events/social.events';
 import { PublishedPostService } from '../../services/published-post.service';
 
 @Injectable()
@@ -11,13 +15,19 @@ export class SocialEngagementHandler {
 
   constructor(private readonly publishedPostService: PublishedPostService) {}
 
-  @OnEvent(PostLikedEvent.eventName)
-  async handlePostLiked(event: PostLikedEvent): Promise<void> {
-    this.logger.debug(`Post liked: ${event.postId} by ${event.userId}`);
+  @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
+  async handlePostLiked(event: LikeCreatedEvent): Promise<void> {
+    const { contentId, contentType, actorId: userId } = event.payload;
+
+    if (contentType !== ContentType.POST) {
+      return;
+    }
+
+    this.logger.debug(`Post liked: ${contentId} by ${userId}`);
 
     // Update post metadata or perform other actions
-    await this.publishedPostService.updateEngagementMetadata(event.postId, {
-      lastEngagementAt: event.occurredOn,
+    await this.publishedPostService.updateEngagementMetadata(contentId, {
+      lastEngagementAt: new Date(event.metadata.timestamp),
     });
   }
 

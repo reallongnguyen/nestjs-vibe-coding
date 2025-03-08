@@ -181,7 +181,7 @@ model Notification {
   key              String
   type             String
   userId           String    @map("user_id")
-  /// [NotificationObjectType]
+  /// [SubjectObjectType]
   subjects         Json[]
   subjectCount     Int       @map("subject_count")
   /// [NotificationObjectType]

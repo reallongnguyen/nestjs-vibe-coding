@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { RedisBatchProcessor } from 'src/common/batch-processor/redis-batch-processor';
 import { OnEvent } from '@nestjs/event-emitter';
+import { SocialEventSchemas } from 'src/common/event-manager/core/domain/events/schemas/social.events';
 
 import { CommentCreatedEvent } from '../../entities/events/comment-created.event';
 import { SocialEngagementService } from '../../services/social-engagement.service';
@@ -42,14 +43,10 @@ export class UpdateCommentCountHandler
     await this.commentCountProcessor.onApplicationShutdown();
   }
 
-  @OnEvent(CommentCreatedEvent.getEventName())
+  @OnEvent(SocialEventSchemas.COMMENT_CREATED.eventName)
   async handleCommentCreated(event: CommentCreatedEvent) {
-    const type = event.comment.postId ? 'POST' : 'EMOTION';
-    const contentId = event.comment.postId || event.comment.emotionId;
-
-    if (!contentId) {
-      return;
-    }
+    const type = event.payload.contentType;
+    const { contentId } = event.payload;
 
     await this.commentCountProcessor.add({
       type,
