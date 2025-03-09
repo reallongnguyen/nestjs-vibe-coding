@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { UserController } from './presentation/user.controller';
 import { UserService } from './services/user.service';
 import { UserRepository } from './repositories/user.repository';
@@ -9,7 +8,7 @@ import { UserActivityHandler } from './presentation/user-activity.handler';
 import { UserActivityService } from './services/user-activity.service';
 
 @Module({
-  imports: [EventBusModule],
+  imports: [],
   controllers: [UserProfileController, UserController],
   providers: [
     UserService,

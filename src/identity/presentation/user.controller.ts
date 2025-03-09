@@ -30,7 +30,7 @@ import {
   ImageSize,
   ImageUrlService,
 } from 'src/common/img-proxy/services/image-url.service';
-import { InjectEventBus, IEventBus } from 'src/common/event-bus';
+import { InjectEventBus, IEventBus } from 'src/common/event-manager';
 import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin';
 
 import { UserService } from '../services/user.service';

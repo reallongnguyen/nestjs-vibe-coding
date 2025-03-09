@@ -230,7 +230,7 @@ volumes:
 #### GRS-001.2: Data Synchronization Service (3 points)
 
 **Status**: In Progress
-**Progress**: 40%
+**Progress**: 50%
 **Priority**: High
 **Assignee**: Backend Developer
 **Dependencies**: GRS-001.1
@@ -253,18 +253,25 @@ volumes:
    - Directory organization standardized
    - Import paths updated
 
+4. Event System Implementation ✅
+   - Event schemas defined with Zod
+   - Event classes implemented
+   - Event validation added
+   - Unit tests created
+
 **Next Steps**:
 
-1. ⏳ Implement data sync service
-2. ⏳ Add event handlers
-3. ⏳ Set up monitoring
+1. ⏳ Implement event handlers
+2. ⏳ Implement sync service
+3. ⏳ Add monitoring
 
 **Completed Items**:
-
 - ✅ Event schemas created and tested
 - ✅ Module structure reorganized following standards
 - ✅ Gorse client implementation
 - ✅ Basic event handling setup
+- ✅ Event validation implemented
+- ✅ Unit tests for events
 
 **Implementation Notes**:
 
@@ -481,3 +488,337 @@ interface FeedResult {
    - Content discovery rate increase > 30%
    - Recommendation relevance score > 0.8
    - User satisfaction score > 4.0/5.0
+
+#### GRS-001.4: Identity Module Event Integration (2 points)
+
+**Metadata**:
+  Type: Feature
+  Component: Backend
+  Priority: High
+  Risk Level: Low
+  Story Points: 2
+  Sprint: Current
+  Change Type: Enhancement
+
+**Time Tracking**:
+  Estimated Hours: 8
+  Start Date: 2024-03-21
+  Due Date: 2024-03-22
+
+**Status**:
+  State: In Progress
+  Phase: Development
+  Labels: [Integration-Heavy]
+  Progress: 80%
+
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Identity Module
+    - Event Manager
+    - Gorse Sync Service
+  Current Implementation:
+    - Identity module handles user CRUD operations
+    - Event manager has base event infrastructure
+    - Gorse sync service handles user synchronization
+  Integration Points:
+    - User creation/update in identity service
+    - Event bus for publishing events
+    - Gorse sync handler for consuming events
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/recommendation/entities/events/gorse-sync.events.ts
+  Example Test: src/recommendation/services/gorse-sync.service.spec.ts
+  Key Files:
+    - src/identity/services/user.service.ts: User service to extend
+    - src/identity/entities/events/user.events.ts: New event definitions
+    - src/common/event-manager/entities/events/schemas/user.events.ts: New event schemas
+
+**Description**:
+Implement event publishing for user creation and updates in the identity module to enable automatic synchronization with Gorse.
+
+**Context**:
+  Feature Goal: Enable real-time user data synchronization with Gorse
+  Similar Features: Gorse sync events
+  Code Patterns: Event-driven architecture
+  Common Pitfalls: Event schema validation, proper error handling
+  Current Limitations: Manual sync only
+
+**Implementation Guide**:
+  Architecture Pattern: Event-driven
+  Code Style: Follow event manager patterns
+  Integration Requirements:
+    - Define user events in identity module
+    - Publish events on user operations
+    - Handle errors appropriately
+  Performance Requirements:
+    - Event publishing < 50ms
+    - No blocking operations
+
+**Tasks**:
+
+1. [✓] Analysis Phase
+   - [✓] Review existing user service implementation
+   - [✓] Document event schema requirements
+   - [✓] Map integration points
+2. [✓] Development Phase
+   - [✓] Create user event schemas
+   - [✓] Implement event publishing in user service
+   - [✓] Add error handling
+3. [⏳] Testing Phase
+   - [✓] Unit tests for event publishing
+   - [⏳] Integration tests with Gorse sync
+   - [⏳] Error scenario testing
+
+**Technical Notes**:
+
+- Follow event naming convention: identity.user.{action}
+- Include all necessary user data in events
+- Handle transaction rollback on event failures
+- Consider event versioning
+
+**Quality Checklist**:
+
+- [✓] Event schemas follow conventions
+- [✓] Error handling implemented
+- [⏳] Tests cover main scenarios
+- [⏳] Documentation updated
+
+**Acceptance Criteria**:
+
+1. [✓] Events published for:
+   - [✓] User creation
+   - [✓] User profile updates
+   - [✓] Role changes
+2. [✓] Events contain correct user data
+3. [✓] Error handling implemented
+4. [⏳] Tests passing with good coverage
+
+**Completed Items**:
+
+- ✅ Event schemas created and tested
+- ✅ Event classes implemented with proper validation
+- ✅ User service updated to publish events
+- ✅ Unit tests for user activity service
+- ✅ Unit tests for user activity handler
+- ✅ Error handling implemented
+
+**Pending Items**:
+
+- ⏳ Integration tests with Gorse sync
+- ⏳ Error scenario testing
+- ⏳ Documentation updates
+- ⏳ Final test coverage review
+
+#### GRS-001.5: Content Event Integration (3 points)
+
+**Metadata**:
+  Type: Feature
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 3
+  Sprint: Current
+  Change Type: Enhancement
+
+**Time Tracking**:
+  Estimated Hours: 12
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Backlog
+  Phase: Analysis
+  Labels: [Integration-Heavy]
+
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Content Module
+    - Event Manager
+    - Gorse Sync Service
+  Current Implementation:
+    - Content module handles post and emotion creation
+    - Event manager has base event infrastructure
+    - Gorse sync service handles item synchronization
+  Integration Points:
+    - Post publication service
+    - Emotion creation service
+    - Event bus for publishing
+    - Gorse sync handler for consuming
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/recommendation/entities/events/gorse-sync.events.ts
+  Example Test: src/recommendation/services/gorse-sync.service.spec.ts
+  Key Files:
+    - src/content/services/draft-post.service.ts: Post service to extend
+    - src/gamification/services/create-emotion.service.ts: Emotion service to extend
+    - src/content/entities/events/post.event.ts: New event definitions for post
+    - src/gamification/entities/events/emotion.event.ts: New event definitions for emotion
+    - src/common/event-manager/entities/events/schemas/content.events.ts: New event schema
+
+**Description**:
+Implement event publishing for post publication and emotion creation to enable automatic synchronization with Gorse.
+
+**Context**:
+  Feature Goal: Enable real-time content synchronization with Gorse
+  Similar Features: Gorse sync events
+  Code Patterns: Event-driven architecture
+  Common Pitfalls: Content type handling, metadata synchronization
+  Current Limitations: Manual sync only
+
+**Implementation Guide**:
+  Architecture Pattern: Event-driven
+  Code Style: Follow event manager patterns
+  Integration Requirements:
+    - Define content events
+    - Handle different content types
+    - Include necessary metadata
+  Performance Requirements:
+    - Event publishing < 50ms
+    - No blocking operations
+
+**Tasks**:
+
+1. [ ] Analysis Phase
+   - Review content services
+   - Document event requirements
+   - Map integration points
+2. [ ] Development Phase
+   - Create content event schemas
+   - Implement event publishing
+   - Add error handling
+3. [ ] Testing Phase
+   - Unit tests
+   - Integration tests
+   - Performance testing
+
+**Technical Notes**:
+
+- Follow event naming: content.{type}.{action}
+- Include content metadata
+- Handle different content types properly
+- Consider content visibility rules
+
+**Quality Checklist**:
+
+- [ ] Event schemas follow conventions
+- [ ] Error handling implemented
+- [ ] Tests cover main scenarios
+- [ ] Documentation updated
+
+**Acceptance Criteria**:
+
+1. Events published for:
+   - Post publication
+   - Emotion creation
+2. Events contain correct metadata
+3. Error handling implemented
+4. Tests passing with good coverage
+
+---
+
+#### GRS-001.6: View Event Integration (2 points)
+
+**Metadata**:
+  Type: Feature
+  Component: Backend
+  Priority: High
+  Risk Level: Low
+  Story Points: 2
+  Sprint: Current
+  Change Type: Enhancement
+
+**Time Tracking**:
+  Estimated Hours: 8
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Backlog
+  Phase: Analysis
+  Labels: [Integration-Heavy]
+
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Analytics Module
+    - Event Manager
+    - Gorse Sync Service
+  Current Implementation:
+    - View tracking in analytics module
+    - Event manager has base event infrastructure
+    - Gorse sync service handles feedback synchronization
+  Integration Points:
+    - View tracking service
+    - Event bus for publishing
+    - Gorse sync handler for consuming
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/recommendation/entities/events/gorse-sync.events.ts
+  Example Test: src/recommendation/services/gorse-sync.service.spec.ts
+  Key Files:
+    - src/social/services/social-engagement.service.ts: View service to extend
+    - src/social/entities/events/view.event.ts: New event definitions
+    - src/common/event-manager/entities/events/schemas/social.events.ts: New event schemas
+
+**Description**:
+Implement event publishing for content views to enable automatic feedback synchronization with Gorse.
+
+**Context**:
+  Feature Goal: Enable real-time view tracking synchronization with Gorse
+  Similar Features: Gorse sync events
+  Code Patterns: Event-driven architecture
+  Common Pitfalls: View deduplication, anonymous views
+  Current Limitations: Manual sync only
+
+**Implementation Guide**:
+  Architecture Pattern: Event-driven
+  Code Style: Follow event manager patterns
+  Integration Requirements:
+    - Define view events
+    - Handle anonymous views
+    - Include view context
+  Performance Requirements:
+    - Event publishing < 50ms
+    - High throughput handling
+
+**Tasks**:
+
+1. [ ] Analysis Phase
+   - Review view tracking implementation
+   - Document event requirements
+   - Map integration points
+2. [ ] Development Phase
+   - Create view event schemas
+   - Implement event publishing
+   - Add error handling
+3. [ ] Testing Phase
+   - Unit tests
+   - Integration tests
+   - Load testing
+
+**Technical Notes**:
+
+- Follow event naming: social.view.{action}
+- Handle anonymous views appropriately
+- Consider rate limiting for view events
+- Implement view deduplication
+
+**Quality Checklist**:
+
+- [ ] Event schemas follow conventions
+- [ ] Error handling implemented
+- [ ] Tests cover main scenarios
+- [ ] Documentation updated
+
+**Acceptance Criteria**:
+
+1. Events published for all content views
+2. Anonymous views handled properly
+3. View deduplication implemented
+4. Error handling implemented
+5. Tests passing with good coverage

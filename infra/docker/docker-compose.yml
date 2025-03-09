@@ -283,6 +283,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.gorse-dashboard.rule=Host(`${GORSE_MASTER_HOST}`)"
       - "traefik.http.services.gorse-dashboard.loadbalancer.server.port=8088"
+    ports:
+      - 8088:8088
     volumes:
       - gorse-master-data:/var/lib/gorse
       - ./gorse/config.toml:/etc/gorse/config.toml

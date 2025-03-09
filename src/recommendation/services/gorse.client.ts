@@ -52,7 +52,7 @@ export class GorseClient implements IGorseClient {
       });
       this.logger.debug(`Inserted user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to insert user ${userId}`, error.stack);
+      this.logger.error(`Failed to insert user ${userId}: ${error.message}`);
       throw error;
     }
   }
@@ -62,7 +62,7 @@ export class GorseClient implements IGorseClient {
       const response = await this.client.get(`/api/user/${userId}`);
       return response.data;
     } catch (error) {
-      this.logger.error(`Failed to get user ${userId}`, error.stack);
+      this.logger.error(`Failed to get user ${userId}: ${error.message}`);
       throw error;
     }
   }
@@ -79,7 +79,7 @@ export class GorseClient implements IGorseClient {
       });
       this.logger.debug(`Updated user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to update user ${userId}`, error.stack);
+      this.logger.error(`Failed to update user ${userId}: ${error.message}`);
       throw error;
     }
   }
@@ -89,7 +89,7 @@ export class GorseClient implements IGorseClient {
       await this.client.delete(`/api/user/${userId}`);
       this.logger.debug(`Deleted user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to delete user ${userId}`, error.stack);
+      this.logger.error(`Failed to delete user ${userId}: ${error.message}`);
       throw error;
     }
   }
@@ -103,7 +103,7 @@ export class GorseClient implements IGorseClient {
       const response = await this.client.get(`/api/users?${params.toString()}`);
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to list users', error.stack);
+      this.logger.error(`Failed to list users: ${error.message}`);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ export class GorseClient implements IGorseClient {
       });
       this.logger.debug(`Inserted item ${itemId}`);
     } catch (error) {
-      this.logger.error(`Failed to insert item ${itemId}`, error.stack);
+      this.logger.error(`Failed to insert item ${itemId}: ${error.message}`);
       throw error;
     }
   }
@@ -136,7 +136,7 @@ export class GorseClient implements IGorseClient {
       const response = await this.client.get(`/api/item/${itemId}`);
       return response.data;
     } catch (error) {
-      this.logger.error(`Failed to get item ${itemId}`, error.stack);
+      this.logger.error(`Failed to get item ${itemId}: ${error.message}`);
       throw error;
     }
   }
@@ -155,7 +155,7 @@ export class GorseClient implements IGorseClient {
       });
       this.logger.debug(`Updated item ${itemId}`);
     } catch (error) {
-      this.logger.error(`Failed to update item ${itemId}`, error.stack);
+      this.logger.error(`Failed to update item ${itemId}: ${error.message}`);
       throw error;
     }
   }
@@ -165,7 +165,7 @@ export class GorseClient implements IGorseClient {
       await this.client.delete(`/api/item/${itemId}`);
       this.logger.debug(`Deleted item ${itemId}`);
     } catch (error) {
-      this.logger.error(`Failed to delete item ${itemId}`, error.stack);
+      this.logger.error(`Failed to delete item ${itemId}: ${error.message}`);
       throw error;
     }
   }
@@ -179,8 +179,7 @@ export class GorseClient implements IGorseClient {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to insert feedback for user ${feedback.UserId} on item ${feedback.ItemId}`,
-        error.stack,
+        `Failed to insert feedback for user ${feedback.UserId} on item ${feedback.ItemId}: ${error.message}`,
       );
       throw error;
     }
@@ -208,8 +207,7 @@ export class GorseClient implements IGorseClient {
       return response.data;
     } catch (error) {
       this.logger.error(
-        `Failed to get recommendations for user ${userId}`,
-        error.stack,
+        `Failed to get recommendations for user ${userId}: ${error.message}`,
       );
       throw error;
     }
@@ -237,8 +235,7 @@ export class GorseClient implements IGorseClient {
       return response.data;
     } catch (error) {
       this.logger.error(
-        `Failed to get recommendations for user ${userId} in category ${category}`,
-        error.stack,
+        `Failed to get recommendations for user ${userId} in category ${category}: ${error.message}`,
       );
       throw error;
     }
@@ -261,7 +258,7 @@ export class GorseClient implements IGorseClient {
       );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to get popular items', error.stack);
+      this.logger.error(`Failed to get popular items: ${error.message}`);
       throw error;
     }
   }
@@ -285,8 +282,7 @@ export class GorseClient implements IGorseClient {
       return response.data;
     } catch (error) {
       this.logger.error(
-        `Failed to get popular items in category ${category}`,
-        error.stack,
+        `Failed to get popular items in category ${category}: ${error.message}`,
       );
       throw error;
     }
@@ -297,7 +293,7 @@ export class GorseClient implements IGorseClient {
       const response = await this.client.get(`/api/latest/${n}`);
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to get latest items', error.stack);
+      this.logger.error(`Failed to get latest items: ${error.message}`);
       throw error;
     }
   }
@@ -313,8 +309,7 @@ export class GorseClient implements IGorseClient {
       return response.data;
     } catch (error) {
       this.logger.error(
-        `Failed to get similar items for ${itemId}`,
-        error.stack,
+        `Failed to get similar items for ${itemId}: ${error.message}`,
       );
       throw error;
     }
@@ -337,8 +332,7 @@ export class GorseClient implements IGorseClient {
       return response.data;
     } catch (error) {
       this.logger.error(
-        `Failed to get neighbors for user ${userId}`,
-        error.stack,
+        `Failed to get neighbors for user ${userId}: ${error.message}`,
       );
       throw error;
     }
@@ -350,7 +344,7 @@ export class GorseClient implements IGorseClient {
       const response = await this.client.get('/api/health/live');
       return response.data;
     } catch (error) {
-      this.logger.error('Gorse liveness check failed', error.stack);
+      this.logger.error(`Gorse liveness check failed: ${error.message}`);
       throw error;
     }
   }
@@ -360,8 +354,24 @@ export class GorseClient implements IGorseClient {
       const response = await this.client.get('/api/health/ready');
       return response.data;
     } catch (error) {
-      this.logger.error('Gorse readiness check failed', error.stack);
+      this.logger.error(`Gorse readiness check failed: ${error.message}`);
       throw error;
     }
+  }
+
+  // Count APIs
+  async getUserCount(): Promise<number> {
+    const response = await this.client.get('/api/users/count');
+    return response.data;
+  }
+
+  async getItemCount(): Promise<number> {
+    const response = await this.client.get('/api/items/count');
+    return response.data;
+  }
+
+  async getFeedbackCount(): Promise<number> {
+    const response = await this.client.get('/api/feedback/count');
+    return response.data;
   }
 }

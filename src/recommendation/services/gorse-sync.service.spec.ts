@@ -1,299 +1,271 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/common';
-import { GorseFeedbackType, EventBusAdapter } from 'src/common/event-manager';
-import { GorseSyncService } from './gorse-sync.service';
+import { Logger } from '@nestjs/common';
+import { EVENT_BUS_TOKEN } from '../../common/event-manager/entities/tokens';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { GorseClient } from './gorse.client';
-
-jest.mock('src/common/prisma/prisma.service');
+import { GorseSyncService } from './gorse-sync.service';
+import { SyncOperation } from '../../common/event-manager/entities/events/schemas/recommendation.events';
+import {
+  UserSyncEvent,
+  ItemSyncEvent,
+  FeedbackSyncEvent,
+} from '../entities/events/gorse-sync.events';
+import type { IEventBus } from '../../common/event-manager';
 
 describe('GorseSyncService', () => {
   let service: GorseSyncService;
-  let gorseClient: jest.Mocked<GorseClient>;
+  let eventBus: jest.Mocked<IEventBus>;
   let prisma: jest.Mocked<PrismaService>;
-
-  const mockGorseClient = {
-    insertUser: jest.fn(),
-    insertItem: jest.fn(),
-    insertFeedback: jest.fn(),
-  };
-
-  const mockPrisma = {
-    user: {
-      findMany: jest.fn().mockImplementation(() => Promise.resolve([])),
-      findUnique: jest.fn().mockImplementation(() => Promise.resolve(null)),
-    },
-    publishedPost: {
-      findMany: jest.fn().mockImplementation(() => Promise.resolve([])),
-      findUnique: jest.fn().mockImplementation(() => Promise.resolve(null)),
-    },
-    like: {
-      findMany: jest.fn().mockImplementation(() => Promise.resolve([])),
-      findFirst: jest.fn().mockImplementation(() => Promise.resolve(null)),
-    },
-  };
-
-  const mockEventBus = {
-    publish: jest.fn(),
-    subscribe: jest.fn(),
-  };
+  let gorseClient: jest.Mocked<GorseClient>;
 
   beforeEach(async () => {
+    const eventBusMock = {
+      publish: jest.fn(),
+    };
+
+    const prismaMock = {
+      user: {
+        findMany: jest.fn(),
+        count: jest.fn(),
+      },
+      publishedPost: {
+        findMany: jest.fn(),
+        count: jest.fn(),
+      },
+      like: {
+        findMany: jest.fn(),
+        count: jest.fn(),
+      },
+    } as unknown as jest.Mocked<PrismaService>;
+
+    const gorseClientMock = {
+      getUserCount: jest.fn(),
+      getItemCount: jest.fn(),
+      getFeedbackCount: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GorseSyncService,
         {
-          provide: GorseClient,
-          useValue: mockGorseClient,
+          provide: EVENT_BUS_TOKEN,
+          useValue: eventBusMock,
         },
         {
           provide: PrismaService,
-          useValue: mockPrisma,
+          useValue: prismaMock,
         },
         {
-          provide: EventBusAdapter,
-          useValue: mockEventBus,
+          provide: GorseClient,
+          useValue: gorseClientMock,
+        },
+        {
+          provide: Logger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<GorseSyncService>(GorseSyncService);
-    gorseClient = module.get(GorseClient);
+    eventBus = module.get(EVENT_BUS_TOKEN);
     prisma = module.get(PrismaService);
+    gorseClient = module.get(GorseClient);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  describe('publishUserSync', () => {
+    it('should publish user sync event', async () => {
+      await service.publishUserSync('user1', ['tech'], SyncOperation.CREATE, [
+        'news',
+      ]);
+
+      expect(eventBus.publish).toHaveBeenCalledWith(expect.any(UserSyncEvent));
+
+      const event = eventBus.publish.mock.calls[0][0] as UserSyncEvent;
+      expect(event.payload).toEqual({
+        userId: 'user1',
+        labels: ['tech'],
+        subscribe: ['news'],
+        timestamp: expect.any(Number),
+        operation: SyncOperation.CREATE,
+      });
+    });
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('publishItemSync', () => {
+    it('should publish item sync event', async () => {
+      await service.publishItemSync(
+        'item1',
+        ['product'],
+        SyncOperation.CREATE,
+        ['tech'],
+        false,
+      );
+
+      expect(eventBus.publish).toHaveBeenCalledWith(expect.any(ItemSyncEvent));
+
+      const event = eventBus.publish.mock.calls[0][0] as ItemSyncEvent;
+      expect(event.payload).toEqual({
+        itemId: 'item1',
+        labels: ['product'],
+        categories: ['tech'],
+        isHidden: false,
+        timestamp: expect.any(Number),
+        operation: SyncOperation.CREATE,
+      });
+    });
+  });
+
+  describe('publishFeedbackSync', () => {
+    it('should publish feedback sync event', async () => {
+      await service.publishFeedbackSync('like', 'user1', 'item1', 'Great!');
+
+      expect(eventBus.publish).toHaveBeenCalledWith(
+        expect.any(FeedbackSyncEvent),
+      );
+
+      const event = eventBus.publish.mock.calls[0][0] as FeedbackSyncEvent;
+      expect(event.payload).toEqual({
+        feedbackType: 'like',
+        userId: 'user1',
+        itemId: 'item1',
+        comment: 'Great!',
+        timestamp: expect.any(Number),
+      });
+    });
   });
 
   describe('performInitialSync', () => {
-    const mockUsers = [
-      { id: 'user1', updatedAt: new Date() },
-      { id: 'user2', updatedAt: new Date() },
-    ];
-
-    const mockPosts = [
-      {
-        id: 'post1',
-        publishedAt: new Date(),
-        topics: [{ topic: { name: 'topic1' } }],
-      },
-      {
-        id: 'post2',
-        publishedAt: new Date(),
-        topics: [{ topic: { name: 'topic2' } }],
-      },
-    ];
-
-    const mockLikes = [
-      {
-        userId: 'user1',
-        contentId: 'post1',
-        createdAt: new Date(),
-      },
-      {
-        userId: 'user2',
-        contentId: 'post2',
-        createdAt: new Date(),
-      },
-    ];
-
     beforeEach(() => {
-      mockPrisma.user.findMany.mockImplementation(() =>
-        Promise.resolve(mockUsers),
-      );
-      mockPrisma.publishedPost.findMany.mockImplementation(() =>
-        Promise.resolve(mockPosts),
-      );
-      mockPrisma.like.findMany.mockImplementation(() =>
-        Promise.resolve(mockLikes),
-      );
-    });
+      // Mock data for sync
+      (prisma.user.findMany as jest.Mock)
+        .mockResolvedValueOnce([
+          { id: 'user1', roles: ['USER', 'CONTENT_CREATOR'] },
+        ])
+        .mockResolvedValueOnce([]);
 
-    it('should sync users, posts, and likes', async () => {
-      await service.performInitialSync();
-
-      expect(prisma.user.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          updatedAt: true,
-        },
-      });
-
-      expect(prisma.publishedPost.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          publishedAt: true,
-          topics: {
-            select: {
-              topic: {
-                select: {
-                  name: true,
+      (prisma.publishedPost.findMany as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            id: 'item1',
+            topics: [
+              {
+                topic: {
+                  name: 'tech',
                 },
               },
-            },
+            ],
+            isArchived: false,
           },
-        },
-      });
+        ])
+        .mockResolvedValueOnce([]);
 
-      expect(prisma.like.findMany).toHaveBeenCalledWith({
-        where: {
-          type: 'POST',
-        },
-        select: {
-          userId: true,
-          contentId: true,
-          createdAt: true,
-        },
-      });
-
-      expect(gorseClient.insertUser).toHaveBeenCalledTimes(2);
-      expect(gorseClient.insertItem).toHaveBeenCalledTimes(2);
-      expect(gorseClient.insertFeedback).toHaveBeenCalledTimes(2);
+      (prisma.like.findMany as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            id: 'like1',
+            type: 'POST',
+            userId: 'user1',
+            contentId: 'item1',
+          },
+        ])
+        .mockResolvedValueOnce([]);
     });
 
-    it('should handle errors during sync', async () => {
+    it('should sync all data types', async () => {
+      await service.performInitialSync();
+
+      // Verify user sync
+      expect(prisma.user.findMany).toHaveBeenCalled();
+      expect(eventBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            userId: 'user1',
+            labels: ['USER', 'CONTENT_CREATOR'],
+            operation: SyncOperation.CREATE,
+          }),
+        }),
+      );
+
+      // Verify item sync
+      expect(prisma.publishedPost.findMany).toHaveBeenCalled();
+      expect(eventBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            itemId: 'item1',
+            labels: ['tech'],
+            operation: SyncOperation.CREATE,
+          }),
+        }),
+      );
+
+      // Verify feedback sync
+      expect(prisma.like.findMany).toHaveBeenCalled();
+      expect(eventBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            userId: 'user1',
+            itemId: 'item1',
+            feedbackType: 'like',
+          }),
+        }),
+      );
+    });
+
+    it('should handle sync errors', async () => {
       const error = new Error('Sync failed');
-      mockPrisma.user.findMany.mockImplementation(() => Promise.reject(error));
+      (prisma.user.findMany as jest.Mock).mockRejectedValue(error);
 
       await expect(service.performInitialSync()).rejects.toThrow(error);
     });
   });
 
-  describe('handleUserSync', () => {
-    const mockUser = {
-      id: 'user1',
-      updatedAt: new Date(),
-    };
+  describe('validateSyncStatus', () => {
+    it('should detect no discrepancies', async () => {
+      (prisma.user.count as jest.Mock).mockResolvedValue(10);
+      (prisma.publishedPost.count as jest.Mock).mockResolvedValue(20);
+      (prisma.like.count as jest.Mock).mockResolvedValue(30);
 
-    beforeEach(() => {
-      mockPrisma.user.findUnique.mockImplementation(() =>
-        Promise.resolve(mockUser),
-      );
+      gorseClient.getUserCount.mockResolvedValue(10);
+      gorseClient.getItemCount.mockResolvedValue(20);
+      gorseClient.getFeedbackCount.mockResolvedValue(30);
+
+      await service.validateSyncStatus();
+
+      // No re-sync should be triggered
+      expect(prisma.user.findMany).not.toHaveBeenCalled();
     });
 
-    it('should sync user to Gorse', async () => {
-      await service.handleUserUpdate('user1');
+    it('should handle discrepancies', async () => {
+      (prisma.user.count as jest.Mock).mockResolvedValue(10);
+      (prisma.publishedPost.count as jest.Mock).mockResolvedValue(20);
+      (prisma.like.count as jest.Mock).mockResolvedValue(30);
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user1' },
-        select: {
-          id: true,
-          updatedAt: true,
-        },
-      });
+      gorseClient.getUserCount.mockResolvedValue(9);
+      gorseClient.getItemCount.mockResolvedValue(20);
+      gorseClient.getFeedbackCount.mockResolvedValue(29);
 
-      expect(gorseClient.insertUser).toHaveBeenCalledWith('user1', [], []);
+      // Mock sync data
+      (prisma.user.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ id: 'user1', roles: [] }])
+        .mockResolvedValueOnce([]);
+      (prisma.publishedPost.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.like.findMany as jest.Mock).mockResolvedValue([]);
+
+      await service.validateSyncStatus();
+
+      // Should trigger re-sync
+      expect(prisma.user.findMany).toHaveBeenCalled();
     });
 
-    it('should handle errors during user sync', async () => {
-      const error = new Error('User sync failed');
-      mockGorseClient.insertUser.mockImplementation(() =>
-        Promise.reject(error),
-      );
+    it('should handle validation errors', async () => {
+      const error = new Error('Validation failed');
+      (prisma.user.count as jest.Mock).mockRejectedValue(error);
 
-      await expect(service.handleUserUpdate('user1')).rejects.toThrow(error);
-    });
-  });
-
-  describe('handleNewContent', () => {
-    const mockContent = {
-      id: 'post1',
-      publishedAt: new Date(),
-      topics: [{ topic: { name: 'topic1' } }],
-    };
-
-    beforeEach(() => {
-      mockPrisma.publishedPost.findUnique.mockImplementation(() =>
-        Promise.resolve(mockContent),
-      );
-    });
-
-    it('should sync content to Gorse', async () => {
-      await service.handleNewContent('post1');
-
-      expect(prisma.publishedPost.findUnique).toHaveBeenCalledWith({
-        where: { id: 'post1' },
-        select: {
-          id: true,
-          publishedAt: true,
-          topics: {
-            select: {
-              topic: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      expect(gorseClient.insertItem).toHaveBeenCalledWith(
-        mockContent.id,
-        mockContent.publishedAt,
-        mockContent.topics.map((t) => t.topic.name),
-        [],
-      );
-    });
-
-    it('should handle errors during content sync', async () => {
-      const error = new Error('Content sync failed');
-      mockPrisma.publishedPost.findUnique.mockImplementation(() =>
-        Promise.reject(error),
-      );
-
-      await expect(service.handleNewContent('post1')).rejects.toThrow(error);
-    });
-  });
-
-  describe('handleFeedback', () => {
-    const mockFeedback = {
-      userId: 'user1',
-      contentId: 'post1',
-      createdAt: new Date(),
-    };
-
-    beforeEach(() => {
-      mockPrisma.like.findFirst.mockImplementation(() =>
-        Promise.resolve(mockFeedback),
-      );
-    });
-
-    it('should sync feedback to Gorse', async () => {
-      await service.handleFeedback('user1', 'post1');
-
-      expect(prisma.like.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: 'user1',
-          contentId: 'post1',
-          type: 'POST',
-        },
-        select: {
-          userId: true,
-          contentId: true,
-          createdAt: true,
-        },
-      });
-
-      expect(gorseClient.insertFeedback).toHaveBeenCalledWith({
-        FeedbackType: GorseFeedbackType.LIKE,
-        UserId: mockFeedback.userId,
-        ItemId: mockFeedback.contentId,
-        Timestamp: mockFeedback.createdAt.toISOString(),
-      });
-    });
-
-    it('should handle errors during feedback sync', async () => {
-      const error = new Error('Feedback sync failed');
-      mockPrisma.like.findFirst.mockImplementation(() => Promise.reject(error));
-
-      await expect(service.handleFeedback('user1', 'post1')).rejects.toThrow(
-        error,
-      );
+      await expect(service.validateSyncStatus()).rejects.toThrow(error);
     });
   });
 });

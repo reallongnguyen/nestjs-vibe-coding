@@ -1,7 +1,6 @@
-import { Collection } from 'src/common/models';
-import { AppError } from 'src/common/models/AppError';
 import { Logger } from 'nestjs-pino';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
+import { Collection, AppError } from 'src/common';
+import { IEventBus } from 'src/common/event-manager';
 
 import { UpsertUserInput } from './dto/user.input';
 import { ProfileOutput } from './dto/profile.output';
@@ -9,8 +8,6 @@ import { Role } from '../entities/role.enum';
 import { PatchProfileInput } from './dto/profile.input';
 import { User } from '../entities/user.entity';
 import { IUserRepository } from './interfaces/user.repository.interface';
-import { ProfileUpdatedEvent } from '../entities/events/profile-updated.event';
-import { UserActivity } from '../entities/user-activity.entity';
 import { IUserActivityRepository } from './interfaces/user-activity.repository.interface';
 import {
   BulkOperationType,
@@ -20,20 +17,29 @@ import { UserSearchFiltersDto } from '../presentation/dtos/user-search-filters.i
 import { ActivityFiltersDto } from '../presentation/dtos/activity-filters.input';
 import { BulkOperationResultDto } from '../presentation/dtos/bulk-user-operation.output';
 import { PasswordResetResultDto } from '../presentation/dtos/password-reset-result.output';
-import { RoleChangeEvent } from '../entities/events/role-change.event';
-import { AccountDeactivatedEvent } from '../entities/events/account-deactivated.event';
-import { AccountActivatedEvent } from '../entities/events/account-activated.event';
-import { AccountDeletedEvent } from '../entities/events/account-deleted.event';
+import {
+  UserCreatedEvent,
+  UserUpdatedEvent,
+  UserRoleChangedEvent,
+  UserDeactivatedEvent,
+  UserActivatedEvent,
+  UserDeletedEvent,
+} from '../entities/events/user.events';
+import { UserActivity } from '../entities/user-activity.entity';
 
 export class UserService {
   constructor(
     private readonly logger: Logger,
     private readonly userRepository: IUserRepository,
-    private readonly eventBus: EventBusPort,
+    private readonly eventBus: IEventBus,
     private readonly userActivityRepository: IUserActivityRepository,
   ) {}
 
   async createOrUpdateUser(input: UpsertUserInput): Promise<User> {
+    const existingUser = await this.userRepository.findUnique({
+      where: { authId: input.authId },
+    });
+
     const user = await this.userRepository.upsert({
       where: { authId: input.authId },
       create: {
@@ -50,7 +56,12 @@ export class UserService {
       },
     });
 
-    this.eventBus.publish(new ProfileUpdatedEvent(user));
+    // Emit appropriate event based on whether this was a create or update
+    if (!existingUser) {
+      await this.eventBus.publish(new UserCreatedEvent(user));
+    } else {
+      await this.eventBus.publish(new UserUpdatedEvent(user));
+    }
 
     return user;
   }
@@ -93,7 +104,7 @@ export class UserService {
       },
     });
 
-    this.eventBus.publish(new ProfileUpdatedEvent(updatedUser));
+    await this.eventBus.publish(new UserUpdatedEvent(updatedUser));
 
     return ProfileOutput.fromUser(updatedUser);
   }
@@ -125,28 +136,34 @@ export class UserService {
     const operations = operation.userIds.map(async (userId) => {
       try {
         switch (operation.operation) {
-          case BulkOperationType.UPDATE_ROLE:
+          case BulkOperationType.UPDATE_ROLE: {
             await this.userRepository.updateRole(userId, operation.newRoles);
-            this.eventBus.publish(
-              new RoleChangeEvent(userId, operation.newRoles, operatorId),
+            await this.eventBus.publish(
+              new UserRoleChangedEvent(userId, operation.newRoles, operatorId),
             );
             break;
-          case BulkOperationType.DEACTIVATE:
+          }
+          case BulkOperationType.DEACTIVATE: {
             await this.userRepository.deactivate(userId);
-            this.eventBus.publish(
-              new AccountDeactivatedEvent(userId, operatorId),
+            await this.eventBus.publish(
+              new UserDeactivatedEvent(userId, operatorId),
             );
             break;
-          case BulkOperationType.ACTIVATE:
+          }
+          case BulkOperationType.ACTIVATE: {
             await this.userRepository.activate(userId);
-            this.eventBus.publish(
-              new AccountActivatedEvent(userId, operatorId),
+            await this.eventBus.publish(
+              new UserActivatedEvent(userId, operatorId),
             );
             break;
-          case BulkOperationType.DELETE:
+          }
+          case BulkOperationType.DELETE: {
             await this.userRepository.delete(userId);
-            this.eventBus.publish(new AccountDeletedEvent(userId, operatorId));
+            await this.eventBus.publish(
+              new UserDeletedEvent(userId, operatorId),
+            );
             break;
+          }
           default:
             throw new AppError('user.bulk.invalidOperation');
         }

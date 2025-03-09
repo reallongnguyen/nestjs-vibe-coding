@@ -1,10 +1,8 @@
 import {
   GorseEventSchemas,
-  UserSyncPayload,
-  ItemSyncPayload,
-  FeedbackSyncPayload,
   BaseEvent,
   EventMetadata,
+  EventSchema,
 } from 'src/common/event-manager';
 
 /**
@@ -14,11 +12,11 @@ export abstract class GorseEvent<T extends object> extends BaseEvent<T> {
   protected readonly eventPayload: T;
 
   constructor(
-    eventName: string,
+    eventSchema: EventSchema<T>,
     payload: T,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super(GorseEventSchemas[eventName] as any, metadata);
+    super(eventSchema, metadata);
     this.eventPayload = payload;
   }
 
@@ -34,35 +32,41 @@ export abstract class GorseEvent<T extends object> extends BaseEvent<T> {
 /**
  * Event for synchronizing user data with Gorse
  */
-export class UserSyncEvent extends GorseEvent<UserSyncPayload> {
+export class UserSyncEvent extends GorseEvent<
+  typeof GorseEventSchemas.USER_SYNC.schema
+> {
   constructor(
-    payload: UserSyncPayload,
+    payload: typeof GorseEventSchemas.USER_SYNC.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super('gorse.user.sync', payload, metadata);
+    super(GorseEventSchemas.USER_SYNC, payload, metadata);
   }
 }
 
 /**
  * Event for synchronizing item data with Gorse
  */
-export class ItemSyncEvent extends GorseEvent<ItemSyncPayload> {
+export class ItemSyncEvent extends GorseEvent<
+  typeof GorseEventSchemas.ITEM_SYNC.schema
+> {
   constructor(
-    payload: ItemSyncPayload,
+    payload: typeof GorseEventSchemas.ITEM_SYNC.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super('gorse.item.sync', payload, metadata);
+    super(GorseEventSchemas.ITEM_SYNC, payload, metadata);
   }
 }
 
 /**
  * Event for synchronizing feedback data with Gorse
  */
-export class FeedbackSyncEvent extends GorseEvent<FeedbackSyncPayload> {
+export class FeedbackSyncEvent extends GorseEvent<
+  typeof GorseEventSchemas.FEEDBACK_SYNC.schema
+> {
   constructor(
-    payload: FeedbackSyncPayload,
+    payload: typeof GorseEventSchemas.FEEDBACK_SYNC.schema,
     metadata?: Omit<EventMetadata, 'version' | 'timestamp'>,
   ) {
-    super('gorse.feedback.sync', payload, metadata);
+    super(GorseEventSchemas.FEEDBACK_SYNC, payload, metadata);
   }
 }

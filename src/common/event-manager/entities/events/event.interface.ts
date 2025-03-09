@@ -1,3 +1,5 @@
+import { BaseEvent } from './base.event';
+
 /**
  * Metadata for all events in the system
  */
@@ -77,4 +79,11 @@ export interface EventBusMessage<T = unknown> {
    * Event metadata
    */
   readonly metadata: EventMetadata;
+}
+
+/**
+ * Event bus interface for publishing events
+ */
+export interface EventBus {
+  publish<T extends object>(event: BaseEvent<T>): Promise<void>;
 }

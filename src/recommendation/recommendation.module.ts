@@ -5,6 +5,9 @@ import { EventManagerModule } from '../common/event-manager/event-manager.module
 import { GorseClient } from './services/gorse.client';
 import { GorseSyncService } from './services/gorse-sync.service';
 import moduleConfig from './recommendation.config';
+import { GorseSyncHandler } from './presentation/handlers/gorse-sync.handler';
+import { ContentEventsHandler } from './presentation/handlers/content-events.handler';
+import { UserEventsHandler } from './presentation/handlers/user-events.hander';
 
 @Module({
   imports: [
@@ -12,7 +15,12 @@ import moduleConfig from './recommendation.config';
     PrismaModule,
     EventManagerModule,
   ],
-  providers: [GorseClient, GorseSyncService],
-  exports: [GorseClient, GorseSyncService],
+  providers: [
+    GorseClient,
+    GorseSyncService,
+    GorseSyncHandler,
+    ContentEventsHandler,
+    UserEventsHandler,
+  ],
 })
 export class RecommendationModule {}
