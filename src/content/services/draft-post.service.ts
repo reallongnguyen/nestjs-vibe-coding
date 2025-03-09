@@ -216,6 +216,7 @@ export class DraftPostService {
           userId,
           published.title,
           published.slug,
+          draft.topics,
         );
 
         this.logger.debug(`Published draft post ${draftId} as ${published.id}`);
@@ -328,6 +329,7 @@ export class DraftPostService {
           userId,
           published.title,
           published.slug,
+          draft.topics,
         );
 
         this.logger.debug(

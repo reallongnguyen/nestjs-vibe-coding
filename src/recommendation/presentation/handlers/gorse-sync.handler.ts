@@ -121,13 +121,7 @@ export class GorseSyncHandler {
         feedbackType,
       });
     } catch (error) {
-      this.logger.error(`Failed to sync feedback to Gorse`, {
-        eventId: event.eventId,
-        userId: event.payload.userId,
-        itemId: event.payload.itemId,
-        error: error.message,
-        stack: error.stack,
-      });
+      this.logger.error(`Failed to sync feedback to Gorse: ${error.message}`);
       throw error;
     }
   }

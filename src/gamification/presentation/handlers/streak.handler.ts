@@ -5,8 +5,9 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { EventBusMessage } from 'src/common/event-manager';
 
-import { EmotionCreatedEvent } from '../../entities/events/emotion-created.event';
+import { EMOTION_EVENTS } from '../../entities/events/emotion-created.event';
 
 @Injectable()
 export class StreakHandler {
@@ -15,8 +16,10 @@ export class StreakHandler {
     private readonly prisma: PrismaService,
   ) {}
 
-  @OnEvent(EmotionCreatedEvent.getName())
-  async handleEmotionCreated(event: EmotionCreatedEvent) {
+  @OnEvent(EMOTION_EVENTS.EMOTION_CREATED.eventName)
+  async handleEmotionCreated(
+    event: EventBusMessage<typeof EMOTION_EVENTS.EMOTION_CREATED.schema>,
+  ) {
     dayjs.extend(utc);
     dayjs.extend(timezone);
 
@@ -29,13 +32,13 @@ export class StreakHandler {
     // Use transaction to prevent race conditions
     await this.prisma.$transaction(async (tx) => {
       const streak = await tx.userStreak.findUnique({
-        where: { userId: event.userId },
+        where: { userId: event.payload.userId },
       });
 
       if (!streak) {
         await tx.userStreak.create({
           data: {
-            userId: event.userId,
+            userId: event.payload.userId,
             currentStreak: 1,
             longestStreak: 1,
             lastActivity: now.toDate(),
@@ -57,7 +60,7 @@ export class StreakHandler {
       const newLongestStreak = Math.max(newCurrentStreak, streak.longestStreak);
 
       await tx.userStreak.update({
-        where: { userId: event.userId },
+        where: { userId: event.payload.userId },
         data: {
           currentStreak: newCurrentStreak,
           longestStreak: newLongestStreak,
@@ -66,7 +69,7 @@ export class StreakHandler {
       });
 
       this.logger.debug('Updated user streak', {
-        userId: event.userId,
+        userId: event.payload.userId,
         currentStreak: newCurrentStreak,
         longestStreak: newLongestStreak,
       });

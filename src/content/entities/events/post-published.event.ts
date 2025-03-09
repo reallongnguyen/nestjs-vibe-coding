@@ -1,27 +1,37 @@
-import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
+import { BaseEvent, ContentEventSchemas } from 'src/common/event-manager';
 
-export const POST_PUBLISHED_EVENT_NAME = 'post.published';
-
-export class PostPublishedEvent extends BaseEvent {
+/**
+ * Event emitted when a post is published
+ */
+export class PostPublishedEvent extends BaseEvent<
+  typeof ContentEventSchemas.POST_PUBLISHED.schema
+> {
   constructor(
-    public readonly publishedId: string,
-    public readonly draftId: string,
-    public readonly userId: string,
-    public readonly title: string,
-    public readonly slug: string,
+    private readonly publishedId: string,
+    private readonly draftId: string,
+    private readonly userId: string,
+    private readonly title: string,
+    private readonly slug: string,
+    private readonly topics: string[],
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ) {
-    super();
+    super(ContentEventSchemas.POST_PUBLISHED, params);
   }
 
-  eventName(): string {
-    return POST_PUBLISHED_EVENT_NAME;
-  }
-
-  static getEventName(): string {
-    return POST_PUBLISHED_EVENT_NAME;
-  }
-
-  toJSON(): Record<string, any> {
-    return { ...this };
+  toJSON() {
+    return {
+      publishedId: this.publishedId,
+      draftId: this.draftId,
+      userId: this.userId,
+      title: this.title,
+      slug: this.slug,
+      topics: this.topics,
+    };
   }
 }
+
+export { ContentEventSchemas as POST_EVENTS };

@@ -173,7 +173,7 @@ export class GorseClient implements IGorseClient {
   // Feedback Management
   async insertFeedback(feedback: GorseFeedback): Promise<void> {
     try {
-      await this.client.post('/api/feedback', feedback);
+      await this.client.post('/api/feedback', [feedback]);
       this.logger.debug(
         `Inserted feedback for user ${feedback.UserId} on item ${feedback.ItemId}`,
       );

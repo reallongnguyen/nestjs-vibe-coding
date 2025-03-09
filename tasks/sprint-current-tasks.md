@@ -611,114 +611,92 @@ Implement event publishing for user creation and updates in the identity module 
 - ⏳ Documentation updates
 - ⏳ Final test coverage review
 
-#### GRS-001.5: Content Event Integration (3 points)
+#### GRS-001.5: Content Event Integration
 
-**Metadata**:
-  Type: Feature
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 3
-  Sprint: Current
-  Change Type: Enhancement
+**Status**: In Progress (90%)
+**Phase**: Development
 
-**Time Tracking**:
-  Estimated Hours: 12
-  Start Date: TBD
-  Due Date: TBD
+**Completed**:
 
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [Integration-Heavy]
+- ✅ Created event schemas for content module (post events)
+- ✅ Created event schemas for gamification module (emotion events)
+- ✅ Moved emotion events from content to gamification module
+- ✅ Updated event payloads with proper validation decorators
+- ✅ Implemented GamificationEvents service for emotion events
+- ✅ Cleaned up ContentEvents service to handle only post events
+- ✅ Added proper exports in event-manager module
+- ✅ Implemented proper module boundaries between content and gamification
+
+**Pending**:
+
+- Create tests for GamificationEvents service
+- Update documentation with new event structure
 
 **Integration Analysis**:
-  Integration Type: Extends Existing
-  Affected Systems:
-    - Content Module
-    - Event Manager
-    - Gorse Sync Service
-  Current Implementation:
-    - Content module handles post and emotion creation
-    - Event manager has base event infrastructure
-    - Gorse sync service handles item synchronization
-  Integration Points:
-    - Post publication service
-    - Emotion creation service
-    - Event bus for publishing
-    - Gorse sync handler for consuming
-  Breaking Changes: None
 
-**Quick Start**:
-  Similar Feature: src/recommendation/entities/events/gorse-sync.events.ts
-  Example Test: src/recommendation/services/gorse-sync.service.spec.ts
-  Key Files:
-    - src/content/services/draft-post.service.ts: Post service to extend
-    - src/gamification/services/create-emotion.service.ts: Emotion service to extend
-    - src/content/entities/events/post.event.ts: New event definitions for post
-    - src/gamification/entities/events/emotion.event.ts: New event definitions for emotion
-    - src/common/event-manager/entities/events/schemas/content.events.ts: New event schema
+- ✅ Event Schema Requirements:
 
-**Description**:
-Implement event publishing for post publication and emotion creation to enable automatic synchronization with Gorse.
+  ```typescript
+  // Post Events
+  class BasePostEventPayload {
+    draftId: string;
+    userId: string;
+    title: string;
+    slug: string;
+    topics: string[];
+  }
 
-**Context**:
-  Feature Goal: Enable real-time content synchronization with Gorse
-  Similar Features: Gorse sync events
-  Code Patterns: Event-driven architecture
-  Common Pitfalls: Content type handling, metadata synchronization
-  Current Limitations: Manual sync only
+  class PostPublishedEventPayload extends BasePostEventPayload {
+    publishedId: string;
+  }
 
-**Implementation Guide**:
-  Architecture Pattern: Event-driven
-  Code Style: Follow event manager patterns
-  Integration Requirements:
-    - Define content events
-    - Handle different content types
-    - Include necessary metadata
-  Performance Requirements:
-    - Event publishing < 50ms
-    - No blocking operations
+  class PostUpdatedEventPayload extends BasePostEventPayload {
+    postId: string;
+  }
 
-**Tasks**:
+  // Emotion Events (moved to gamification module)
+  class BaseEmotionEventPayload {
+    emotionId: string;
+    userId: string;
+    intensity: number;
+    type: EmotionType;
+  }
+  ```
 
-1. [ ] Analysis Phase
-   - Review content services
-   - Document event requirements
-   - Map integration points
-2. [ ] Development Phase
-   - Create content event schemas
-   - Implement event publishing
-   - Add error handling
-3. [ ] Testing Phase
-   - Unit tests
-   - Integration tests
-   - Performance testing
+- ✅ Integration Points Mapping:
+  - Content Service emits post events
+  - Gamification Service emits emotion events
+  - Gorse Sync Handler consumes these events
+
+**Required Changes**:
+
+- ✅ Event Definitions:
+  - Created post event schemas in content module
+  - Created emotion event schemas in gamification module
+  - Added proper validation decorators
+  - Added proper event metadata
+
+- ✅ Service Methods:
+  - Updated ContentEvents service for post events
+  - Created GamificationEvents service for emotion events
+  - Implemented proper event emission methods
+
+- ✅ Event Handler:
+  - Moved emotion event handling to gamification module
+  - Maintained proper module boundaries
 
 **Technical Notes**:
 
-- Follow event naming: content.{type}.{action}
-- Include content metadata
-- Handle different content types properly
-- Consider content visibility rules
+- Emotion events moved to gamification module for better module boundaries
+- Common EmotionType enum created in event-manager for event payloads
+- Event schemas follow consistent pattern across modules
+- Proper validation decorators added to all event payloads
 
-**Quality Checklist**:
+**Next Steps**:
 
-- [ ] Event schemas follow conventions
-- [ ] Error handling implemented
-- [ ] Tests cover main scenarios
-- [ ] Documentation updated
-
-**Acceptance Criteria**:
-
-1. Events published for:
-   - Post publication
-   - Emotion creation
-2. Events contain correct metadata
-3. Error handling implemented
-4. Tests passing with good coverage
-
----
+1. Create unit tests for GamificationEvents service
+2. Update documentation to reflect new event structure
+3. Review and merge changes
 
 #### GRS-001.6: View Event Integration (2 points)
 

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { IEventBus, InjectEventBus } from 'src/common/event-bus';
+import { IEventBus, InjectEventBus } from 'src/common/event-manager';
 
 import { Emotion } from '../entities/emotion.entity';
 import { IEmotionRepository } from './interfaces/emotion.repository.interface';
@@ -24,8 +24,14 @@ export class CreateEmotionService {
       note: params.note,
     });
 
-    this.eventBus.publish(new EmotionCreatedEvent(emotion));
-
+    this.eventBus.publish(
+      new EmotionCreatedEvent(
+        emotion.id,
+        emotion.userId,
+        emotion.intensity,
+        emotion.type as any,
+      ),
+    );
     return emotion;
   }
 }

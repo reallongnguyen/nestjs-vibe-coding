@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { EmotionController } from './presentation/emotion.controller';
 import { CreateEmotionService } from './services/create-emotion.service';
 import { EmotionPrismaRepository } from './repositories/emotion.prisma.repository';
@@ -10,7 +9,7 @@ import { StreakHandler } from './presentation/handlers/streak.handler';
 import { GetEmotionHistoryService } from './services/get-emotion-history.service';
 
 @Module({
-  imports: [EventBusModule],
+  imports: [],
   controllers: [EmotionController, StreakController],
   providers: [
     {

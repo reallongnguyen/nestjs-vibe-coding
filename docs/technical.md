@@ -219,7 +219,7 @@ export class UserActivityHandler {
 3. **Event Validation**
 
 ```typescript
-// Define event payload validation
+// Define event payload validation in src/event-manager/entities/events/schemas/
 export class UserCreatedPayload {
   @IsUUID()
   userId: string;
@@ -228,20 +228,32 @@ export class UserCreatedPayload {
   email: string;
 }
 
-// Create event class
-export class UserCreatedEvent extends BaseEvent<UserCreatedPayload> {
-  constructor(payload: UserCreatedPayload) {
-    super({
-      eventName: 'user.created',
-      schema: payload,
-      version: '1.0.0',
-      module: 'identity',
-      description: 'Emitted when a new user is created',
-    });
+// Create event class in business module /entities/events/
+export class UserCreatedEvent extends BaseEvent<
+  typeof IdentityEventSchemas.USER_CREATED.schema
+> {
+  private readonly eventPayload: typeof IdentityEventSchemas.USER_CREATED.schema;
+
+  constructor(
+    user: User,
+    params?: Omit<EventMetadata, 'version' | 'timestamp'>,
+  ) {
+    super(IdentityEventSchemas.USER_CREATED, params);
+    this.eventPayload = {
+      userId: user.id,
+      authId: user.authId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatar: user.avatar,
+      roles: user.roles,
+      isActive: user.isActive,
+      email: user.email,
+      phone: user.phone,
+    };
   }
 
-  toJSON(): UserCreatedPayload {
-    return this.schema.schema;
+  toJSON() {
+    return this.eventPayload;
   }
 }
 ```

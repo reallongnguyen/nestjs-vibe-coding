@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
-import { InjectEventBus } from 'src/common/event-bus';
+import { IEventBus, InjectEventBus } from '../../common/event-manager';
 import { PostPublishedEvent } from '../entities/events/post-published.event';
 import { PostUpdatedEvent } from '../entities/events/post-updated.event';
 
 @Injectable()
 export class ContentEvents {
-  constructor(@InjectEventBus() private readonly eventBus: EventBusPort) {}
+  constructor(@InjectEventBus() private readonly eventBus: IEventBus) {}
 
   async emitPostPublished(
     publishedId: string,
@@ -14,6 +13,12 @@ export class ContentEvents {
     userId: string,
     title: string,
     slug: string,
+    topics: string[],
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ): Promise<void> {
     const event = new PostPublishedEvent(
       publishedId,
@@ -21,20 +26,36 @@ export class ContentEvents {
       userId,
       title,
       slug,
+      topics,
+      params,
     );
 
     await this.eventBus.publish(event);
   }
 
-  emitPostUpdated(
+  async emitPostUpdated(
     postId: string,
     draftId: string,
     userId: string,
     title: string,
     slug: string,
-  ): void {
-    this.eventBus.publish(
-      new PostUpdatedEvent(postId, draftId, userId, title, slug),
+    topics: string[],
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
+  ): Promise<void> {
+    const event = new PostUpdatedEvent(
+      postId,
+      draftId,
+      userId,
+      title,
+      slug,
+      topics,
+      params,
     );
+
+    await this.eventBus.publish(event);
   }
 }

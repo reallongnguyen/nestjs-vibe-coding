@@ -1,46 +1,37 @@
-import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
+import { BaseEvent, ContentEventSchemas } from 'src/common/event-manager';
 
-const EVENT_NAME = 'post.updated';
-
-export class PostUpdatedEvent extends BaseEvent {
-  postId: string;
-  draftId: string;
-  userId: string;
-  title: string;
-  slug: string;
-
+/**
+ * Event emitted when a post is updated
+ */
+export class PostUpdatedEvent extends BaseEvent<
+  typeof ContentEventSchemas.POST_UPDATED.schema
+> {
   constructor(
-    postId: string,
-    draftId: string,
-    userId: string,
-    title: string,
-    slug: string,
-    params?: ConstructorParameters<typeof BaseEvent>[0],
+    private readonly postId: string,
+    private readonly draftId: string,
+    private readonly userId: string,
+    private readonly title: string,
+    private readonly slug: string,
+    private readonly topics: string[],
+    params?: {
+      correlationId?: string;
+      metadata?: Record<string, unknown>;
+      occurredOn?: Date;
+    },
   ) {
-    super(params);
-
-    this.postId = postId;
-    this.draftId = draftId;
-    this.userId = userId;
-    this.title = title;
-    this.slug = slug;
+    super(ContentEventSchemas.POST_UPDATED, params);
   }
 
-  eventName(): string {
-    return EVENT_NAME;
-  }
-
-  static getName(): string {
-    return EVENT_NAME;
-  }
-
-  toJSON(): Record<string, unknown> {
+  toJSON() {
     return {
       postId: this.postId,
       draftId: this.draftId,
       userId: this.userId,
       title: this.title,
       slug: this.slug,
+      topics: this.topics,
     };
   }
 }
+
+export { ContentEventSchemas as POST_EVENTS };

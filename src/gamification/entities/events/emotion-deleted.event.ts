@@ -5,10 +5,10 @@ import {
 } from 'src/common/event-manager';
 
 /**
- * Event emitted when an emotion is created
+ * Event emitted when an emotion is deleted
  */
-export class EmotionCreatedEvent extends BaseEvent<
-  typeof GamificationEventSchemas.EMOTION_CREATED.schema
+export class EmotionDeletedEvent extends BaseEvent<
+  typeof GamificationEventSchemas.EMOTION_DELETED.schema
 > {
   constructor(
     private readonly emotionId: string,
@@ -21,7 +21,7 @@ export class EmotionCreatedEvent extends BaseEvent<
       occurredOn?: Date;
     },
   ) {
-    super(GamificationEventSchemas.EMOTION_CREATED, params);
+    super(GamificationEventSchemas.EMOTION_DELETED, params);
   }
 
   toJSON() {
