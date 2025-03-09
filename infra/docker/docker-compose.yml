@@ -171,6 +171,9 @@ services:
       - api-redis
       - api-mqtt01
       - api-mqtt02
+      - gorse-master
+      - gorse-worker-1
+      - gorse-worker-2
     healthcheck:
       test:
         [
@@ -216,6 +219,9 @@ services:
       IMGPROXY_URL: ${API_SERVICE_IMGPROXY_URL}
       IMGPROXY_KEY: ${API_SERVICE_IMGPROXY_KEY}
       IMGPROXY_SALT: ${API_SERVICE_IMGPROXY_SALT}
+      # Gorse configuration
+      GORSE_URL: http://gorse-master:8088
+      GORSE_API_KEY: ${API_SERVICE_GORSE_API_KEY}
 
   imgproxy:
     image: darthsim/imgproxy:v3
@@ -250,6 +256,94 @@ services:
         reservations:
           memory: 512M
 
+  gorse-postgres:
+    image: postgres
+    restart: unless-stopped
+    volumes:
+      - gorse-pg-data:/var/lib/postgresql/data
+    networks:
+      - vpc-bridge
+    environment:
+      POSTGRES_USER: ${GORSE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${GORSE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${GORSE_POSTGRES_DB}
+
+  gorse-redis:
+    image: redis:latest
+    restart: unless-stopped
+    networks:
+      - vpc-bridge
+    volumes:
+      - gorse-redis-data:/data
+
+  gorse-master:
+    image: zhenghaoz/gorse-master
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gorse-dashboard.rule=Host(`${GORSE_MASTER_HOST}`)"
+      - "traefik.http.services.gorse-dashboard.loadbalancer.server.port=8088"
+    volumes:
+      - gorse-master-data:/var/lib/gorse
+      - ./gorse/config.toml:/etc/gorse/config.toml
+    command: >
+      -c /etc/gorse/config.toml 
+      --log-path /var/log/gorse/master.log 
+      --cache-path /var/lib/gorse/master_cache.data
+    environment:
+      GORSE_CACHE_STORE: redis://gorse-redis:6379/1
+      GORSE_DATA_STORE: postgres://${GORSE_POSTGRES_USER}:${GORSE_POSTGRES_PASSWORD}@gorse-postgres:5432/${GORSE_POSTGRES_DB}?sslmode=disable
+      GORSE_WORKER_ADDRESSES: "gorse-worker-1:8089,gorse-worker-2:8089"
+      GORSE_DASHBOARD_USER_NAME: ${GORSE_ADMIN_USER}
+      GORSE_DASHBOARD_PASSWORD: ${GORSE_ADMIN_PASS}
+      GORSE_API_KEY: ${GORSE_API_KEY}
+    networks:
+      - vpc-bridge
+    depends_on:
+      - gorse-postgres
+      - gorse-redis
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8088/api/health/ready"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+  gorse-worker-1:
+    image: zhenghaoz/gorse-worker
+    restart: unless-stopped
+    # expose:
+    #   - "8089"   # gRPC port
+    #   - "9091"   # metrics
+    volumes:
+      - gorse-worker-1-data:/var/lib/gorse
+    command: >
+      --master-host gorse-master --master-port 8086 
+      --http-host 0.0.0.0 --http-port 8089
+      --log-path /var/log/gorse/worker.log 
+      --cache-path /var/lib/gorse/worker_cache.data
+    networks:
+      - vpc-bridge
+    depends_on:
+      - gorse-master
+
+  gorse-worker-2:
+    image: zhenghaoz/gorse-worker
+    restart: unless-stopped
+    # expose:
+    #   - "8089"   # gRPC port
+    #   - "9091"   # metrics
+    volumes:
+      - gorse-worker-2-data:/var/lib/gorse
+    command: >
+      --master-host gorse-master --master-port 8086 
+      --http-host 0.0.0.0 --http-port 8089
+      --log-path /var/log/gorse/worker.log 
+      --cache-path /var/lib/gorse/worker_cache.data
+    networks:
+      - vpc-bridge
+    depends_on:
+      - gorse-master
+
   # monitor-grafana:
   #   image: grafana/grafana-oss:latest
   #   ports:
@@ -273,6 +367,8 @@ services:
   #     - monitor-prometheus:/prometheus
   #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
   #     - ./prometheus/slos.rules.yml:/etc/prometheus/slos.rules.yml
+  #     # Add Gorse metrics scraping config
+  #     - ./prometheus/gorse.rules.yml:/etc/prometheus/gorse.rules.yml
 
   # monitor-exporter:
   #   image: prom/node-exporter:latest
@@ -297,6 +393,11 @@ volumes:
   api-vol-emqx02-log:
   # monitor-grafana:
   # monitor-prometheus:
+  gorse-redis-data:
+  gorse-pg-data:
+  gorse-master-data:
+  gorse-worker-1-data:
+  gorse-worker-2-data:
 
 networks:
   vpc-bridge:

@@ -2,8 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Collection, AppError, PrismaService } from 'src/common';
 import { IEventBus, InjectEventBus } from 'src/common/event-manager';
 import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
-import { CommentRepliedEvent } from 'src/common/event-manager/core/domain/events/social.events';
-import { ContentType } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import {
+  CommentRepliedEvent,
+  ContentType,
+} from '../entities/events/social.events';
 import { ICommentRepository } from './interfaces/comment-repository.interface';
 import { UpdateCommentInput } from './dtos/comment.input';
 import { CommentOutput } from './dtos/comment.output';

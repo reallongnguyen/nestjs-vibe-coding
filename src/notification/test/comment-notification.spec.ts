@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from 'nestjs-pino';
-import { EventBusMessage } from 'src/common/event-manager/core/domain/events/event.interface';
 import {
+  EventBusMessage,
   SocialEventSchemas,
   ContentType,
-} from 'src/common/event-manager/core/domain/events/schemas/social.events';
+} from 'src/common/event-manager';
 import { NotificationProducerService } from '../services/notification-producer.service';
 import { NotificationPreferenceService } from '../services/notification-preference.service';
 import { CommentNotificationHandler } from '../presentation/handlers/comment-notification.handler';

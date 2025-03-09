@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { ContentType } from 'src/common/event-manager/core/domain/events/schemas/social.events';
 import { IEventBus, InjectEventBus } from 'src/common/event-manager';
 import {
   LikeCreatedEvent,
   LikeDeletedEvent,
-} from 'src/common/event-manager/core/domain/events/social.events';
+  ContentType,
+} from '../entities/events/social.events';
 
 import { EngagementStatsDto } from '../presentation/dtos/engagement-stats.dto';
 import { EngageableNotFoundError } from '../entities/social.error';

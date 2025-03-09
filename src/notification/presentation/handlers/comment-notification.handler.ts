@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
-import { EventBusMessage } from 'src/common/event-manager/core/domain/events/event.interface';
-import { SocialEventSchemas } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { EventBusMessage, SocialEventSchemas } from 'src/common/event-manager';
+
 import { NotificationProducerService } from '../../services/notification-producer.service';
 
 @Injectable()

@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from 'nestjs-pino';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { IEventBus } from 'src/common/event-manager';
-import { ContentType } from 'src/common/event-manager/core/domain/events/schemas/social.events';
-import { CommentRepliedEvent } from 'src/common/event-manager/core/domain/events/social.events';
+import { IEventBus, ContentType } from 'src/common/event-manager';
+import { CommentRepliedEvent } from 'src/social/entities/events/comment-replied.event';
 import { CommentService } from '../comment.service';
 import { ICommentRepository } from '../interfaces/comment-repository.interface';
 import { EmotionPrivacyService } from '../emotion-privacy.service';

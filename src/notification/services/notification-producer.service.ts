@@ -5,9 +5,9 @@ import { Queue } from 'bull';
 import {
   ContentType,
   SocialEventSchemas,
-} from 'src/common/event-manager/core/domain/events/schemas/social.events';
+  EventBusMessage,
+} from 'src/common/event-manager';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { EventBusMessage } from 'src/common/event-manager/core/domain/events/event.interface';
 import { Retry } from 'src/common';
 
 import { NotificationCreateInput } from '../presentation/dtos/notification.dto';

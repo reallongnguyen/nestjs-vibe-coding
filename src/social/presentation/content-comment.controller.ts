@@ -27,7 +27,7 @@ import {
   Collection,
   PaginationQueryDto,
 } from 'src/common';
-import { ContentType } from 'src/common/event-manager/core/domain/events/schemas';
+import { ContentType } from '../entities/events/social.events';
 
 import { CommentService } from '../services/comment.service';
 import {

@@ -1,14 +1,43 @@
 ### GRS-001: Gorse Recommendation System Integration (8 points)
 
-**Status**: Not Started
-**Progress**: 0%
+**Status**: In Progress
+**Progress**: 70%
 **Blockers**: None
 
 #### GRS-001.1: Gorse Infrastructure Setup (3 points)
 
+**Status**: In Progress
+**Progress**: 80%
 **Priority**: High
-**Assignee**: TBD
+**Assignee**: DevOps
 **Dependencies**: None
+
+**Completed Items**:
+
+1. Infrastructure:
+   - ✅ Gorse services defined in docker-compose
+   - ✅ Dedicated PostgreSQL and Redis instances
+   - ✅ Traefik integration with basic auth
+   - ✅ Internal network configuration
+   - ✅ Health checks configured
+   - ✅ Monitoring setup with Prometheus
+
+2. Configuration:
+   - ✅ Environment variables defined
+   - ✅ Gorse config.toml created
+   - ✅ Service dependencies configured
+   - ✅ Security settings implemented
+
+**Pending Items**:
+
+1. Infrastructure:
+   - ⏳ Database initialization script
+   - ⏳ Backup strategy implementation
+
+2. Validation:
+   - ⏳ Load testing
+   - ⏳ Failover testing
+   - ⏳ Performance metrics validation
 
 **Technical Design**:
 
@@ -41,47 +70,75 @@ interface GorseConfig {
   };
 }
 
+// Updated Gorse API Interfaces
+interface GorseUser {
+  UserId: string;
+  Labels: string[];
+  Subscribe?: string[];
+  Comment?: string;
+}
+
+interface GorseItem {
+  ItemId: string;
+  Labels: string[];
+  Categories?: string[];
+  Timestamp: string;
+  Comment?: string;
+  IsHidden?: boolean;
+}
+
+interface GorseFeedback {
+  FeedbackType: string;
+  UserId: string;
+  ItemId: string;
+  Timestamp: string;
+  Comment?: string;
+}
+
+interface GorseRecommendation {
+  Id: string;
+  Score: number;
+}
+
+interface GorseHealthStatus {
+  CacheStoreConnected: boolean;
+  CacheStoreError?: string;
+  DataStoreConnected: boolean;
+  DataStoreError?: string;
+  Ready: boolean;
+}
+
 // Gorse client wrapper
 @Injectable()
 class GorseClient {
-  constructor(
-    private readonly config: GorseConfig,
-    private readonly metrics: MetricsService,
-    private readonly logger: Logger
-  ) {}
-
-  // Health checks
-  async healthCheck(): Promise<HealthStatus>;
-  async getClusterStatus(): Promise<ClusterStatus>;
+  // User Management
+  async insertUser(userId: string, labels: string[], subscribe?: string[]): Promise<void>;
+  async getUser(userId: string): Promise<GorseUser>;
+  async updateUser(userId: string, labels?: string[], subscribe?: string[]): Promise<void>;
+  async deleteUser(userId: string): Promise<void>;
+  async listUsers(n?: number, cursor?: string): Promise<GorseUsersResponse>;
   
-  // User management
-  async insertUser(userId: string, labels: string[]): Promise<void>;
-  async updateUserLabels(userId: string, labels: string[]): Promise<void>;
-  async getUserLabels(userId: string): Promise<string[]>;
+  // Item Management
+  async insertItem(itemId: string, timestamp: Date, labels: string[], categories?: string[], isHidden?: boolean): Promise<void>;
+  async getItem(itemId: string): Promise<GorseItem>;
+  async updateItem(itemId: string, labels?: string[], categories?: string[], isHidden?: boolean): Promise<void>;
+  async deleteItem(itemId: string): Promise<void>;
   
-  // Item management
-  async insertItem(itemId: string, timestamp: Date, labels: string[]): Promise<void>;
-  async updateItemLabels(itemId: string, labels: string[]): Promise<void>;
-  async getItemLabels(itemId: string): Promise<string[]>;
-  
-  // Feedback management
+  // Feedback Management
   async insertFeedback(feedback: GorseFeedback): Promise<void>;
-  async getFeedback(userId: string): Promise<GorseFeedback[]>;
   
   // Recommendations
-  async getRecommends(userId: string, n: number): Promise<string[]>;
-  async getPopular(n: number): Promise<string[]>;
-  async getLatest(n: number): Promise<string[]>;
-  async getSimilarItems(itemId: string, n: number): Promise<string[]>;
-}
-
-// Feedback interface
-interface GorseFeedback {
-  userId: string;
-  itemId: string;
-  feedbackType: 'read' | 'like' | 'comment' | 'share';
-  timestamp: Date;
-  metadata?: Record<string, any>;
+  async getRecommend(userId: string, writeBackType?: string, writeBackDelay?: string, n?: number, offset?: number): Promise<string[]>;
+  async getRecommendByCategory(userId: string, category: string, writeBackType?: string, writeBackDelay?: string, n?: number, offset?: number): Promise<string[]>;
+  async getPopular(userId?: string, n?: number, offset?: number): Promise<GorseRecommendation[]>;
+  async getPopularByCategory(category: string, userId?: string, n?: number, offset?: number): Promise<GorseRecommendation[]>;
+  async getLatest(n?: number): Promise<string[]>;
+  async getSimilar(itemId: string, n?: number): Promise<GorseRecommendation[]>;
+  async getUserNeighbors(userId: string, n?: number, offset?: number): Promise<GorseRecommendation[]>;
+  
+  // Health Checks
+  async getLiveness(): Promise<GorseHealthStatus>;
+  async getReadiness(): Promise<GorseHealthStatus>;
 }
 ```
 
@@ -163,11 +220,81 @@ volumes:
      - Worker disconnection
      - Low cache hit rate (<90%)
 
+4. API Integration:
+   - All API endpoints properly implemented and tested
+   - Error handling and retries implemented
+   - Rate limiting configured
+   - Proper logging and monitoring
+   - Documentation updated
+
 #### GRS-001.2: Data Synchronization Service (3 points)
 
+**Status**: In Progress
+**Progress**: 40%
 **Priority**: High
-**Assignee**: TBD
+**Assignee**: Backend Developer
 **Dependencies**: GRS-001.1
+
+**Current Implementation Phase**:
+
+1. Analysis ✅
+   - Event system architecture reviewed
+   - Event patterns identified
+   - Integration points mapped
+
+2. Development Environment Setup ✅
+   - Create feature branch
+   - Set up test environment
+   - Configure development tools
+
+3. Module Structure Implementation ✅
+   - Recommendation module restructured
+   - Event manager module restructured
+   - Directory organization standardized
+   - Import paths updated
+
+**Next Steps**:
+
+1. ⏳ Implement data sync service
+2. ⏳ Add event handlers
+3. ⏳ Set up monitoring
+
+**Completed Items**:
+
+- ✅ Event schemas created and tested
+- ✅ Module structure reorganized following standards
+- ✅ Gorse client implementation
+- ✅ Basic event handling setup
+
+**Implementation Notes**:
+
+1. Event System Architecture:
+   - Using NestJS EventEmitter with validation
+   - Event bus adapter with async support
+   - Schema-based validation
+   - Error handling with proper logging
+
+2. Event Patterns to Implement:
+
+   ```typescript
+   // Event schemas
+   interface GorseUserSyncEvent extends BaseEvent<UserSyncPayload> {}
+   interface GorseItemSyncEvent extends BaseEvent<ItemSyncPayload> {}
+   interface GorseFeedbackEvent extends BaseEvent<FeedbackPayload> {}
+
+   // Event names
+   const GORSE_EVENTS = {
+     USER_SYNC: 'gorse.user.sync',
+     ITEM_SYNC: 'gorse.item.sync',
+     FEEDBACK_SYNC: 'gorse.feedback.sync',
+   } as const;
+   ```
+
+3. Integration Points:
+   - User events: profile updates, preferences
+   - Content events: posts, emotions
+   - Interaction events: views, likes, comments
+   - Batch sync operations
 
 **Technical Design**:
 

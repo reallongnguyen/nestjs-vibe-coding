@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { RedisBatchProcessor } from 'src/common/batch-processor/redis-batch-processor';
 import { OnEvent } from '@nestjs/event-emitter';
-import { SocialEventSchemas } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { SocialEventSchemas } from 'src/common/event-manager';
 
 import { CommentCreatedEvent } from '../../entities/events/comment-created.event';
 import { SocialEngagementService } from '../../services/social-engagement.service';

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from 'nestjs-pino';
-import { LikeCreatedEvent } from 'src/common/event-manager/core/domain/events/social.events';
-import { ContentType } from 'src/common/event-manager/core/domain/events/schemas/social.events';
+import { ContentType } from 'src/common/event-manager';
+import { LikeCreatedEvent } from 'src/social/entities/events/social.events';
 import { LikeNotificationHandler } from '../like-notification.handler';
 import { NotificationConsumerService } from '../../../services/notification-consumer.service';
 import { NotificationTemplateService } from '../../../services/notification-template.service';
@@ -109,8 +109,9 @@ describe('LikeNotificationHandler', () => {
             {
               id: '123',
               type: 'USER',
-              name: '',
-              image: undefined,
+              firstName: 'John',
+              lastName: 'Doe',
+              avatar: undefined,
             },
           ],
           subjectCount: 1,

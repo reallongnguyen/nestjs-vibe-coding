@@ -1,6 +1,5 @@
-import { SocialEvent } from 'src/common/event-manager/core/domain/events/social.events';
-import { SocialEventSchemas } from 'src/common/event-manager/core/domain/events/schemas/social.events';
-import { EventMetadata } from 'src/common/event-manager/core/domain/events/event.interface';
+import { SocialEventSchemas, EventMetadata } from 'src/common/event-manager';
+import { SocialEvent } from './social.events';
 
 /**
  * Event emitted when a user replies to a comment

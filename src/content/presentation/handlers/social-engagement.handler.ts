@@ -5,8 +5,8 @@ import { PostViewedEvent } from 'src/social/entities/events/post-viewed.event';
 import {
   ContentType,
   SocialEventSchemas,
-} from 'src/common/event-manager/core/domain/events/schemas/social.events';
-import { LikeCreatedEvent } from 'src/common/event-manager/core/domain/events/social.events';
+  EventBusMessage,
+} from 'src/common/event-manager';
 import { PublishedPostService } from '../../services/published-post.service';
 
 @Injectable()
@@ -16,7 +16,9 @@ export class SocialEngagementHandler {
   constructor(private readonly publishedPostService: PublishedPostService) {}
 
   @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
-  async handlePostLiked(event: LikeCreatedEvent): Promise<void> {
+  async handlePostLiked(
+    event: EventBusMessage<typeof SocialEventSchemas.LIKE_CREATED.schema>,
+  ): Promise<void> {
     const { contentId, contentType, actorId: userId } = event.payload;
 
     if (contentType !== ContentType.POST) {

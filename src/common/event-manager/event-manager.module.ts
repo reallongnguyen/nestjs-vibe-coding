@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { EventBusAdapter } from './adapters/event-bus.adapter';
-import { EVENT_BUS_TOKEN } from './core/domain/entities/tokens';
-import { EventValidator } from './core/domain/validation/event.validator';
+import { EventBusAdapter } from './services/event-bus.adapter';
+import { EVENT_BUS_TOKEN } from './entities/tokens';
+import { EventValidator } from './entities/validation/event.validator';
 
 /**
  * Module for event bus functionality
@@ -40,6 +40,7 @@ import { EventValidator } from './core/domain/validation/event.validator';
  *    }
  *    ```
  */
+@Global()
 @Module({
   imports: [
     EventEmitterModule.forRoot({

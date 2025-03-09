@@ -1,9 +1,9 @@
-import { BaseEvent } from 'src/common/event-manager/core/domain/events/base.event';
 import {
+  BaseEvent,
+  EventMetadata,
   SocialEventSchemas,
   ContentType,
-} from 'src/common/event-manager/core/domain/events/schemas/social.events';
-import { EventMetadata } from 'src/common/event-manager/core/domain/events/event.interface';
+} from 'src/common/event-manager';
 import { Comment } from '../comment.entity';
 
 /**

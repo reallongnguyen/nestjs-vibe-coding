@@ -346,7 +346,86 @@ stateDiagram-v2
 
 ## Feed Distribution System
 
-### Architecture Overview
+### Current Implementation
+
+The current feed system uses Redis sorted sets to store a global feed that is the same for all users. Content is scored based on recency and engagement metrics, but there's no personalization based on user relationships.
+
+### Updated Feed Distribution Strategy: Gorse-Powered Recommendation System
+
+#### Core Philosophy
+
+- **AI-Powered Discovery**: Utilize Gorse's recommendation engine to show users content they're likely to enjoy
+- **Multi-Signal Ranking**: Combine Gorse recommendations with social signals and engagement metrics
+- **Real-Time Personalization**: Continuously adapt recommendations based on user interactions
+- **Efficient Scaling**: Leverage Gorse's distributed architecture for high-performance recommendations
+
+#### Feed Structure
+
+1. **Primary Feed ("For You")**
+   - Default view powered by Gorse recommendations
+   - Content mix: 70% discovery / 30% followed
+   - Personalized based on user behavior and preferences
+   - Real-time updates through Gorse's streaming API
+
+2. **Following Feed (Secondary Tab)**
+   - Dedicated space for followed content only
+   - Chronological or engagement-sorted option
+   - Enhanced with Gorse's user similarity features
+   - Ensures users can always find content from people they explicitly follow
+
+#### Ranking Factors (For Primary Feed)
+
+1. **Gorse Recommendation Signals**:
+   - User-item collaborative filtering
+   - Item-item similarity analysis
+   - Real-time user feedback processing
+   - Automatic model selection and optimization
+
+2. **Content Quality Signals**:
+   - Completion rate (how often users view content to completion)
+   - Engagement rate (likes, comments, shares relative to views)
+   - Freshness (recency bonus)
+   - Velocity (how quickly content is gaining engagement)
+
+3. **Social and Personalization Signals**:
+   - Following relationships (boost signal)
+   - Topic affinity (categories user engages with)
+   - Content creator reputation
+   - User interaction history
+
+4. **Diversity Factors**:
+   - Content type variety (posts, emotions, etc.)
+   - Creator diversity (avoid showing too much from same creator)
+   - Topic diversity (ensure feed covers various interests)
+   - Gorse's built-in diversity mechanisms
+
+#### Implementation Phases
+
+1. **Phase 1: Gorse Integration (Sprint 8)**
+   - Set up Gorse infrastructure
+   - Implement data synchronization
+   - Basic recommendation integration
+   - A/B testing framework setup
+
+2. **Phase 2: Enhanced Personalization**
+   - User behavior tracking integration
+   - Custom recommendation rules
+   - Advanced diversity controls
+   - Performance optimization
+
+3. **Phase 3: Advanced Features**
+   - Real-time recommendation updates
+   - Multi-model recommendation strategies
+   - Advanced A/B testing
+   - Analytics dashboard integration
+
+4. **Phase 4: Optimization & Scale**
+   - Distributed Gorse deployment
+   - Performance tuning
+   - Advanced caching strategies
+   - Mobile optimization
+
+#### Technical Architecture
 
 ```mermaid
 flowchart TD
@@ -366,245 +445,70 @@ flowchart TD
     CacheInvalidator --> Redis
 ```
 
-### Data Flow
+#### Gorse Integration Benefits
 
-1. **Content Ingestion**
+1. **Improved Recommendation Quality**:
+   - Automatic model selection and optimization
+   - Multi-source recommendation support
+   - Real-time user feedback incorporation
+   - Advanced collaborative filtering
 
-   ```mermaid
-   sequenceDiagram
-       participant Content
-       participant EventBus
-       participant GorseSync
-       participant GorseMaster
-       participant Cache
-       
-       Content->>EventBus: Content Published
-       EventBus->>GorseSync: Sync Event
-       GorseSync->>GorseMaster: Insert Item
-       GorseSync->>Cache: Invalidate Cache
-   ```
+2. **Scalability and Performance**:
+   - Distributed architecture support
+   - Efficient model training and serving
+   - Built-in caching mechanisms
+   - Horizontal scaling capability
 
-2. **User Interaction**
+3. **Developer Experience**:
+   - Simple REST API integration
+   - Built-in monitoring and metrics
+   - Comprehensive documentation
+   - Active community support
 
-   ```mermaid
-   sequenceDiagram
-       participant User
-       participant EventBus
-       participant GorseSync
-       participant GorseMaster
-       
-       User->>EventBus: User Interaction
-       EventBus->>GorseSync: Process Feedback
-       GorseSync->>GorseMaster: Insert Feedback
-   ```
+4. **Business Value**:
+   - Faster time to market
+   - Reduced development complexity
+   - Built-in A/B testing
+   - Comprehensive analytics
 
-3. **Feed Generation**
+#### Monitoring and Analytics
 
-   ```mermaid
-   sequenceDiagram
-       participant User
-       participant FeedService
-       participant Cache
-       participant GorseClient
-       participant GorseMaster
-       
-       User->>FeedService: Request Feed
-       FeedService->>Cache: Check Cache
-       alt Cache Miss
-           FeedService->>GorseClient: Get Recommendations
-           GorseClient->>GorseMaster: API Request
-           GorseMaster-->>GorseClient: Recommendations
-           GorseClient-->>Cache: Store Results
-       end
-       Cache-->>FeedService: Return Feed
-       FeedService-->>User: Display Feed
-   ```
+1. **Gorse Metrics**:
+   - Recommendation quality metrics
+   - Model performance statistics
+   - System health indicators
+   - API latency monitoring
 
-### Integration Points
-
-1. **Content Management**
-
-   ```typescript
-   interface ContentSync {
-     // Content types
-     type ContentType = 'post' | 'emotion' | 'comment';
-     
-     // Content metadata
-     interface ContentMetadata {
-       id: string;
-       type: ContentType;
-       authorId: string;
-       timestamp: Date;
-       labels: string[];
-       categories: string[];
-       engagement: {
-         views: number;
-         likes: number;
-         comments: number;
-       };
-     }
-     
-     // Sync methods
-     async syncContent(content: ContentMetadata): Promise<void>;
-     async batchSync(contents: ContentMetadata[]): Promise<void>;
-     async validateSync(contentId: string): Promise<boolean>;
-   }
-   ```
-
-2. **User Interactions**
-
-   ```typescript
-   interface InteractionSync {
-     // Interaction types
-     type InteractionType = 'view' | 'like' | 'comment' | 'share';
-     
-     // Interaction data
-     interface InteractionData {
-       userId: string;
-       contentId: string;
-       type: InteractionType;
-       timestamp: Date;
-       metadata?: Record<string, any>;
-     }
-     
-     // Sync methods
-     async syncInteraction(interaction: InteractionData): Promise<void>;
-     async batchSyncInteractions(interactions: InteractionData[]): Promise<void>;
-   }
-   ```
-
-3. **Feed Generation**
-
-   ```typescript
-   interface FeedGenerator {
-     // Feed types
-     type FeedType = 'personalized' | 'popular' | 'latest' | 'following';
-     
-     // Feed options
-     interface FeedOptions {
-       userId: string;
-       feedType: FeedType;
-       count: number;
-       offset?: number;
-       filters?: {
-         contentTypes?: ContentType[];
-         categories?: string[];
-         excludeIds?: string[];
-       };
-       diversity?: number;
-     }
-     
-     // Generation methods
-     async generateFeed(options: FeedOptions): Promise<FeedResult>;
-     async preloadFeeds(userIds: string[]): Promise<void>;
-     async invalidateFeeds(pattern: string): Promise<void>;
-   }
-   ```
-
-### Monitoring and Analytics
-
-1. **System Metrics**
-   - API latency (p50, p95, p99)
-   - Cache hit rates
-   - Error rates by type
-   - Resource utilization
-
-2. **Business Metrics**
+2. **Business Metrics**:
    - User engagement rates
    - Content discovery effectiveness
-   - Recommendation accuracy
-   - Feed diversity scores
+   - Recommendation diversity
+   - A/B test results
 
-3. **Operational Metrics**
-   - Sync status and delays
-   - Model training status
-   - Worker health status
-   - Cache efficiency
+3. **System Metrics**:
+   - Cache hit rates
+   - API response times
+   - Resource utilization
+   - Error rates
 
-### Caching Strategy
+#### Cache Strategy
 
-1. **Multi-Level Cache**
+1. **Multi-Level Caching**:
+   - Gorse internal cache
+   - Redis feed cache
+   - Client-side cache
 
-   ```typescript
-   interface CacheStrategy {
-     // Cache levels
-     type CacheLevel = 'local' | 'redis' | 'gorse';
-     
-     // Cache configuration
-     interface CacheConfig {
-       ttl: {
-         local: number;
-         redis: number;
-         gorse: number;
-       };
-       maxSize: {
-         local: number;
-         redis: number;
-       };
-       invalidation: {
-         patterns: string[];
-         cascade: boolean;
-       };
-     }
-     
-     // Cache methods
-     async get(key: string, level?: CacheLevel): Promise<any>;
-     async set(key: string, value: any, level?: CacheLevel): Promise<void>;
-     async invalidate(pattern: string, levels?: CacheLevel[]): Promise<void>;
-   }
-   ```
+2. **Cache Policies**:
+   - Short TTL for active users (5 minutes)
+   - Medium TTL for regular users (15 minutes)
+   - Long TTL for static content (1 hour)
+   - Intelligent cache warming
 
-2. **Cache Policies**
-   - TTL based on content type and popularity
-   - Preloading for active users
-   - Intelligent invalidation
-   - Warm-up strategies
-
-### Error Handling
-
-1. **Failure Modes**
-
-   ```typescript
-   interface ErrorHandling {
-     // Error types
-     type ErrorType = 
-       | 'connection_error'
-       | 'timeout_error'
-       | 'validation_error'
-       | 'sync_error';
-     
-     // Recovery strategies
-     interface RecoveryStrategy {
-       maxRetries: number;
-       backoffMs: number;
-       fallbackAction: () => Promise<void>;
-     }
-     
-     // Handler methods
-     async handleError(error: Error, context: any): Promise<void>;
-     async retryOperation(operation: () => Promise<any>, strategy: RecoveryStrategy): Promise<any>;
-   }
-   ```
-
-2. **Fallback Mechanisms**
-   - Default recommendations
-   - Cached results
-   - Popular content
-   - Following-only feed
-
-### Performance Optimization
-
-1. **Request Optimization**
-   - Batch processing
-   - Request coalescing
-   - Predictive loading
-   - Response compression
-
-2. **Resource Management**
-   - Connection pooling
-   - Worker scaling
-   - Cache warming
-   - Load balancing
+3. **Invalidation Strategy**:
+   - Event-driven invalidation
+   - Selective cache updates
+   - Background revalidation
+   - Graceful degradation
 
 ### Comparison with Major Platforms
 

@@ -7,11 +7,8 @@ import {
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { RedisBatchProcessor } from 'src/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import {
-  ContentType,
-  SocialEventSchemas,
-} from 'src/common/event-manager/core/domain/events/schemas/social.events';
-import { LikeCreatedEvent } from 'src/common/event-manager/core/domain/events/social.events';
+import { ContentType, SocialEventSchemas } from 'src/common/event-manager';
+import { LikeCreatedEvent } from '../../entities/events/social.events';
 import { ILikeRepository } from '../../services/interfaces/like-repository.interface';
 import { PostUnlikedEvent } from '../../entities/events/post-unliked.event';
 import { EmotionUnlikedEvent } from '../../entities/events/emotion-unliked.event';

@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ImgProxyModule } from './img-proxy/img-proxy.module';
+import { EventManagerModule } from './event-manager/event-manager.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ImgProxyModule } from './img-proxy/img-proxy.module';
       }),
     }),
     EventEmitterModule.forRoot(),
+    EventManagerModule,
     AuthModule,
     HealthModule,
     PrismaModule,
