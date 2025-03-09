@@ -346,106 +346,280 @@ stateDiagram-v2
 
 ## Feed Distribution System
 
-### Current Implementation
+### Architecture Overview
 
-The current feed system uses Redis sorted sets to store a global feed that is the same for all users. Content is scored based on recency and engagement metrics, but there's no personalization based on user relationships.
+```mermaid
+flowchart TD
+    User[User Request] --> API[API Gateway]
+    API --> FeedService[Feed Service]
+    FeedService --> GorseClient[Gorse Client]
+    FeedService --> CacheLayer[Cache Layer]
+    
+    GorseClient --> GorseMaster[Gorse Master]
+    GorseMaster --> GorseWorker1[Gorse Worker 1]
+    GorseMaster --> GorseWorker2[Gorse Worker 2]
+    
+    CacheLayer --> Redis[(Redis Cache)]
+    
+    EventBus[Event Bus] --> GorseClient
+    EventBus --> CacheInvalidator[Cache Invalidator]
+    CacheInvalidator --> Redis
+```
 
-### Updated Feed Distribution Strategy: TikTok-Inspired Approach
+### Data Flow
 
-#### Core Philosophy
+1. **Content Ingestion**
 
-- **Discovery-First**: Prioritize showing users engaging content they're likely to enjoy, regardless of follow status
-- **Following as a Signal**: Use following relationships as one of several ranking signals, not the primary filter
-- **Engagement-Driven**: Heavily weight user engagement patterns in content selection
+   ```mermaid
+   sequenceDiagram
+       participant Content
+       participant EventBus
+       participant GorseSync
+       participant GorseMaster
+       participant Cache
+       
+       Content->>EventBus: Content Published
+       EventBus->>GorseSync: Sync Event
+       GorseSync->>GorseMaster: Insert Item
+       GorseSync->>Cache: Invalidate Cache
+   ```
 
-#### Feed Structure
+2. **User Interaction**
 
-1. **Primary Feed ("For You")**
-   - Default view when opening the app
-   - Content mix: 70% discovery / 30% followed
-   - Optimized for engagement and retention
-   - Personalized based on user behavior
+   ```mermaid
+   sequenceDiagram
+       participant User
+       participant EventBus
+       participant GorseSync
+       participant GorseMaster
+       
+       User->>EventBus: User Interaction
+       EventBus->>GorseSync: Process Feedback
+       GorseSync->>GorseMaster: Insert Feedback
+   ```
 
-2. **Following Feed (Secondary Tab)**
-   - Dedicated space for followed content only
-   - Chronological or engagement-sorted option
-   - Ensures users can always find content from people they explicitly follow
+3. **Feed Generation**
 
-#### Ranking Factors (For Primary Feed)
+   ```mermaid
+   sequenceDiagram
+       participant User
+       participant FeedService
+       participant Cache
+       participant GorseClient
+       participant GorseMaster
+       
+       User->>FeedService: Request Feed
+       FeedService->>Cache: Check Cache
+       alt Cache Miss
+           FeedService->>GorseClient: Get Recommendations
+           GorseClient->>GorseMaster: API Request
+           GorseMaster-->>GorseClient: Recommendations
+           GorseClient-->>Cache: Store Results
+       end
+       Cache-->>FeedService: Return Feed
+       FeedService-->>User: Display Feed
+   ```
 
-1. **Content Quality Signals**:
-   - Completion rate (how often users view content to completion)
-   - Engagement rate (likes, comments, shares relative to views)
-   - Freshness (recency bonus)
-   - Velocity (how quickly content is gaining engagement)
+### Integration Points
 
-2. **Personalization Signals**:
-   - Similar content engagement history
-   - Topic affinity (categories user engages with)
-   - Following relationship (boost, but not filter)
-   - Content creator reputation
+1. **Content Management**
 
-3. **Diversity Factors**:
-   - Content type variety (posts, emotions, etc.)
-   - Creator diversity (avoid showing too much from same creator)
-   - Topic diversity (ensure feed covers various interests)
+   ```typescript
+   interface ContentSync {
+     // Content types
+     type ContentType = 'post' | 'emotion' | 'comment';
+     
+     // Content metadata
+     interface ContentMetadata {
+       id: string;
+       type: ContentType;
+       authorId: string;
+       timestamp: Date;
+       labels: string[];
+       categories: string[];
+       engagement: {
+         views: number;
+         likes: number;
+         comments: number;
+       };
+     }
+     
+     // Sync methods
+     async syncContent(content: ContentMetadata): Promise<void>;
+     async batchSync(contents: ContentMetadata[]): Promise<void>;
+     async validateSync(contentId: string): Promise<boolean>;
+   }
+   ```
 
-#### Implementation Phases
+2. **User Interactions**
 
-1. **Phase 1: Basic Discovery Feed**
-   - Implement database-driven content collection
-   - Basic ranking algorithm with engagement and recency factors
-   - Simple following boost (1.5x multiplier)
-   - Add Following-only feed option
+   ```typescript
+   interface InteractionSync {
+     // Interaction types
+     type InteractionType = 'view' | 'like' | 'comment' | 'share';
+     
+     // Interaction data
+     interface InteractionData {
+       userId: string;
+       contentId: string;
+       type: InteractionType;
+       timestamp: Date;
+       metadata?: Record<string, any>;
+     }
+     
+     // Sync methods
+     async syncInteraction(interaction: InteractionData): Promise<void>;
+     async batchSyncInteractions(interactions: InteractionData[]): Promise<void>;
+   }
+   ```
 
-2. **Phase 2: Enhanced Personalization**
-   - Implement user engagement history tracking
-   - Add content affinity signals
-   - Improve diversity mechanisms
-   - Optimize database queries for performance
+3. **Feed Generation**
 
-3. **Phase 3: Advanced Ranking**
-   - Implement completion rate tracking
-   - Add velocity and trending signals
-   - Develop creator reputation system
-   - Implement A/B testing framework for algorithm improvements
+   ```typescript
+   interface FeedGenerator {
+     // Feed types
+     type FeedType = 'personalized' | 'popular' | 'latest' | 'following';
+     
+     // Feed options
+     interface FeedOptions {
+       userId: string;
+       feedType: FeedType;
+       count: number;
+       offset?: number;
+       filters?: {
+         contentTypes?: ContentType[];
+         categories?: string[];
+         excludeIds?: string[];
+       };
+       diversity?: number;
+     }
+     
+     // Generation methods
+     async generateFeed(options: FeedOptions): Promise<FeedResult>;
+     async preloadFeeds(userIds: string[]): Promise<void>;
+     async invalidateFeeds(pattern: string): Promise<void>;
+   }
+   ```
 
-4. **Phase 4: Optimization & Scale**
-   - Add real-time ranking updates
-   - Implement predictive content prefetching
-   - Optimize for mobile experience
-   - Add analytics dashboard for content performance
+### Monitoring and Analytics
 
-#### Technical Considerations
+1. **System Metrics**
+   - API latency (p50, p95, p99)
+   - Cache hit rates
+   - Error rates by type
+   - Resource utilization
 
-1. **Database Performance**
-   - Need proper indexes on engagement metrics, timestamps, and content metadata
-   - Consider denormalized tables for feed generation
-   - Use efficient pagination techniques
+2. **Business Metrics**
+   - User engagement rates
+   - Content discovery effectiveness
+   - Recommendation accuracy
+   - Feed diversity scores
 
-2. **Cache Management**
-   - Use Redis for caching with appropriate TTL
-   - Implement selective cache invalidation
-   - Consider cache warming for active users
+3. **Operational Metrics**
+   - Sync status and delays
+   - Model training status
+   - Worker health status
+   - Cache efficiency
 
-3. **Scaling**
-   - Design for horizontal scaling
-   - Consider sharding strategies for large user bases
-   - Implement background processing for feed generation
+### Caching Strategy
+
+1. **Multi-Level Cache**
+
+   ```typescript
+   interface CacheStrategy {
+     // Cache levels
+     type CacheLevel = 'local' | 'redis' | 'gorse';
+     
+     // Cache configuration
+     interface CacheConfig {
+       ttl: {
+         local: number;
+         redis: number;
+         gorse: number;
+       };
+       maxSize: {
+         local: number;
+         redis: number;
+       };
+       invalidation: {
+         patterns: string[];
+         cascade: boolean;
+       };
+     }
+     
+     // Cache methods
+     async get(key: string, level?: CacheLevel): Promise<any>;
+     async set(key: string, value: any, level?: CacheLevel): Promise<void>;
+     async invalidate(pattern: string, levels?: CacheLevel[]): Promise<void>;
+   }
+   ```
+
+2. **Cache Policies**
+   - TTL based on content type and popularity
+   - Preloading for active users
+   - Intelligent invalidation
+   - Warm-up strategies
+
+### Error Handling
+
+1. **Failure Modes**
+
+   ```typescript
+   interface ErrorHandling {
+     // Error types
+     type ErrorType = 
+       | 'connection_error'
+       | 'timeout_error'
+       | 'validation_error'
+       | 'sync_error';
+     
+     // Recovery strategies
+     interface RecoveryStrategy {
+       maxRetries: number;
+       backoffMs: number;
+       fallbackAction: () => Promise<void>;
+     }
+     
+     // Handler methods
+     async handleError(error: Error, context: any): Promise<void>;
+     async retryOperation(operation: () => Promise<any>, strategy: RecoveryStrategy): Promise<any>;
+   }
+   ```
+
+2. **Fallback Mechanisms**
+   - Default recommendations
+   - Cached results
+   - Popular content
+   - Following-only feed
+
+### Performance Optimization
+
+1. **Request Optimization**
+   - Batch processing
+   - Request coalescing
+   - Predictive loading
+   - Response compression
+
+2. **Resource Management**
+   - Connection pooling
+   - Worker scaling
+   - Cache warming
+   - Load balancing
 
 ### Comparison with Major Platforms
 
 #### TikTok
 
 - **Similarities**:
-  - Discovery-first approach with algorithmic "For You" feed as default
-  - Heavy emphasis on engagement metrics and content completion rates
-  - Separate "Following" feed as a secondary option
-  - Content diversity mechanisms to prevent repetition
+  - AI-powered recommendation engine
+  - Real-time personalization
+  - Multi-signal ranking
+  - Content diversity mechanisms
 - **Differences**:
-  - TikTok's algorithm is more sophisticated with hundreds of signals
-  - TikTok uses extensive AI/ML for content classification
-  - Our initial implementation will be simpler but follow similar principles
+  - Our implementation uses Gorse instead of proprietary AI
+  - Simpler initial feature set
+  - More transparent recommendation logic
+  - Faster iteration cycles
 
 #### Instagram
 
@@ -483,13 +657,15 @@ The current feed system uses Redis sorted sets to store a global feed that is th
 
 ### Key Advantages of Our Approach
 
-1. **Balanced Discovery**: Our 70/30 discovery/following mix provides good balance between new content discovery and following relationships
+1. **AI-Powered Discovery**: Gorse provides sophisticated recommendation algorithms out of the box
 
-2. **Simplified Implementation**: By focusing on fewer, more impactful signals initially, we can implement faster and iterate
+2. **Rapid Implementation**: Using Gorse accelerates development while maintaining quality
 
-3. **Dual Feed Strategy**: Providing both algorithmic and following-only feeds gives users choice and control
+3. **Scalable Architecture**: Built-in support for distributed deployment and horizontal scaling
 
-4. **Phased Approach**: Our implementation phases allow for gradual sophistication while delivering value early
+4. **Flexible Integration**: Easy integration with existing systems while allowing future customization
+
+5. **Data-Driven Optimization**: Built-in A/B testing and analytics for continuous improvement
 
 ## Feed Distribution System Architecture
 

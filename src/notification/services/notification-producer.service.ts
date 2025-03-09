@@ -53,24 +53,73 @@ export class NotificationProducerService {
     });
 
     if (!actor) {
+      this.logger.debug(
+        `notification: notification-producer.service: handleLikeCreated: skipping because actor is not found`,
+      );
+
       return;
     }
 
-    // Get content details
-    let contentName = '';
-    let parentPost = null;
+    const notification = new NotificationCreateInput();
+    notification.key = `like:${contentType}:${contentId}`;
+    notification.userId = targetUserId;
+    notification.subjects = [
+      {
+        id: actorId,
+        type: 'USER',
+        firstName: actor.firstName,
+        lastName: actor.lastName,
+        avatar: actor.avatar,
+      },
+    ];
+    notification.subjectCount = 1;
+
     if (contentType === 'POST') {
       const post = await this.prisma.publishedPost.findUnique({
         where: { id: contentId },
         select: { title: true },
       });
-      contentName = post?.title || 'a post';
+
+      if (!post) {
+        this.logger.debug(
+          `notification: notification-producer.service: handleLikeCreated: skipping because post is not found`,
+        );
+
+        return;
+      }
+
+      notification.type = NotificationType.POST_LIKE;
+
+      notification.diObject = {
+        id: contentId,
+        type: contentType,
+        name: post?.title || 'a post',
+      };
+
+      notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
     } else if (contentType === 'EMOTION') {
       const emotion = await this.prisma.userEmotion.findUnique({
         where: { id: contentId },
         select: { emotion: true },
       });
-      contentName = emotion?.emotion || 'an emotion';
+
+      if (!emotion) {
+        this.logger.debug(
+          `notification: notification-producer.service: handleLikeCreated: skipping because emotion is not found`,
+        );
+
+        return;
+      }
+
+      notification.type = NotificationType.EMOTION_LIKE;
+
+      notification.diObject = {
+        id: contentId,
+        type: contentType,
+        name: emotion?.emotion || 'an emotion',
+      };
+
+      notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
     } else if (contentType === 'COMMENT') {
       const comment = await this.prisma.comment.findUnique({
         where: { id: contentId },
@@ -85,40 +134,30 @@ export class NotificationProducerService {
           },
         },
       });
-      contentName = comment?.content || 'a comment';
-      parentPost = comment?.post;
-    }
 
-    const notification = new NotificationCreateInput();
-    notification.key = `like:${contentType}:${contentId}`;
-    notification.type = NotificationType.POST_LIKE;
-    notification.userId = targetUserId;
-    notification.subjects = [
-      {
-        id: actorId,
-        type: 'USER',
-        firstName: actor.firstName,
-        lastName: actor.lastName,
-        avatar: actor.avatar,
-      },
-    ];
-    notification.subjectCount = 1;
-    notification.diObject = {
-      id: contentId,
-      type: contentType,
-      name: contentName,
-    };
+      if (!comment) {
+        this.logger.debug(
+          `notification: notification-producer.service: handleLikeCreated: skipping because comment is not found`,
+        );
 
-    // For comments, add the parent post as prObject
-    if (contentType === 'COMMENT' && parentPost) {
-      notification.prObject = {
-        id: parentPost.id,
-        type: 'POST',
-        name: parentPost.title || 'a post',
+        return;
+      }
+
+      notification.type = NotificationType.COMMENT_LIKE;
+
+      notification.diObject = {
+        id: contentId,
+        type: contentType,
+        name: comment?.content || 'a comment',
       };
-      notification.link = `/posts/${parentPost.id}?comment=${contentId}`;
-    } else {
-      notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
+
+      notification.prObject = {
+        id: comment?.postId,
+        type: 'POST',
+        name: comment?.post?.title || 'a post',
+      };
+
+      notification.link = `/posts/${comment?.postId}?comment=${contentId}`;
     }
 
     await this.notiQueue.add(notification, {

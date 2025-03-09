@@ -42,9 +42,6 @@ export class Notification implements NotificationIf {
   metadata: Record<string, unknown> | null;
   notificationTime: Date;
   viewedAt: Date | null;
-  groupKey: string | null;
-  groupCount: number;
-  lastEventId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

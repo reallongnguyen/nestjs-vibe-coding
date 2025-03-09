@@ -198,9 +198,6 @@ model Notification {
   metadata         Json?     @default("{}")
   notificationTime DateTime  @default(now()) @map("notification_time") @db.Timestamptz()
   viewedAt         DateTime? @map("viewed_at") @db.Timestamptz()
-  groupKey         String?   @map("group_key")
-  groupCount       Int       @default(1) @map("group_count")
-  lastEventId      String?   @map("last_event_id")
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -208,7 +205,6 @@ model Notification {
   @@index([userId, viewedAt])
   @@index([key], type: Hash)
   @@index([type], type: Hash)
-  @@index([groupKey])
   @@index([userId, type, createdAt])
   @@map("notifications")
 }

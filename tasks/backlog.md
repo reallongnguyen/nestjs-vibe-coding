@@ -273,37 +273,305 @@ Optimize notification delivery and storage for high-volume scenarios.
    - Standardized error handling and response formats
    - Comprehensive logging for debugging and monitoring
 
-### INF-002: Image Proxy Implementation (Sprint 8)
+### INF-002: Image Proxy Implementation
 
-**Priority**: High
-**Story Points**: 8
+**Metadata**:
+  Type: Infrastructure
+  Component: Backend
+  Priority: Low
+  Risk Level: Medium
+  Story Points: 8
+  Sprint: Backlog
+
+**Time Tracking**:
+  Estimated Hours: 32
+  Start Date: TBD
+  Due Date: TBD
+
+**Integration Analysis**:
+  Integration Type: New Feature
+  Affected Systems:
+    - Frontend image components
+    - Storage service
+    - CDN configuration
+  Current Implementation:
+    - Basic imgproxy setup
+    - Storage service integration
+  Integration Points:
+    - Image URL generation
+    - Storage service
+    - Frontend components
+  Breaking Changes:
+    - New image URL format
+    - Migration of existing image URLs
+
+**Quick Start**:
+  Similar Feature: src/storage/
+  Example Test: src/storage/tests/
+  Key Files:
+    - src/imgproxy/
+    - src/storage/
+  Setup Steps:
+    1. Review imgproxy documentation
+    2. Set up development environment
+    3. Configure test data
 
 **Description**:
-Complete the implementation of image proxy service for optimized image processing and delivery.
+Implement comprehensive image processing and delivery system using imgproxy, including frontend SDK, storage integration, and monitoring.
 
-### NOT-004: Notification Module Integration (Sprint 8)
+**Context**:
+  Feature Goal: Enable efficient image processing and delivery
+  Similar Features: Storage service, Feed cache service
+  Code Patterns: Repository pattern, Adapter pattern
+  Common Pitfalls:
+    - Performance under load
+    - Memory management
+    - Browser compatibility
+    - CDN integration
 
-**Priority**: High
-**Story Points**: 13
+**Implementation Guide**:
+  Architecture Pattern: Service-oriented with adapters
+  Code Style: Follow TypeScript guidelines
+  Performance Requirements:
+    - URL generation < 50ms
+    - Image processing < 200ms
+    - Cache hit rate > 80%
+    - Error rate < 0.1%
+
+**Tasks**:
+
+1. INF-002.1: Image Processing Service (3 points)
+   - Create URL generation service with signing
+   - Implement transformation options
+   - Add input validation
+   - Setup caching layer
+   - Add monitoring
+   - Write comprehensive tests
+
+2. INF-002.2: Storage Integration (2 points)
+   - Create storage adapter interface
+   - Implement file validation
+   - Add upload pipeline
+   - Setup error handling
+   - Add retry mechanism
+   - Write integration tests
+
+3. INF-002.3: Frontend SDK (3 points)
+   - Create TypeScript SDK
+   - Implement responsive image component
+   - Add lazy loading support
+   - Setup browser optimization
+   - Add performance monitoring
+   - Write component tests
+
+**Technical Notes**:
+
+- Use TypeScript for type safety
+- Implement proper error handling
+- Add comprehensive monitoring
+- Follow security best practices
+- Consider browser compatibility
+- Optimize for performance
+
+**Quality Checklist**:
+
+- [ ] Technical Design Review
+- [ ] Implementation Complete
+- [ ] Unit Tests Added
+- [ ] Integration Tests Added
+- [ ] Documentation Updated
+- [ ] Security Review Complete
+- [ ] Performance Requirements Met
+
+**Acceptance Criteria**:
+
+1. Image processing works efficiently
+2. Frontend SDK is easy to use
+3. Storage integration is reliable
+4. Performance meets requirements
+5. Documentation is complete
+
+### NOT-004: Notification Module Integration
+
+**Metadata**:
+  Type: Feature
+  Component: Backend
+  Priority: Low
+  Risk Level: Medium
+  Story Points: 13
+  Sprint: Backlog
+
+**Time Tracking**:
+  Estimated Hours: 52
+  Start Date: TBD
+  Due Date: TBD
+
+**Integration Analysis**:
+  Integration Type: Enhancement
+  Affected Systems:
+    - Social module
+    - User module
+    - Frontend notifications
+  Current Implementation:
+    - Core notification system
+    - Basic event handling
+  Integration Points:
+    - Event handlers
+    - User preferences
+    - Frontend real-time updates
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/notification/
+  Example Test: src/notification/tests/
+  Key Files:
+    - src/notification/
+    - src/social/
+    - src/user/
+  Setup Steps:
+    1. Review notification system
+    2. Set up test environment
+    3. Configure test data
 
 **Description**:
-Integrate notification system with other modules and implement remaining notification types.
+Integrate notification system with all platform modules and implement remaining notification types with performance optimization.
 
-### REC-001: Content Distribution System Research (Sprint 9)
+**Context**:
+  Feature Goal: Provide comprehensive notification system
+  Similar Features: Comment notifications, Like notifications
+  Code Patterns: Event-driven architecture, MQTT
+  Common Pitfalls:
+    - Real-time delivery issues
+    - Database performance
+    - Memory leaks
+    - Race conditions
+
+**Implementation Guide**:
+  Architecture Pattern: Event-driven with MQTT
+  Code Style: Follow notification patterns
+  Performance Requirements:
+    - Event processing < 100ms
+    - Delivery time < 1s
+    - Batch processing < 5s
+    - Memory usage < 100MB
+
+**Tasks**:
+
+1. NOT-004.1: User Module Integration (3 points)
+   - Create preference management
+   - Add settings migration
+   - Implement API endpoints
+   - Setup validation rules
+   - Add caching layer
+   - Write integration tests
+
+2. NOT-004.2: Social Module Integration (5 points)
+   - Implement social events
+   - Create notification templates
+   - Add event handlers
+   - Setup aggregation rules
+   - Add error handling
+   - Write unit tests
+
+3. NOT-004.3: Frontend Integration (3 points)
+   - Create notification components
+   - Implement real-time updates
+   - Add notification center
+   - Setup preference UI
+   - Add offline support
+   - Write component tests
+
+4. NOT-004.4: Performance Optimization (2 points)
+   - Implement batching
+   - Add rate limiting
+   - Optimize queries
+   - Setup monitoring
+   - Add performance tests
+   - Write documentation
+
+**Technical Notes**:
+
+- Use Redis for caching
+- Implement proper error handling
+- Add comprehensive monitoring
+- Follow security best practices
+- Consider scalability
+- Optimize for performance
+
+**Quality Checklist**:
+
+- [ ] Technical Design Review
+- [ ] Implementation Complete
+- [ ] Unit Tests Added
+- [ ] Integration Tests Added
+- [ ] Documentation Updated
+- [ ] Security Review Complete
+- [ ] Performance Requirements Met
+
+**Acceptance Criteria**:
+
+1. User preferences work correctly
+2. Social notifications are delivered
+3. Frontend integration is complete
+4. Performance meets requirements
+5. Documentation is complete
+
+### REC-001: Gorse Integration Research and POC
 
 **Priority**: High
 **Story Points**: 5
+**Sprint**: 9
 
 **Description**:
-Evaluate Gorse as a potential solution for the content distribution system and conduct proof of concept.
+Research and implement a proof of concept for Gorse integration as our recommendation engine.
 
-### REC-002: Content Distribution System Phase 1 (Sprint 9)
+**Tasks**:
+
+1. Set up Gorse development environment
+2. Create test dataset for POC
+3. Implement basic integration
+4. Measure performance metrics
+5. Document findings and recommendations
+
+**Acceptance Criteria**:
+
+1. Gorse server running in development
+2. Basic recommendation flow working
+3. Performance metrics collected
+4. Integration approach documented
+5. Scaling requirements identified
+
+### REC-002: Gorse Integration Phase 1
 
 **Priority**: High
 **Story Points**: 13
+**Sprint**: 9
 
 **Description**:
-Implement the first phase of the content distribution system based on the research findings.
+Implement the first phase of Gorse integration for the content distribution system.
+
+**Tasks**:
+
+1. Set up Gorse production infrastructure
+2. Implement data synchronization
+3. Create recommendation service
+4. Add monitoring and alerts
+5. Deploy with feature flags
+
+**Technical Requirements**:
+
+1. Data sync latency < 1s
+2. Recommendation latency < 50ms
+3. Cache hit rate > 90%
+4. Error rate < 0.1%
+
+**Acceptance Criteria**:
+
+1. Gorse production deployment complete
+2. Data synchronization working
+3. Recommendations being served
+4. Monitoring in place
+5. Performance requirements met
 
 ### EVT-001: Event System Short-term Improvements
 
@@ -364,114 +632,90 @@ Implement short-term improvements to enhance event system type safety, validatio
   - Technical: Update event-system.md
   - Examples: Add code samples
 
-### INF-002: Implement imgproxy Monitoring Dashboard
+### INF-002: Implement imgproxy Monitoring
 
 **Quick Start**:
 
-- Similar Feature: Existing Grafana dashboards for other services
+- Similar Feature: infra/grafana/dashboards/
 - Example Test: N/A
 - Key Files:
   - infra/grafana/dashboards/imgproxy.json
   - infra/prometheus/imgproxy.rules.yml
 - Setup Steps:
-  1. Enable Prometheus metrics in imgproxy
-  2. Configure Prometheus scraping
-  3. Create Grafana dashboard
-  4. Set up alerting rules
+  1. Enable Prometheus metrics
+  2. Configure scraping
+  3. Create dashboard
 
-**Priority**: Medium
-**Dependencies**: INF-001
+**Priority**: High
 **Story Points**: 3
 
 **Description**:
-Create a comprehensive monitoring dashboard for imgproxy service to track performance metrics, resource usage, and system health. This will help in proactive monitoring and troubleshooting of the image processing service.
+Create comprehensive monitoring for imgproxy service including metrics, dashboards, and alerts.
 
 **Context**:
 
-- Feature Goal: Establish robust monitoring for imgproxy service
-- Similar Features: Existing service monitoring dashboards
-- Code Patterns: Prometheus metrics, Grafana dashboard JSON
+- Feature Goal: Ensure reliable operation of imgproxy service
+- Similar Features: Existing service monitoring
+- Code Patterns: Prometheus metrics, Grafana dashboards
 - Common Pitfalls:
   - Missing critical metrics
-  - Inefficient metric collection
-  - Alert fatigue from improper thresholds
-  - Dashboard performance issues
+  - Alert fatigue
+  - Dashboard performance
+  - Metric cardinality
 
 **Implementation Guide**:
 
 - Architecture Pattern: Prometheus + Grafana
+- Code Style: Follow monitoring standards
 - Performance Requirements:
   - Metric collection interval: 15s
   - Dashboard refresh rate: 1m
-  - Metric retention: 15 days
   - Alert notification latency < 1m
 
 **Tasks**:
 
-1. Configure imgproxy metrics exposure
-   - Enable Prometheus metrics endpoint
+1. Configure metrics collection
+   - Enable Prometheus endpoint
    - Configure metric labels
-   - Set up metric collection interval
-2. Set up Prometheus scraping
-   - Add scrape configuration
-   - Configure target labels
-   - Set up service discovery
-3. Create Grafana dashboard
-   - System metrics (CPU, Memory, Network)
-   - Application metrics (Request rate, Latency, Cache hits)
-   - Error rates and types
+   - Set up scraping
+2. Create Grafana dashboard
+   - System metrics
+   - Application metrics
+   - Error rates
    - Resource utilization
-4. Configure alerting rules
-   - High error rate alerts
-   - Resource utilization alerts
-   - Service health alerts
-   - Performance degradation alerts
+3. Configure alerting
+   - Define alert rules
+   - Set up notifications
+   - Add documentation
+4. Add testing
+   - Verify metric collection
+   - Test alert rules
+   - Load test dashboard
 
 **Technical Notes**:
 
-- Use official imgproxy Prometheus metrics
-- Follow Grafana dashboard best practices
-- Implement proper alert thresholds
+- Use official imgproxy metrics
+- Follow Grafana best practices
+- Implement proper thresholds
 - Consider metric cardinality
 
 **Quality Checklist**:
 
-- [ ] Metrics endpoint configured and accessible
-- [ ] Prometheus scraping configured correctly
-- [ ] Dashboard provides comprehensive view
-- [ ] Alerting rules are properly configured
-- [ ] Documentation is complete
+- [ ] Technical Design Review
+- [ ] Implementation Complete
+- [ ] Metrics Configured
+- [ ] Dashboard Created
+- [ ] Alerts Configured
+- [ ] Documentation Updated
+- [ ] Performance Verified
 
 **Acceptance Criteria**:
 
-- Metrics are being collected correctly
-- Dashboard shows all critical metrics
-- Alerts are firing appropriately
-- Documentation is complete and accurate
-- Dashboard performs efficiently
-
-**Required Metrics**:
-
-1. System Metrics:
-   - CPU Usage
-   - Memory Usage
-   - Network I/O
-   - Disk I/O
-2. Application Metrics:
-   - Request Rate
-   - Error Rate
-   - Response Time (p50, p95, p99)
-   - Cache Hit/Miss Rate
-3. Processing Metrics:
-   - Image Processing Time
-   - Image Size Distribution
-   - Format Distribution
-   - Transformation Types
-4. Resource Metrics:
-   - GCS Operations
-   - Connection Pool Status
-   - Queue Length
-   - Worker Status
+1. All critical metrics are collected
+2. Dashboard shows system health
+3. Alerts fire appropriately
+4. Documentation is complete
+5. Performance impact is minimal
 
 ### INF-001.5: Frontend Integration for imgproxy
 
@@ -658,3 +902,137 @@ Develop frontend integration for imgproxy to enable efficient image loading and 
 - Performance testing might require additional time
 - Redis integration complexity
 - Test data volume management
+
+### Sprint 9 Planning
+
+Based on the business flow documentation and current system state, here are the high-priority tasks for Sprint 9:
+
+### FED-001: Feed Distribution System Implementation
+
+**Metadata**:
+  Type: Feature
+  Component: Backend
+  Priority: High
+  Risk Level: High
+  Story Points: 21
+  Sprint: 8
+
+**Time Tracking**:
+  Estimated Hours: 84
+  Start Date: 2024-04-08
+  Due Date: 2024-04-19
+
+**Integration Analysis**:
+  Integration Type: New Feature
+  Affected Systems:
+    - Content module
+    - User module
+    - Social module
+    - Redis cache layer
+  Current Implementation:
+    - Basic feed system with global sorting
+    - Simple Redis caching
+  Integration Points:
+    - Content scoring system
+    - User preference system
+    - Social graph integration
+    - Cache management
+  Breaking Changes:
+    - New feed algorithm
+    - Cache structure changes
+    - API response format updates
+
+**Quick Start**:
+  Similar Feature: src/feed/
+  Example Test: src/feed/tests/
+  Key Files:
+    - src/feed/services/
+    - src/feed/scoring/
+    - src/common/cache/
+  Setup Steps:
+    1. Review feed system documentation
+    2. Set up Redis development environment
+    3. Configure test data
+
+**Description**:
+Implement a TikTok-inspired feed distribution system with personalized content ranking, efficient caching, and real-time updates.
+
+**Context**:
+  Feature Goal: Create engaging, personalized content discovery
+  Similar Features: Current feed system
+  Code Patterns: Repository pattern, Strategy pattern
+  Common Pitfalls:
+    - Cache invalidation complexity
+    - Memory management
+    - Query performance
+    - Real-time update challenges
+
+**Implementation Guide**:
+  Architecture Pattern: Event-driven with Redis
+  Code Style: Follow feed module patterns
+  Performance Requirements:
+    - Feed generation < 200ms
+    - Cache hit rate > 90%
+    - Memory usage < 2GB
+    - Update propagation < 1s
+
+**Tasks**:
+
+1. FED-001.1: Content Scoring System (5 points)
+   - Implement scoring algorithms
+   - Create ranking strategies
+   - Add personalization factors
+   - Setup performance monitoring
+   - Add A/B testing support
+   - Write comprehensive tests
+
+2. FED-001.2: Feed Generation Service (8 points)
+   - Create feed generation pipeline
+   - Implement caching strategies
+   - Add real-time updates
+   - Setup background processing
+   - Add error handling
+   - Write integration tests
+
+3. FED-001.3: Cache Management System (5 points)
+   - Implement Redis cache layer
+   - Create invalidation strategies
+   - Add cache warming
+   - Setup monitoring
+   - Add performance optimization
+   - Write cache tests
+
+4. FED-001.4: Frontend Integration (3 points)
+   - Create feed components
+   - Implement infinite scroll
+   - Add real-time updates
+   - Setup error handling
+   - Add loading states
+   - Write component tests
+
+**Technical Notes**:
+
+- Use Redis for caching and real-time features
+- Implement proper error handling and recovery
+- Add comprehensive monitoring
+- Follow security best practices
+- Consider scalability requirements
+- Optimize for mobile experience
+
+**Quality Checklist**:
+
+- [ ] Technical Design Review
+- [ ] Implementation Complete
+- [ ] Unit Tests Added
+- [ ] Integration Tests Added
+- [ ] Documentation Updated
+- [ ] Security Review Complete
+- [ ] Performance Requirements Met
+
+**Acceptance Criteria**:
+
+1. Feed generation meets performance requirements
+2. Content ranking is personalized and relevant
+3. Cache system is efficient and reliable
+4. Real-time updates work correctly
+5. Documentation is complete

@@ -868,10 +868,6 @@ export class RedisBatchProcessor<T> {
 - Combine notification by key
 - Change column name di_object -> direct_object
 - Notification template API may not work
-- Remove redundant groupKey, groupCount, and lastEventId fields from notification table
-  - Currently using key field for grouping
-  - groupKey and related fields are unused
-  - This will simplify the grouping logic and database schema
 
 ### Identity
 
@@ -892,9 +888,9 @@ The notification system follows a three-stage pipeline architecture: Producer â†
 - **Input**: Domain events (PostLikedEvent, CommentAddedEvent, etc.)
 - **Processing**:
   - Creates NotificationCreateInput
-  - Assigns unique grouping key
   - Sets notification type and target user
   - Configures content metadata and deep links
+  - Assigns unique key for grouping
 - **Output**: Queued notification request (via Bull Queue)
 
 #### 2. Consumer Stage (NotificationConsumerService)
@@ -904,7 +900,7 @@ The notification system follows a three-stage pipeline architecture: Producer â†
 - **Input**: NotificationCreateInput from queue
 - **Processing**:
   - Validates user notification preferences
-  - Applies notification grouping strategies
+  - Applies notification grouping strategies using key field
   - Renders notification text using templates
   - Manages concurrent updates with RedLock
 - **Output**: Persisted Notification entity

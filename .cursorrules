@@ -249,7 +249,7 @@ Simple task implementation steps:
 
 ### STEP 6: Keep documentation updated
 
-- UPDATE `/tasks/sprint-current-status.md` with:
+- UPDATE `/tasks/sprint-current-status.md` and `/tasks/sprint-current-status.md` with:
   - Current progress
   - Any new issues encountered
   - Completed items

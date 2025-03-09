@@ -19,7 +19,6 @@ import {
   NotificationChannel,
   NotificationType,
 } from '../entities/notification-preference.entity';
-import { NotificationDomain } from '../entities/notification.domain';
 import { NotificationTemplateService } from './notification-template.service';
 import { TemplateLanguage } from '../entities/notification-template.domain';
 
@@ -260,9 +259,6 @@ export class NotificationConsumerService {
 
         this.eventEmitter.emit('notification.created', notification);
       }
-
-      // Create domain model for any additional business logic if needed
-      NotificationDomain.fromEntity(notification);
     });
   }
 }

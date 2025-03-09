@@ -62,6 +62,24 @@ async function seedNotificationTemplates() {
         EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} started following you',
       },
     },
+    {
+      name: 'Comment Reply Template',
+      type: 'comment_reply',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subject_count \'-\' 1 }} người khác{{/if}} đã trả lời bình luận của bạn{{#if diObject.content }}: "{{ diObject.content }}"{{/if}}',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subject_count \'-\' 1 }} others{{/if}} replied to your comment{{#if diObject.content }}: "{{ diObject.content }}"{{/if}}',
+      },
+    },
+    {
+      name: 'Emotion Like Template',
+      type: 'emotion_like',
+      version: '1.0.0',
+      contents: {
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã thích cảm xúc {{ diObject.name }} của bạn',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} liked your emotion {{ diObject.name }}',
+      },
+    },
   ];
 
   // Get existing templates
