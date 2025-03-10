@@ -6,6 +6,7 @@ import {
   LikeDeletedEvent,
   ContentType,
 } from '../entities/events/social.events';
+import { ContentViewedEvent } from '../entities/events/content-viewed.event';
 
 import { EngagementStatsDto } from '../presentation/dtos/engagement-stats.dto';
 import { EngageableNotFoundError } from '../entities/social.error';
@@ -210,14 +211,23 @@ export class SocialEngagementService {
     await this.validateContentExists(upperType, contentId);
 
     // Insert view record
-    await this.viewRepository.insertView(
+    const { isNewView } = await this.viewRepository.insertView(
       contentId,
       upperType,
       viewerHash,
       viewerId,
     );
 
-    // TODO: Emit content viewed event if it's a new view
+    // Emit content viewed event if it's a new view
+    if (isNewView) {
+      const event = new ContentViewedEvent(
+        contentId,
+        upperType,
+        viewerHash,
+        viewerId,
+      );
+      await this.eventBus.publish(event);
+    }
   }
 
   /**

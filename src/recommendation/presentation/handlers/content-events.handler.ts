@@ -115,4 +115,25 @@ export class ContentEventsHandler {
 
     this.eventBus.publish(itemSyncEvent);
   }
+
+  @OnEvent(SocialEventSchemas.CONTENT_VIEWED.eventName)
+  async handleContentViewed(
+    event: EventBusMessage<typeof SocialEventSchemas.CONTENT_VIEWED.schema>,
+  ): Promise<void> {
+    const { contentId, viewerId } = event.payload;
+
+    // Skip anonymous views
+    if (!viewerId) {
+      return;
+    }
+
+    const feedbackSyncEvent = new FeedbackSyncEvent({
+      userId: viewerId,
+      itemId: contentId,
+      feedbackType: 'read',
+      timestamp: event.metadata.timestamp,
+    });
+
+    this.eventBus.publish(feedbackSyncEvent);
+  }
 }

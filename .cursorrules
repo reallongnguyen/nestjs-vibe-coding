@@ -162,6 +162,10 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 ### STEP 3: Confirm current context
 
+- If Change Type is one of Enhancement, Integration, Refactoring, you must investigate current code that relate task description
+  - Understand impact of change
+  - Understand scope of change
+  - Don't change current code if no need
 - Read the file: `/docs/architecture.mermaid`
   - Extract and understand:
     - Module boundaries and relationships
@@ -177,7 +181,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - Understand folder structure
   - Understand code conventions
 - Understand the module's style:
-  - Clear separation of entities, repositories, services, and presentation layers
+  - Clear separation of entities, repositories, services, and presentation layers follow module structure `/docs/module-structure.md`
   - Specific error classes for better error handling
   - Consistent DTO patterns with fromDomain static methods
   - Proper use of decorators for API documentation
@@ -189,7 +193,6 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 Required understanding files:
 
 - `/tasks/sprint-current-tasks.md`: Source of task definitions
-- `/tasks/sprint-current-status.md`: Progress tracking
 - `/docs/technical.md`: Implementation guidelines
 
 Complex task implementation steps:
@@ -249,7 +252,7 @@ Simple task implementation steps:
 
 ### STEP 6: Keep documentation updated
 
-- UPDATE `/tasks/sprint-current-status.md` and `/tasks/sprint-current-status.md` with:
+- UPDATE `/tasks/sprint-current-tasks.md` with:
   - Current progress
   - Any new issues encountered
   - Completed items

@@ -7,9 +7,8 @@ import {
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { RedisBatchProcessor } from 'src/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { SocialEventSchemas, EventBusMessage } from 'src/common/event-manager';
 import { IViewRepository } from '../../services/interfaces/view-repository.interface';
-import { PostViewedEvent } from '../../entities/events/post-viewed.event';
-import { EmotionViewedEvent } from '../../entities/events/emotion-viewed.event';
 
 export interface ViewOperation {
   contentId: string;
@@ -20,8 +19,8 @@ export interface ViewOperation {
 
 @Injectable()
 export class UpdateViewCountHandler implements OnModuleInit, OnModuleDestroy {
-  protected postViewProcessor: RedisBatchProcessor<ViewOperation>;
-  protected emotionViewProcessor: RedisBatchProcessor<ViewOperation>;
+  protected viewProcessor: RedisBatchProcessor<ViewOperation>;
+
   constructor(
     protected readonly redisService: RedisService,
     @Inject('IViewRepository')
@@ -31,17 +30,8 @@ export class UpdateViewCountHandler implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     const redis = this.redisService.getOrThrow();
 
-    this.postViewProcessor = new RedisBatchProcessor(redis, {
-      batchKey: `post:views:batch`,
-      batchSize: 100,
-      batchTimeout: 8000,
-      processBatch: async (items) => {
-        await this.viewEngagementHelper.batchInsertView(items);
-      },
-    });
-
-    this.emotionViewProcessor = new RedisBatchProcessor(redis, {
-      batchKey: `emotion:views:batch`,
+    this.viewProcessor = new RedisBatchProcessor(redis, {
+      batchKey: `content:views:batch`,
       batchSize: 100,
       batchTimeout: 8000,
       processBatch: async (items) => {
@@ -51,36 +41,22 @@ export class UpdateViewCountHandler implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    if (this.postViewProcessor) {
-      await this.postViewProcessor.onApplicationShutdown();
-    }
-
-    if (this.emotionViewProcessor) {
-      await this.emotionViewProcessor.onApplicationShutdown();
+    if (this.viewProcessor) {
+      await this.viewProcessor.onApplicationShutdown();
     }
   }
 
-  @OnEvent(PostViewedEvent.eventName)
-  async handlePostViewed(event: PostViewedEvent) {
-    const payload = event.toJSON();
+  @OnEvent(SocialEventSchemas.CONTENT_VIEWED.eventName)
+  async handleContentViewed(
+    event: EventBusMessage<typeof SocialEventSchemas.CONTENT_VIEWED.schema>,
+  ) {
+    const { contentId, contentType, viewerHash, viewerId } = event.payload;
 
-    await this.postViewProcessor.add({
-      contentId: payload.postId,
-      contentType: 'POST',
-      viewerHash: payload.viewerHash,
-      viewerId: payload.viewerId,
-    });
-  }
-
-  @OnEvent(EmotionViewedEvent.eventName)
-  async handleEmotionViewed(event: EmotionViewedEvent) {
-    const payload = event.toJSON();
-
-    await this.emotionViewProcessor.add({
-      contentId: payload.emotionId,
-      contentType: 'EMOTION',
-      viewerHash: payload.viewerHash,
-      viewerId: payload.viewerId,
+    await this.viewProcessor.add({
+      contentId,
+      contentType,
+      viewerHash,
+      viewerId,
     });
   }
 }

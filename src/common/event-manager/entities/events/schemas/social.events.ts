@@ -1,4 +1,4 @@
-import { IsEnum, IsString, IsUUID } from 'class-validator';
+import { IsDate, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { EventSchema } from '../event.interface';
 
 export enum ContentType {
@@ -58,6 +58,26 @@ export class CommentEventSchema {
   preview?: string;
 }
 
+export class BaseViewEventPayload {
+  @IsUUID()
+  contentId: string;
+
+  @IsEnum(ContentType)
+  contentType: ContentType;
+
+  @IsString()
+  viewerHash: string;
+
+  @IsOptional()
+  @IsString()
+  viewerId?: string;
+
+  @IsDate()
+  timestamp: Date;
+}
+
+export class ContentViewedEventPayload extends BaseViewEventPayload {}
+
 /**
  * All social related event schemas
  */
@@ -93,4 +113,15 @@ export const SocialEventSchemas = {
     module: 'social',
     description: 'Emitted when a user replies to a comment',
   } as EventSchema<CommentEventSchema>,
+
+  CONTENT_VIEWED: {
+    eventName: 'social.content.viewed',
+    schema: new ContentViewedEventPayload(),
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when content is viewed by a user or anonymous viewer',
+  } satisfies EventSchema<ContentViewedEventPayload>,
 } as const;
+
+export type SocialEventName =
+  (typeof SocialEventSchemas)[keyof typeof SocialEventSchemas]['eventName'];

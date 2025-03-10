@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { IEventBus } from 'src/common/event-bus';
+import { PrismaService } from '../../../common/prisma/prisma.service';
+import { IEventBus } from '../../../common/event-manager';
 import { SocialEngagementService } from '../social-engagement.service';
 import { IViewRepository } from '../interfaces/view-repository.interface';
 import { EngageableNotFoundError } from '../../entities/social.error';
+import { ContentType } from '../../entities/events/social.events';
+import { ContentViewedEvent } from '../../entities/events/content-viewed.event';
 
 describe('SocialEngagementService', () => {
   let service: SocialEngagementService;
@@ -11,38 +13,45 @@ describe('SocialEngagementService', () => {
   let eventBus: IEventBus;
   let viewRepository: IViewRepository;
 
+  const mockPrisma = {
+    publishedPost: {
+      findUnique: jest.fn(),
+    },
+    userEmotion: {
+      findUnique: jest.fn(),
+    },
+    comment: {
+      findUnique: jest.fn(),
+    },
+    engageable: {
+      findUnique: jest.fn(),
+      upsert: jest.fn(),
+    },
+  };
+
+  const mockEventBus = {
+    publish: jest.fn(),
+  };
+
+  const mockViewRepository = {
+    insertView: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SocialEngagementService,
         {
           provide: PrismaService,
-          useValue: {
-            publishedPost: {
-              findUnique: jest.fn(),
-              count: jest.fn(),
-            },
-            userEmotion: {
-              findUnique: jest.fn(),
-              count: jest.fn(),
-            },
-            engageable: {
-              findUnique: jest.fn(),
-              upsert: jest.fn(),
-            },
-          },
+          useValue: mockPrisma,
         },
         {
           provide: 'IEventBus',
-          useValue: {
-            publish: jest.fn(),
-          },
+          useValue: mockEventBus,
         },
         {
           provide: 'IViewRepository',
-          useValue: {
-            insertView: jest.fn(),
-          },
+          useValue: mockViewRepository,
         },
       ],
     }).compile();
@@ -51,6 +60,8 @@ describe('SocialEngagementService', () => {
     prisma = module.get<PrismaService>(PrismaService);
     eventBus = module.get<IEventBus>('IEventBus');
     viewRepository = module.get<IViewRepository>('IViewRepository');
+
+    jest.clearAllMocks();
   });
 
   describe('likeContent', () => {
@@ -182,95 +193,114 @@ describe('SocialEngagementService', () => {
   });
 
   describe('recordView', () => {
-    const mockUserId = 'user-123';
-    const mockContentId = 'content-123';
-    const mockViewerHash = 'viewer-hash-123';
+    const mockData = {
+      contentId: '123e4567-e89b-12d3-a456-426614174000',
+      type: 'POST',
+      viewerHash: 'abc123',
+      viewerId: '123e4567-e89b-12d3-a456-426614174001',
+    };
 
-    it('should emit content viewed event for post when view is new', async () => {
-      // Arrange
-      jest.spyOn(prisma.publishedPost, 'count').mockResolvedValue(1);
-      jest.spyOn(viewRepository, 'insertView').mockResolvedValue({
-        isNewView: true,
+    beforeEach(() => {
+      mockPrisma.publishedPost.findUnique.mockResolvedValue({
+        id: mockData.contentId,
       });
-
-      // Act
-      await service.recordView(
-        'POST',
-        mockContentId,
-        mockViewerHash,
-        mockUserId,
-      );
-
-      // Assert
-      expect(eventBus.publish).toHaveBeenCalledWith(
-        expect.objectContaining({
-          contentType: 'POST',
-          contentId: mockContentId,
-          viewerHash: mockViewerHash,
-          viewerId: mockUserId,
-        }),
-      );
-      expect((eventBus.publish as jest.Mock).mock.calls[0][0].eventName()).toBe(
-        'social.content.viewed',
-      );
     });
 
-    it('should emit content viewed event for emotion when view is new', async () => {
-      // Arrange
-      jest.spyOn(prisma.userEmotion, 'count').mockResolvedValue(1);
-      jest.spyOn(viewRepository, 'insertView').mockResolvedValue({
-        isNewView: true,
-      });
+    it('should record view and emit event for new view', async () => {
+      mockViewRepository.insertView.mockResolvedValue({ isNewView: true });
 
-      // Act
       await service.recordView(
-        'EMOTION',
-        mockContentId,
-        mockViewerHash,
-        mockUserId,
+        mockData.type,
+        mockData.contentId,
+        mockData.viewerHash,
+        mockData.viewerId,
       );
 
-      // Assert
+      expect(viewRepository.insertView).toHaveBeenCalledWith(
+        mockData.contentId,
+        ContentType.POST,
+        mockData.viewerHash,
+        mockData.viewerId,
+      );
+
       expect(eventBus.publish).toHaveBeenCalledWith(
-        expect.objectContaining({
-          contentType: 'EMOTION',
-          contentId: mockContentId,
-          viewerHash: mockViewerHash,
-          viewerId: mockUserId,
-        }),
+        expect.any(ContentViewedEvent),
       );
-      expect((eventBus.publish as jest.Mock).mock.calls[0][0].eventName()).toBe(
-        'social.content.viewed',
-      );
+
+      const publishedEvent = mockEventBus.publish.mock.calls[0][0];
+      expect(publishedEvent.toJSON()).toEqual({
+        contentId: mockData.contentId,
+        contentType: ContentType.POST,
+        viewerHash: mockData.viewerHash,
+        viewerId: mockData.viewerId,
+        timestamp: expect.any(Date),
+      });
     });
 
-    it('should not emit event when view is not new', async () => {
-      // Arrange
-      jest.spyOn(prisma.publishedPost, 'count').mockResolvedValue(1);
-      jest.spyOn(viewRepository, 'insertView').mockResolvedValue({
-        isNewView: false,
-      });
+    it('should record view but not emit event for duplicate view', async () => {
+      mockViewRepository.insertView.mockResolvedValue({ isNewView: false });
 
-      // Act
       await service.recordView(
-        'POST',
-        mockContentId,
-        mockViewerHash,
-        mockUserId,
+        mockData.type,
+        mockData.contentId,
+        mockData.viewerHash,
+        mockData.viewerId,
       );
 
-      // Assert
+      expect(viewRepository.insertView).toHaveBeenCalledWith(
+        mockData.contentId,
+        ContentType.POST,
+        mockData.viewerHash,
+        mockData.viewerId,
+      );
+
       expect(eventBus.publish).not.toHaveBeenCalled();
     });
 
-    it('should throw EngageableNotFoundError if content does not exist', async () => {
-      // Arrange
-      jest.spyOn(prisma.publishedPost, 'count').mockResolvedValue(0);
+    it('should throw error for non-existent content', async () => {
+      mockPrisma.publishedPost.findUnique.mockResolvedValue(null);
 
-      // Act & Assert
       await expect(
-        service.recordView('POST', mockContentId, mockViewerHash, mockUserId),
+        service.recordView(
+          mockData.type,
+          mockData.contentId,
+          mockData.viewerHash,
+          mockData.viewerId,
+        ),
       ).rejects.toThrow(EngageableNotFoundError);
+
+      expect(viewRepository.insertView).not.toHaveBeenCalled();
+      expect(eventBus.publish).not.toHaveBeenCalled();
+    });
+
+    it('should handle anonymous views', async () => {
+      mockViewRepository.insertView.mockResolvedValue({ isNewView: true });
+
+      await service.recordView(
+        mockData.type,
+        mockData.contentId,
+        mockData.viewerHash,
+      );
+
+      expect(viewRepository.insertView).toHaveBeenCalledWith(
+        mockData.contentId,
+        ContentType.POST,
+        mockData.viewerHash,
+        undefined,
+      );
+
+      expect(eventBus.publish).toHaveBeenCalledWith(
+        expect.any(ContentViewedEvent),
+      );
+
+      const publishedEvent = mockEventBus.publish.mock.calls[0][0];
+      expect(publishedEvent.toJSON()).toEqual({
+        contentId: mockData.contentId,
+        contentType: ContentType.POST,
+        viewerHash: mockData.viewerHash,
+        viewerId: undefined,
+        timestamp: expect.any(Date),
+      });
     });
   });
 

@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { RedisService } from '@liaoliaots/nestjs-redis';
 import axios, { AxiosInstance } from 'axios';
+import { RedisBatchProcessor } from '../../common/batch-processor/redis-batch-processor';
 import {
   GorseUser,
   GorseItem,
@@ -16,11 +18,15 @@ import {
  * Handles communication with the Gorse recommendation system
  */
 @Injectable()
-export class GorseClient implements IGorseClient {
+export class GorseClient implements IGorseClient, OnModuleDestroy {
   private readonly logger = new Logger(GorseClient.name);
   private readonly client: AxiosInstance;
+  private readonly feedbackProcessor: RedisBatchProcessor<GorseFeedback>;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
+  ) {
     const baseURL = this.configService.get<string>('recommendation.gorse.url');
     const apiKey = this.configService.get<string>(
       'recommendation.gorse.apiKey',
@@ -36,6 +42,71 @@ export class GorseClient implements IGorseClient {
         'X-API-Key': apiKey,
       },
     });
+
+    // Initialize feedback batch processor
+    this.feedbackProcessor = new RedisBatchProcessor<GorseFeedback>(
+      this.redisService.getOrThrow(),
+      {
+        batchKey: 'gorse:feedback:batch',
+        batchSize: this.configService.get<number>(
+          'recommendation.gorse.feedbackBatchSize',
+          100,
+        ),
+        batchTimeout: this.configService.get<number>(
+          'recommendation.gorse.feedbackFlushIntervalMs',
+          8000,
+        ),
+        logger: this.logger,
+        processBatch: async (feedbacks) => {
+          try {
+            await this.client.post('/api/feedback', feedbacks);
+            this.logger.debug(
+              `Batch inserted ${feedbacks.length} feedback records`,
+            );
+          } catch (error) {
+            this.logger.error(
+              `Failed to insert feedback batch: ${error.message}`,
+              {
+                batchSize: feedbacks.length,
+                error,
+              },
+            );
+            // On failure, try to reinsert the failed items individually
+            await this.handleBatchFailure(feedbacks);
+          }
+        },
+        validateItem: (feedback: GorseFeedback) => {
+          return !!(
+            feedback.UserId &&
+            feedback.ItemId &&
+            feedback.FeedbackType
+          );
+        },
+      },
+    );
+  }
+
+  private async handleBatchFailure(
+    failedBatch: GorseFeedback[],
+  ): Promise<void> {
+    const reinsertPromises = failedBatch.map(async (feedback) => {
+      try {
+        await this.client.post('/api/feedback', [feedback]);
+        this.logger.debug(
+          `Reinserted feedback for user ${feedback.UserId} on item ${feedback.ItemId}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to reinsert feedback for user ${feedback.UserId} on item ${feedback.ItemId}: ${error.message}`,
+        );
+      }
+    });
+
+    await Promise.all(reinsertPromises);
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.feedbackProcessor.onApplicationShutdown();
   }
 
   // User Management
@@ -173,13 +244,13 @@ export class GorseClient implements IGorseClient {
   // Feedback Management
   async insertFeedback(feedback: GorseFeedback): Promise<void> {
     try {
-      await this.client.post('/api/feedback', [feedback]);
+      await this.feedbackProcessor.add(feedback);
       this.logger.debug(
-        `Inserted feedback for user ${feedback.UserId} on item ${feedback.ItemId}`,
+        `Added feedback to batch for user ${feedback.UserId} on item ${feedback.ItemId}`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to insert feedback for user ${feedback.UserId} on item ${feedback.ItemId}: ${error.message}`,
+        `Failed to add feedback to batch for user ${feedback.UserId} on item ${feedback.ItemId}: ${error.message}`,
       );
       throw error;
     }
