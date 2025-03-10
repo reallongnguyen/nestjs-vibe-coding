@@ -26,11 +26,11 @@ const REST_CONFIG = {
 };
 
 @Controller({
-  path: 'feeds',
+  path: 'deprecated-feeds',
   version: '1',
 })
 @UseFilters(...REST_CONFIG.filters)
-@ApiTags('feeds')
+@ApiTags('Feeds (deprecated)')
 @ErrorResponse('common', feedErrorMap)
 export class FeedController {
   constructor(

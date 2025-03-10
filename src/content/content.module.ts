@@ -1,23 +1,30 @@
 import { Module } from '@nestjs/common';
-import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { CqrsModule } from '@nestjs/cqrs';
+import { EventBusModule } from 'src/common/event-bus/event-bus.module';
+import { PrismaModule } from 'src/common/prisma/prisma.module';
 import { DraftPostController } from './presentation/draft-post.controller';
+import { PublishedPostController } from './presentation/published-post.controller';
 import { DraftPostService } from './services/draft-post.service';
+import { PublishedPostService } from './services/published-post.service';
+import { ContentService } from './services/content.service';
+import { SocialEngagementHandler } from './presentation/handlers/social-engagement.handler';
 import { DraftPostRepository } from './repositories/draft-post.repository';
 import { TopicRepository } from './repositories/topic.repository';
 import { ContentEvents } from './services/content.events';
-import { PublishedPostController } from './presentation/published-post.controller';
 import { PublishedPostRepository } from './repositories/published-post.repository';
-import { PublishedPostService } from './services/published-post.service';
-import { SocialEngagementHandler } from './presentation/handlers/social-engagement.handler';
 
 @Module({
-  imports: [EventBusModule, CqrsModule],
+  imports: [EventBusModule, CqrsModule, PrismaModule],
   controllers: [DraftPostController, PublishedPostController],
   providers: [
     DraftPostService,
     PublishedPostService,
-    ContentEvents,
+    {
+      provide: 'IPublishedPostService',
+      useClass: PublishedPostService,
+    },
+    SocialEngagementHandler,
+    ContentService,
     {
       provide: 'IDraftPostRepository',
       useClass: DraftPostRepository,
@@ -30,8 +37,8 @@ import { SocialEngagementHandler } from './presentation/handlers/social-engageme
       provide: 'ITopicRepository',
       useClass: TopicRepository,
     },
-    SocialEngagementHandler,
+    ContentEvents,
   ],
-  exports: [DraftPostService],
+  exports: [DraftPostService, ContentService],
 })
 export class ContentModule {}

@@ -9,6 +9,7 @@ import { SocialModule } from './social/social.module';
 import { ContentModule } from './content/content.module';
 import { UserFollowModule } from './user-follow/user-follow.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RecommendationModule } from './recommendation/recommendation.module';
     ContentModule,
     UserFollowModule,
     RecommendationModule,
+    FeedModule,
   ],
   controllers: [AppController],
 })

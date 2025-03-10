@@ -8,6 +8,8 @@ import moduleConfig from './recommendation.config';
 import { GorseSyncHandler } from './presentation/handlers/gorse-sync.handler';
 import { ContentEventsHandler } from './presentation/handlers/content-events.handler';
 import { UserEventsHandler } from './presentation/handlers/user-events.hander';
+import { ContentDistributionService } from './services/content-distribution.service';
+import { RecommendationHandler } from './presentation/handlers/recommendation.handler';
 
 @Module({
   imports: [
@@ -21,6 +23,9 @@ import { UserEventsHandler } from './presentation/handlers/user-events.hander';
     GorseSyncHandler,
     ContentEventsHandler,
     UserEventsHandler,
+    ContentDistributionService,
+    RecommendationHandler,
   ],
+  exports: [ContentDistributionService],
 })
 export class RecommendationModule {}

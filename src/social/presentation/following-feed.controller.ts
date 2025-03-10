@@ -20,9 +20,9 @@ import { FollowingFeedService } from '../services/following-feed.service';
 import { ContentDto } from './dtos/content.dto';
 import { socialErrorMap } from '../entities/social-error.map';
 
-@ApiTags('Feed')
+@ApiTags('Feeds (deprecated)')
 @Controller({
-  path: 'feed',
+  path: 'deprecated-feeds',
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
