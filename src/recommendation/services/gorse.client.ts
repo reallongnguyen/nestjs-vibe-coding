@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import axios, { AxiosInstance } from 'axios';
+import { Retry } from 'src/common';
 import { RedisBatchProcessor } from '../../common/batch-processor/redis-batch-processor';
 import {
   GorseUser,
@@ -86,23 +87,18 @@ export class GorseClient implements IGorseClient, OnModuleDestroy {
     );
   }
 
+  @Retry()
   private async handleBatchFailure(
     failedBatch: GorseFeedback[],
   ): Promise<void> {
-    const reinsertPromises = failedBatch.map(async (feedback) => {
-      try {
-        await this.client.post('/api/feedback', [feedback]);
-        this.logger.debug(
-          `Reinserted feedback for user ${feedback.UserId} on item ${feedback.ItemId}`,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Failed to reinsert feedback for user ${feedback.UserId} on item ${feedback.ItemId}: ${error.message}`,
-        );
-      }
-    });
-
-    await Promise.all(reinsertPromises);
+    try {
+      await this.client.post('/api/feedback', failedBatch);
+      this.logger.debug(`Reinserted ${failedBatch.length} feedbacks`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to reinsert ${failedBatch.length} feedbacks: ${error.message}`,
+      );
+    }
   }
 
   async onModuleDestroy(): Promise<void> {

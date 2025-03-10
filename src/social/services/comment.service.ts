@@ -144,7 +144,11 @@ export class CommentService {
     if (parentId) {
       // Get parent comment's user ID for notification
       const parentComment = await this.prisma.comment.findUnique({
-        where: { id: parentId },
+        where: {
+          id: parentId,
+          ...(type === ContentType.POST && { postId: contentId }),
+          ...(type === ContentType.EMOTION && { emotionId: contentId }),
+        },
         select: { userId: true },
       });
 

@@ -27,12 +27,12 @@ async function seedNotificationTemplates() {
       },
     },
     {
-      name: 'Comment Post Template',
-      type: 'commentPost',
+      name: 'Post Comment Template',
+      type: 'post_comment',
       version: '1.0.0',
       contents: {
-        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã bình luận về bài viết {{ diObject.name }} của bạn',
-        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} commented on your post {{ diObject.name }}',
+        VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã bình luận về bài viết {{ diObject.name }} của bạn{{#if prObject}} trong {{ prObject.name }}{{/if}}',
+        EN: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} and {{ math subjectCount \'-\' 1 }} others{{/if}} commented on your post {{ diObject.name }}{{#if prObject}} in {{ prObject.name }}{{/if}}',
       },
     },
     {
