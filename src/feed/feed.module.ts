@@ -6,6 +6,8 @@ import { FeedService } from './services/feed.service';
 import { FeedCacheService } from './services/feed-cache.service';
 import { FeedEnrichmentService } from './services/feed-enrichment.service';
 import { FeedGuestController } from './presentation/feed-guest.controller';
+import { FeedCacheManagerService } from './services/feed-cache-manager.service';
+import { FeedFallbackService } from './services/feed-fallback.service';
 
 @Module({
   imports: [CqrsModule, CacheModule],
@@ -20,6 +22,8 @@ import { FeedGuestController } from './presentation/feed-guest.controller';
       provide: 'IFeedEnrichmentService',
       useClass: FeedEnrichmentService,
     },
+    FeedCacheManagerService,
+    FeedFallbackService,
   ],
   exports: [FeedService],
 })

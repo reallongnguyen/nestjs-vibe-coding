@@ -19,7 +19,7 @@ const cacheTime = 1000 * (60 * 14 + 50);
   version: '1',
 })
 @UseFilters(new RestExceptionFilter(fileErrorMap))
-@ApiTags('image-proxy')
+@ApiTags('image-proxy (deprecated)')
 @ErrorResponse('common', fileErrorMap)
 export class ImageProxyController {
   constructor(private readonly assetService: FileService) {}

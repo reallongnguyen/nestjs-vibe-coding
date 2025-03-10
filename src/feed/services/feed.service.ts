@@ -5,6 +5,8 @@ import { PaginationQueryDto, Collection, AppError } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
 import { GetRecommendationsCommand } from '../entities/commands/get-recommendations.command';
+import { FeedCacheManagerService } from './feed-cache-manager.service';
+import { FeedFallbackService } from './feed-fallback.service';
 
 // Service interfaces
 interface IFeedCacheService {
@@ -34,6 +36,8 @@ export class FeedService {
     private readonly feedCache: IFeedCacheService,
     @Inject('IFeedEnrichmentService')
     private readonly feedEnrichment: IFeedEnrichmentService,
+    private readonly cacheManager: FeedCacheManagerService,
+    private readonly fallbackService: FeedFallbackService,
     private readonly logger: Logger,
   ) {}
 
@@ -51,28 +55,79 @@ export class FeedService {
   ): Promise<Collection<FeedItem>> {
     try {
       // Try to get from cache first
-      const cached = await this.feedCache.getFeed(userId, pagination, feedType);
-      if (cached) {
-        this.logger.debug('Feed cache hit');
-        return this.createFeedCollection(cached, pagination);
+      try {
+        const cached = await this.cacheManager.getFeed(
+          userId,
+          pagination,
+          feedType,
+        );
+        if (cached) {
+          this.logger.debug('Feed cache hit');
+          return this.createFeedCollection(cached, pagination);
+        }
+      } catch (error) {
+        this.logger.warn('Cache retrieval failed, using fallback', {
+          error,
+          userId,
+          feedType,
+        });
+        const fallbackItems = await this.fallbackService.getFallbackFeed(
+          userId,
+          pagination,
+          feedType,
+        );
+        return this.createFeedCollection(fallbackItems, pagination);
       }
 
-      // Get content IDs for feed
-      const contentIds = await this.getContentIds(userId, pagination, feedType);
+      try {
+        // Try to get content IDs from Gorse
+        const contentIds = await this.getContentIds(
+          userId,
+          pagination,
+          feedType,
+        );
 
-      // Get enriched feed items
-      const enrichedItems =
-        await this.feedEnrichment.enrichFeedItems(contentIds);
+        // Get enriched feed items
+        const enrichedItems =
+          await this.feedEnrichment.enrichFeedItems(contentIds);
 
-      // Cache the results
-      await this.feedCache.cacheFeed(
-        userId,
-        pagination,
-        feedType,
-        enrichedItems,
-      );
+        // Try to cache the results
+        try {
+          await this.cacheManager.cacheFeed(
+            userId,
+            pagination,
+            feedType,
+            enrichedItems,
+          );
+          return this.createFeedCollection(enrichedItems, pagination);
+        } catch (error) {
+          this.logger.warn('Cache write failed, using fallback', {
+            error,
+            userId,
+            feedType,
+          });
+          const fallbackItems = await this.fallbackService.getFallbackFeed(
+            userId,
+            pagination,
+            feedType,
+          );
+          return this.createFeedCollection(fallbackItems, pagination);
+        }
+      } catch (error) {
+        // If Gorse fails, use fallback strategy
+        this.logger.warn('Using fallback feed strategy', {
+          error,
+          userId,
+          feedType,
+        });
+        const fallbackItems = await this.fallbackService.getFallbackFeed(
+          userId,
+          pagination,
+          feedType,
+        );
 
-      return this.createFeedCollection(enrichedItems, pagination);
+        return this.createFeedCollection(fallbackItems, pagination);
+      }
     } catch (error) {
       this.logger.error('Failed to generate feed', { error, userId, feedType });
       if (error instanceof AppError) {
@@ -99,6 +154,12 @@ export class FeedService {
     );
   }
 
+  /**
+   * Create a feed collection with pagination
+   * @param items Feed items
+   * @param pagination Pagination parameters
+   * @returns Feed collection
+   */
   private createFeedCollection(
     items: FeedItem[],
     pagination: PaginationQueryDto,
