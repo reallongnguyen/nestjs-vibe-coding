@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppError, Collection } from 'src/common/models';
+import { AppError, PagedResult } from 'src/common/models';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Logger } from 'nestjs-pino';
@@ -15,7 +15,7 @@ export class NotificationService {
 
   async getManyNotifications(
     findManyArgs: Prisma.NotificationFindManyArgs,
-  ): Promise<Collection<NotificationOutput>> {
+  ): Promise<PagedResult<NotificationOutput>> {
     try {
       const findManyArgsClone = cloneDeep(findManyArgs);
       if (!findManyArgsClone.take) {
@@ -33,14 +33,14 @@ export class NotificationService {
 
       const notiOutputs = notifications.map(NotificationOutput.from);
 
-      return {
-        edges: notiOutputs,
-        pagination: {
-          offset: findManyArgsClone.skip || 0,
-          limit: findManyArgsClone.take,
-          total,
-        },
-      };
+      return new PagedResult(notiOutputs, {
+        pageSize: findManyArgsClone.take,
+        pageNumber: Math.floor(findManyArgsClone.skip / findManyArgsClone.take),
+        totalItems: total,
+        totalPages: Math.ceil(total / findManyArgsClone.take),
+        hasNextPage: findManyArgsClone.skip + findManyArgsClone.take < total,
+        hasPreviousPage: findManyArgsClone.skip > 0,
+      });
     } catch (err) {
       this.logger.error(
         `notification: notification.service: getManyNotifications: ${err.message}`,

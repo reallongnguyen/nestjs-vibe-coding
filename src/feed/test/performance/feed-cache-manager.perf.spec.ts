@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { performance } from 'perf_hooks';
+import { PageOptionsDto } from 'src/common';
 import { FeedCacheManagerService } from '../../services/feed-cache-manager.service';
 import { FeedItem } from '../../entities/feed.entity';
 import { FeedType } from '../../entities/feed.types';
@@ -102,7 +103,7 @@ describe('FeedCacheManagerService Performance', () => {
       const start = performance.now();
       await service.getFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
       );
       const end = performance.now();
@@ -116,7 +117,7 @@ describe('FeedCacheManagerService Performance', () => {
       const start = performance.now();
       await service.cacheFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
         mockFeedItems,
       );
@@ -132,7 +133,11 @@ describe('FeedCacheManagerService Performance', () => {
       const requests = Array(concurrentRequests)
         .fill(null)
         .map(() =>
-          service.getFeed('user1', { offset: 0, limit: 10 }, FeedType.TRENDING),
+          service.getFeed(
+            'user1',
+            new PageOptionsDto(0, 10),
+            FeedType.TRENDING,
+          ),
         );
 
       const start = performance.now();
@@ -167,7 +172,7 @@ describe('FeedCacheManagerService Performance', () => {
       const start = performance.now();
       await service.getFeed(
         'user1',
-        { offset: 0, limit: 100 },
+        new PageOptionsDto(0, 100),
         FeedType.TRENDING,
       );
       const end = performance.now();

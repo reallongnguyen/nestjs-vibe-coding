@@ -23,7 +23,7 @@ import {
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-  Collection,
+  PagedResult,
 } from 'src/common';
 import { CreateDraftPostDto } from './dtos/create-draft-post.dto';
 import { DraftPostService } from '../services/draft-post.service';
@@ -112,10 +112,10 @@ export class DraftPostController {
   async listDrafts(
     @Query() query: ListDraftPostsQueryDto,
     @AuthContextUser() user: User,
-  ): Promise<Collection<DraftPostListItemDto>> {
+  ): Promise<PagedResult<DraftPostListItemDto>> {
     const result = await this.draftPostService.listDrafts(user.id, query);
 
-    return Collection.transform(result, (draft) => ({
+    return PagedResult.transform(result, (draft) => ({
       id: draft.id,
       title: draft.title,
       subtitle: draft.subtitle,

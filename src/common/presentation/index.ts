@@ -7,4 +7,4 @@ export {
   CreatedResponse,
 } from './rest/decorators/success-response.decorator';
 export { ErrorResponse } from './rest/decorators/error-response.decorator';
-export { PaginationQueryDto } from './dtos/pagination-query.dto';
+export { PageOptionsDto } from './dtos/page-options.dto';

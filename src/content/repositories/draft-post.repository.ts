@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { BaseRepository } from '../../common/repositories/base.repository';
-import { Collection } from '../../common/models';
+import { PagedResult } from '../../common/models';
 import { DraftPost } from '../entities/draft-post.entity';
 import { PublishedPost } from '../entities/published-post.entity';
 import { IDraftPostRepository } from '../services/interfaces/draft-post.repository.interface';
@@ -138,15 +138,15 @@ export class DraftPostRepository
   async findAll(
     userId: string,
     query: ListDraftPostsQueryDto,
-  ): Promise<Collection<DraftPost>> {
+  ): Promise<PagedResult<DraftPost>> {
     const {
-      offset = 0,
-      limit = 10,
       sortBy = DraftPostSortField.CREATED_AT,
       search,
       topics,
       published,
     } = query;
+
+    const { skip, take } = query.toDatabaseQuery();
 
     const where: Prisma.DraftPostWhereInput = {
       userId,
@@ -169,16 +169,12 @@ export class DraftPostRepository
       this.prisma.draftPost.findMany({
         where,
         orderBy: { [sortBy]: 'desc' },
-        skip: offset,
-        take: limit,
+        skip,
+        take,
       }),
     ]);
 
-    return new Collection(items as DraftPost[], {
-      total,
-      offset,
-      limit,
-    });
+    return new PagedResult(items as DraftPost[], query.toResponseMeta(total));
   }
 
   async applyToPublished(

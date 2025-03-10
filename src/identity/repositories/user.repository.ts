@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Logger } from 'nestjs-pino';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 
 import { User } from '../entities/user.entity';
 import {
@@ -29,7 +29,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async findMany(filters: UserSearchFiltersDto): Promise<Collection<User>> {
+  async findMany(filters: UserSearchFiltersDto): Promise<PagedResult<User>> {
     return this.search(filters);
   }
 
@@ -59,10 +59,8 @@ export class UserRepository implements IUserRepository {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async search(filters: UserSearchFiltersDto): Promise<Collection<User>> {
+  async search(filters: UserSearchFiltersDto): Promise<PagedResult<User>> {
     const {
-      offset = 0,
-      limit = 20,
       searchTerm,
       role,
       status,
@@ -71,6 +69,8 @@ export class UserRepository implements IUserRepository {
       createdAtGte,
       createdAtLte,
     } = filters;
+
+    const { skip, take } = filters.toDatabaseQuery();
 
     const where: any = {
       OR: searchTerm
@@ -108,13 +108,13 @@ export class UserRepository implements IUserRepository {
     const users = await this.prisma.user.findMany({
       where,
       orderBy: prismaOrderBy,
-      skip: offset,
-      take: limit,
+      skip,
+      take,
     });
 
     const total = await this.prisma.user.count({ where });
 
-    return new Collection(users, { total, offset, limit });
+    return new PagedResult(users, filters.toResponseMeta(total));
   }
 
   async updateRole(userId: string, roles: Role[]): Promise<User> {

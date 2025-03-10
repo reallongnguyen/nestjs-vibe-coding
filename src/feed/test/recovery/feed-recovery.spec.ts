@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
-import { AppError } from 'src/common';
+import { AppError, PageOptionsDto } from 'src/common';
 import { FeedService } from '../../services/feed.service';
 import { FeedCacheManagerService } from '../../services/feed-cache-manager.service';
 import { FeedFallbackService } from '../../services/feed-fallback.service';
@@ -168,11 +168,11 @@ describe('Feed System Recovery', () => {
 
       const result = await service.getFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
       );
 
-      expect(result.edges).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
       expect(mockFallbackService.getFallbackFeed).toHaveBeenCalled();
     });
 
@@ -188,19 +188,19 @@ describe('Feed System Recovery', () => {
       // First call - should use fallback
       const result1 = await service.getFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
       );
-      expect(result1.edges).toHaveLength(2);
+      expect(result1.data).toHaveLength(2);
       expect(mockFallbackService.getFallbackFeed).toHaveBeenCalled();
 
       // Second call - should use cache
       const result2 = await service.getFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
       );
-      expect(result2.edges).toHaveLength(2);
+      expect(result2.data).toHaveLength(2);
       expect(mockCacheManager.getFeed).toHaveBeenCalledTimes(2);
     });
 
@@ -213,11 +213,11 @@ describe('Feed System Recovery', () => {
 
       const result = await service.getFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
       );
 
-      expect(result.edges).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
       expect(mockCacheManager.cacheFeed).toHaveBeenCalled();
       expect(mockFeedEnrichment.enrichFeedItems).toHaveBeenCalled();
     });
@@ -234,11 +234,11 @@ describe('Feed System Recovery', () => {
 
       const result = await service.getFeed(
         'user1',
-        { offset: 0, limit: 10 },
+        new PageOptionsDto(0, 10),
         FeedType.TRENDING,
       );
 
-      expect(result.edges).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
       expect(mockFallbackService.getFallbackFeed).toHaveBeenCalled();
     });
   });

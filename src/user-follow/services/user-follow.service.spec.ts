@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { IEventBus, Collection } from 'src/common';
+import { IEventBus, PagedResult, PageOptionsDto } from 'src/common';
 import { UserFollowService } from './user-follow.service';
 import { IUserFollowRepository } from './interfaces/user-follow-repository.interface';
 import {
@@ -184,7 +184,7 @@ describe('UserFollowService', () => {
   describe('getFollowers', () => {
     it('should return followers with pagination', async () => {
       const userId = 'user-123';
-      const pagination = { limit: 10, offset: 0 };
+      const pageOptions = new PageOptionsDto(0, 10);
       const followers = [
         {
           id: 'follow-1',
@@ -215,26 +215,26 @@ describe('UserFollowService', () => {
 
       repository.getFollowers.mockResolvedValue([followers, total]);
 
-      const result = await service.getFollowers(userId, pagination);
+      const result = await service.getFollowers(userId, pageOptions);
 
-      expect(result).toBeInstanceOf(Collection);
-      expect(result.edges).toHaveLength(2);
-      expect(result.edges[0]).toEqual({
+      expect(result).toBeInstanceOf(PagedResult);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toEqual({
         id: 'follower-1',
         firstName: 'John',
         lastName: 'Doe',
         avatar: 'avatar1.jpg',
         followedAt: expect.any(Date),
       });
-      expect(result.pagination.total).toBe(total);
-      expect(repository.getFollowers).toHaveBeenCalledWith(userId, pagination);
+      expect(result.meta.totalItems).toBe(total);
+      expect(repository.getFollowers).toHaveBeenCalledWith(userId, pageOptions);
     });
   });
 
   describe('getFollowing', () => {
     it('should return following with pagination', async () => {
       const userId = 'user-123';
-      const pagination = { limit: 10, offset: 0 };
+      const pageOptions = new PageOptionsDto(0, 10);
       const following = [
         {
           id: 'follow-1',
@@ -265,19 +265,19 @@ describe('UserFollowService', () => {
 
       repository.getFollowing.mockResolvedValue([following, total]);
 
-      const result = await service.getFollowing(userId, pagination);
+      const result = await service.getFollowing(userId, pageOptions);
 
-      expect(result).toBeInstanceOf(Collection);
-      expect(result.edges).toHaveLength(2);
-      expect(result.edges[0]).toEqual({
+      expect(result).toBeInstanceOf(PagedResult);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toEqual({
         id: 'following-1',
         firstName: 'Alice',
         lastName: 'Johnson',
         avatar: 'avatar3.jpg',
         followedAt: expect.any(Date),
       });
-      expect(result.pagination.total).toBe(total);
-      expect(repository.getFollowing).toHaveBeenCalledWith(userId, pagination);
+      expect(result.meta.totalItems).toBe(total);
+      expect(repository.getFollowing).toHaveBeenCalledWith(userId, pageOptions);
     });
   });
 

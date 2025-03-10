@@ -43,7 +43,7 @@ describe('List Posts (e2e)', () => {
         .query({ offset: 0, limit: 2 })
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(2);
+      expect(response.body.items).toHaveLength(2);
       expect(response.body.pagination).toEqual({
         total: 3,
         offset: 0,
@@ -68,8 +68,8 @@ describe('List Posts (e2e)', () => {
         .query({ published: true })
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(1);
-      expect(response.body.edges[0].publishedId).toBe(published.id);
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.items[0].publishedId).toBe(published.id);
     });
 
     it('should filter drafts by topic', async () => {
@@ -87,8 +87,8 @@ describe('List Posts (e2e)', () => {
         .query({ topics: topic.id })
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(1);
-      expect(response.body.edges[0].topics).toContain(topic.id);
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.items[0].topics).toContain(topic.id);
     });
   });
 
@@ -110,7 +110,7 @@ describe('List Posts (e2e)', () => {
         .query({ offset: 0, limit: 2 })
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(2);
+      expect(response.body.items).toHaveLength(2);
       expect(response.body.pagination).toEqual({
         total: 3,
         offset: 0,
@@ -130,8 +130,8 @@ describe('List Posts (e2e)', () => {
         .set('Authorization', `Bearer ${user.token}`)
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(1);
-      expect(response.body.edges[0].id).toBe(userPost.id);
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.items[0].id).toBe(userPost.id);
     });
 
     it('should filter published posts by date range', async () => {
@@ -155,8 +155,8 @@ describe('List Posts (e2e)', () => {
         })
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(1);
-      expect(response.body.edges[0].id).toBe(newPost.id);
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.items[0].id).toBe(newPost.id);
     });
 
     it('should search posts by title', async () => {
@@ -175,8 +175,8 @@ describe('List Posts (e2e)', () => {
         .query({ search: 'unique' })
         .expect(200);
 
-      expect(response.body.edges).toHaveLength(1);
-      expect(response.body.edges[0].id).toBe(searchPost.id);
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.items[0].id).toBe(searchPost.id);
     });
 
     it('should filter published posts by topics', async () => {
@@ -196,9 +196,9 @@ describe('List Posts (e2e)', () => {
         .query({ topics: topic1.id })
         .expect(200);
 
-      expect(response1.body.edges).toHaveLength(1);
-      expect(response1.body.edges[0].id).toBe(postWithTopics.id);
-      expect(response1.body.edges[0].topics).toContain(topic1.id);
+      expect(response1.body.items).toHaveLength(1);
+      expect(response1.body.items[0].id).toBe(postWithTopics.id);
+      expect(response1.body.items[0].topics).toContain(topic1.id);
 
       // Test multiple topics filter
       const response2 = await request(app.getHttpServer())
@@ -206,9 +206,9 @@ describe('List Posts (e2e)', () => {
         .query({ topics: `${topic1.id},${topic2.id}` })
         .expect(200);
 
-      expect(response2.body.edges).toHaveLength(1);
-      expect(response2.body.edges[0].id).toBe(postWithTopics.id);
-      expect(response2.body.edges[0].topics).toEqual(
+      expect(response2.body.items).toHaveLength(1);
+      expect(response2.body.items[0].id).toBe(postWithTopics.id);
+      expect(response2.body.items[0].topics).toEqual(
         expect.arrayContaining([topic1.id, topic2.id]),
       );
     });

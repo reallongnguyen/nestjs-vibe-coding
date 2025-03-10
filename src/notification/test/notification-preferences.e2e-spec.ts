@@ -42,9 +42,9 @@ describe('Notification Preferences (e2e)', () => {
         .set('x-user-id', mockUserId)
         .expect(200)
         .expect((res) => {
-          expect(res.body).toHaveProperty('edges');
+          expect(res.body).toHaveProperty('items');
           expect(res.body).toHaveProperty('pagination');
-          expect(Array.isArray(res.body.edges)).toBe(true);
+          expect(Array.isArray(res.body.items)).toBe(true);
         });
     });
 

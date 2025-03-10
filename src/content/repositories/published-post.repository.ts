@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { BaseRepository } from 'src/common/repositories/base.repository';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import { Prisma } from '@prisma/client';
 import { IPublishedPostRepository } from '../services/interfaces/published-post.repository.interface';
 import {
@@ -36,10 +36,8 @@ export class PublishedPostRepository
 
   async findAll(
     query: ListPostsQueryDto,
-  ): Promise<Collection<PublishedPostWithAuthor>> {
+  ): Promise<PagedResult<PublishedPostWithAuthor>> {
     const {
-      offset = 0,
-      limit = 10,
       sortBy = PublishedPostSortField.PUBLISHED_AT,
       search,
       topics,
@@ -47,7 +45,7 @@ export class PublishedPostRepository
       toDate,
       userId,
     } = query;
-    const skip = offset;
+    const { skip, take } = query.toDatabaseQuery();
 
     const where: Prisma.PublishedPostWhereInput = {
       ...(userId && { userId }),
@@ -70,7 +68,7 @@ export class PublishedPostRepository
         where,
         orderBy: { [sortBy]: 'desc' },
         skip,
-        take: limit,
+        take,
         include: {
           topics: {
             select: { topicId: true },
@@ -87,16 +85,12 @@ export class PublishedPostRepository
       }),
     ]);
 
-    const edges = items.map((post) => ({
+    const withAuthorItems = items.map((post) => ({
       ...post,
       topics: post.topics.map((t) => t.topicId),
     })) as PublishedPostWithAuthor[];
 
-    return new Collection(edges, {
-      total,
-      offset,
-      limit,
-    });
+    return new PagedResult(withAuthorItems, query.toResponseMeta(total));
   }
 
   /**

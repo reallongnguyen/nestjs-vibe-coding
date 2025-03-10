@@ -10,7 +10,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from 'src/common/auth';
 import { Transform } from 'class-transformer';
 import dayjs from 'dayjs';
-import { OrderDirection } from 'src/common/models/order-direction.enum';
+import { PageOptionsDto, OrderDirection } from 'src/common';
 
 import { User } from '../../entities/user.entity';
 
@@ -23,7 +23,7 @@ const orderByOptions: (keyof User | 'name')[] = [
   'updatedAt',
 ];
 
-export class UserSearchFiltersDto {
+export class UserSearchFiltersDto extends PageOptionsDto {
   @ApiPropertyOptional({
     description: 'Search by user name, email, or phone number',
   })

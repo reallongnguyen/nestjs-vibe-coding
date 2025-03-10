@@ -16,7 +16,7 @@ import {
   CreatedResponse,
   RestExceptionFilter,
   PaginatedResponse,
-  Collection,
+  PagedResult,
 } from 'src/common';
 
 import { CreateEmotionService } from '../services/create-emotion.service';
@@ -68,13 +68,16 @@ export class EmotionController {
   @ErrorResponse('emotion.history', emotionErrorMap)
   async getEmotionHistory(
     @AuthContextUser() user: { id: string },
-  ): Promise<Collection<DailyEmotionDto>> {
+  ): Promise<PagedResult<DailyEmotionDto>> {
     const items = await this.getEmotionHistoryService.execute(user.id);
 
-    return new Collection(items, {
-      total: items.length,
-      limit: 7,
-      offset: 0,
+    return new PagedResult(items, {
+      totalItems: items.length,
+      pageSize: 7,
+      pageNumber: 0,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
     });
   }
 }

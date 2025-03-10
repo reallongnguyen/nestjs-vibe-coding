@@ -14,8 +14,8 @@ import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import {
   AuthGuard,
   RolesGuard,
-  Collection,
-  PaginationQueryDto,
+  PagedResult,
+  PageOptionsDto,
   ErrorResponse,
   RestExceptionFilter,
   AuthContextUser,
@@ -86,33 +86,33 @@ export class UserFollowController {
   @Get(':userId/followers')
   @ApiOperation({ summary: 'Get followers of a user' })
   @ApiParam({ name: 'userId', description: 'ID of the user' })
-  @OkResponse(Collection)
+  @OkResponse(PagedResult)
   async getFollowers(
     @Param('userId') userId: string,
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FollowerDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FollowerDto>> {
     const followers = await this.userFollowService.getFollowers(
       userId,
-      pagination,
+      pageOptions,
     );
 
-    return Collection.transform(followers, FollowerDto.fromService);
+    return PagedResult.transform(followers, FollowerDto.fromService);
   }
 
   @Get(':userId/following')
   @ApiOperation({ summary: 'Get users followed by a user' })
   @ApiParam({ name: 'userId', description: 'ID of the user' })
-  @OkResponse(Collection)
+  @OkResponse(PagedResult)
   async getFollowing(
     @Param('userId') userId: string,
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FollowerDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FollowerDto>> {
     const following = await this.userFollowService.getFollowing(
       userId,
-      pagination,
+      pageOptions,
     );
 
-    return Collection.transform(following, FollowerDto.fromService);
+    return PagedResult.transform(following, FollowerDto.fromService);
   }
 
   @Get(':userId/follow-counts')

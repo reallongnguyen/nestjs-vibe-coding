@@ -1,14 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  Max,
-  Min,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsArray, IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import { PageOptionsDto } from 'src/common';
 import {
   NotificationChannel,
   NotificationPreference,
@@ -18,34 +10,7 @@ import {
 /**
  * DTO for notification preference list query parameters
  */
-export class NotificationPreferenceListQuery {
-  @ApiPropertyOptional({
-    description: 'Pagination offset',
-    type: 'number',
-    example: 0,
-    default: 0,
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
-  @IsInt()
-  @Min(0)
-  offset: number;
-
-  @ApiPropertyOptional({
-    description: 'Pagination limit',
-    type: 'number',
-    example: 20,
-    default: 20,
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit: number;
-}
+export class NotificationPreferenceListQuery extends PageOptionsDto {}
 
 /**
  * DTO for creating a notification preference

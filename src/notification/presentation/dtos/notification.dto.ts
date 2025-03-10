@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
+import { PageOptionsDto } from 'src/common';
 import {
   Notification,
   NotificationDecorator,
@@ -34,34 +34,7 @@ export class NotificationCreateInput
   metadata?: Record<string, unknown>;
 }
 
-export class NotificationListQuery {
-  @ApiProperty({
-    description: 'Pagination offset',
-    type: 'number',
-    example: 0,
-    default: 0,
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
-  @IsInt()
-  @Min(0)
-  offset: number;
-
-  @ApiProperty({
-    description: 'Pagination limit',
-    type: 'number',
-    example: 20,
-    default: 20,
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
-  @IsInt()
-  @Min(1)
-  @Max(1000)
-  limit: number;
-}
+export class NotificationListQuery extends PageOptionsDto {}
 
 export class NotificationDecoratorOutput extends NotificationDecorator {
   @ApiProperty({

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { PrismaService, PaginationQueryDto } from 'src/common';
+import { PrismaService, PageOptionsDto } from 'src/common';
 import { GetFollowingIdsCommand } from 'src/user-follow/presentation/commands/get-following-ids.command';
 import { ContentWithMetrics } from '../entities/content-with-metrics.entity';
 import { ISocialRepository } from '../services/interfaces/social-repository.interface';
@@ -15,9 +15,10 @@ export class SocialRepository implements ISocialRepository {
 
   async getContentByAuthors(
     authorIds: string[],
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     sortBy: string = 'recent',
   ): Promise<[ContentWithMetrics[], number]> {
+    const { skip, take } = pageOptions.toDatabaseQuery();
     // Get posts from the authors
     const posts = await this.prisma.publishedPost.findMany({
       where: {
@@ -28,8 +29,8 @@ export class SocialRepository implements ISocialRepository {
         },
       },
       orderBy: sortBy === 'recent' ? { publishedAt: 'desc' } : undefined,
-      skip: pagination.offset,
-      take: pagination.limit,
+      skip,
+      take,
       include: {
         userAuthor: {
           select: {
@@ -50,8 +51,8 @@ export class SocialRepository implements ISocialRepository {
         },
       },
       orderBy: sortBy === 'recent' ? { date: 'desc' } : undefined,
-      skip: pagination.offset,
-      take: pagination.limit,
+      skip,
+      take,
       include: {
         user: {
           select: {
@@ -192,14 +193,14 @@ export class SocialRepository implements ISocialRepository {
     }
 
     // Apply pagination to the combined results
-    const paginatedContents = allContents.slice(0, pagination.limit);
+    const paginatedContents = allContents.slice(0, take);
 
     return [paginatedContents, postsCount + emotionsCount];
   }
 
   async getContentFromFollowedUsers(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     sortBy: string = 'recent',
   ): Promise<[ContentWithMetrics[], number]> {
     // Get the list of users that the current user is following
@@ -213,6 +214,6 @@ export class SocialRepository implements ISocialRepository {
     }
 
     // Get content from followed users
-    return this.getContentByAuthors(followingUsers, pagination, sortBy);
+    return this.getContentByAuthors(followingUsers, pageOptions, sortBy);
   }
 }

@@ -16,7 +16,7 @@ import {
   Role,
   RolesGuard,
   User,
-  Collection,
+  PagedResult,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
@@ -59,16 +59,16 @@ export class NotificationPreferenceController {
   async list(
     @AuthContextUser() user: User,
     @Query() query: NotificationPreferenceListQuery,
-  ): Promise<Collection<NotificationPreferenceOutput>> {
-    const preferences = await this.preferenceService.getPreferences(user.id, {
-      offset: query.offset,
-      limit: query.limit,
-    });
+  ): Promise<PagedResult<NotificationPreferenceOutput>> {
+    const preferences = await this.preferenceService.getPreferences(
+      user.id,
+      query,
+    );
 
-    return {
-      edges: preferences.edges.map(NotificationPreferenceOutput.fromDomain),
-      pagination: preferences.pagination,
-    };
+    return PagedResult.transform(
+      preferences,
+      NotificationPreferenceOutput.fromDomain,
+    );
   }
 
   @Get(':type')

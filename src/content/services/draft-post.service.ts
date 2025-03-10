@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
 import { IEventBus, InjectEventBus } from 'src/common/event-bus';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
 import { ITopicRepository } from './interfaces/topic.repository.interface';
@@ -269,7 +269,7 @@ export class DraftPostService {
   async listDrafts(
     userId: string,
     query: ListDraftPostsQueryDto,
-  ): Promise<Collection<DraftPost>> {
+  ): Promise<PagedResult<DraftPost>> {
     return this.draftPostRepository.findAll(userId, query);
   }
 

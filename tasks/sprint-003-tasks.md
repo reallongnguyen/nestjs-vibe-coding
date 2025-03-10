@@ -165,7 +165,7 @@ interface IViewable {
 
 interface ICommentable {
   comment(userId: string, content: string, parentId?: string): Promise<Comment>;
-  getComments(options: PaginationOptions): Promise<Collection<Comment>>;
+  getComments(options: PaginationOptions): Promise<PagedResult<Comment>>;
   getCommentCount(): Promise<number>;
 }
 ```
@@ -253,7 +253,7 @@ Response: 204 No Content
 // Get post comments
 GET /api/v1/posts/{postId}/comments
 Query parameters: offset, limit
-Response: Collection<CommentDto>
+Response: PagedResult<CommentDto>
 
 // Add comment to post
 POST /api/v1/posts/{postId}/comments
@@ -346,7 +346,7 @@ Response: 204 No Content
 // Get emotion comments
 GET /api/v1/emotions/{emotionId}/comments
 Query parameters: offset, limit
-Response: Collection<CommentDto>
+Response: PagedResult<CommentDto>
 
 // Add comment to emotion
 POST /api/v1/emotions/{emotionId}/comments
@@ -439,7 +439,7 @@ Response: TopicDto
 // Get all topics
 GET /api/v1/topics
 Query parameters: offset, limit, parentId
-Response: Collection<TopicDto>
+Response: PagedResult<TopicDto>
 
 // Update topic
 PATCH /api/v1/topics/{id}

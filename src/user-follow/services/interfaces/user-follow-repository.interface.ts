@@ -1,4 +1,4 @@
-import { PaginationQueryDto } from 'src/common';
+import { PageOptionsDto } from 'src/common';
 import {
   UserFollow,
   UserFollowWithUser,
@@ -37,7 +37,7 @@ export interface IUserFollowRepository {
    */
   getFollowers(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<[UserFollowWithUser[], number]>;
 
   /**
@@ -48,7 +48,7 @@ export interface IUserFollowRepository {
    */
   getFollowing(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<[UserFollowWithUser[], number]>;
 
   /**

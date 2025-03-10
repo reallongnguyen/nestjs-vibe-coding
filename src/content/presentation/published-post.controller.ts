@@ -16,7 +16,7 @@ import {
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-  Collection,
+  PagedResult,
   AuthContextUser,
   AuthGuard,
   User,
@@ -59,10 +59,10 @@ export class PublishedPostController {
   @CacheTTL(5000)
   async listPublished(
     @Query() query: ListPostsQueryDto,
-  ): Promise<Collection<PublishedPostDto>> {
+  ): Promise<PagedResult<PublishedPostDto>> {
     const result = await this.publishedPostService.listPublished(query);
 
-    return Collection.transform(result, (post) =>
+    return PagedResult.transform(result, (post) =>
       PublishedPostDto.fromDomain(post),
     );
   }

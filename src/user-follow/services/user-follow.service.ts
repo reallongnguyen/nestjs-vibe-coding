@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
-  Collection,
+  PagedResult,
   IEventBus,
   InjectEventBus,
-  PaginationQueryDto,
+  PageOptionsDto,
 } from 'src/common';
 import { UserFollow } from '../entities/user-follow.entity';
 import { IUserFollowRepository } from './interfaces/user-follow-repository.interface';
@@ -116,11 +116,11 @@ export class UserFollowService implements IUserFollowService {
 
   async getFollowers(
     userId: string,
-    pagination: PaginationQueryDto,
-  ): Promise<Collection<FollowerDto>> {
+    pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FollowerDto>> {
     const [followers, total] = await this.userFollowRepository.getFollowers(
       userId,
-      pagination,
+      pageOptions,
     );
 
     const followerDtos = followers.map((follow) => ({
@@ -131,20 +131,19 @@ export class UserFollowService implements IUserFollowService {
       followedAt: follow.createdAt,
     }));
 
-    return new Collection<FollowerDto>(followerDtos, {
-      total,
-      limit: pagination.limit,
-      offset: pagination.offset,
-    });
+    return new PagedResult<FollowerDto>(
+      followerDtos,
+      pageOptions.toResponseMeta(total),
+    );
   }
 
   async getFollowing(
     userId: string,
-    pagination: PaginationQueryDto,
-  ): Promise<Collection<FollowerDto>> {
+    pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FollowerDto>> {
     const [following, total] = await this.userFollowRepository.getFollowing(
       userId,
-      pagination,
+      pageOptions,
     );
 
     const followingDtos = following.map((follow) => ({
@@ -155,11 +154,10 @@ export class UserFollowService implements IUserFollowService {
       followedAt: follow.createdAt,
     }));
 
-    return new Collection<FollowerDto>(followingDtos, {
-      total,
-      limit: pagination.limit,
-      offset: pagination.offset,
-    });
+    return new PagedResult<FollowerDto>(
+      followingDtos,
+      pageOptions.toResponseMeta(total),
+    );
   }
 
   async getFollowCounts(userId: string): Promise<FollowCountsDto> {

@@ -1,5 +1,5 @@
 import { IBaseRepository } from 'src/common/repositories/base.repository.interface';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import { CreateDraftPostData } from '../dtos/create-daft-post.dto';
 import { DraftPost } from '../../entities/draft-post.entity';
 import { PublishedPost } from '../../entities/published-post.entity';
@@ -42,5 +42,5 @@ export interface IDraftPostRepository extends IBaseRepository {
   findAll(
     userId: string,
     query: ListDraftPostsQueryDto,
-  ): Promise<Collection<DraftPost>>;
+  ): Promise<PagedResult<DraftPost>>;
 }

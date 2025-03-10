@@ -1,4 +1,4 @@
-import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
+import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';
 import { Comment, CommentWithAuthor } from '../../entities/comment.entity';
 
 /**
@@ -25,11 +25,11 @@ export interface ICommentRepository {
   /**
    * Find comments for a post
    * @param postId ID of the post
-   * @param pagination Pagination parameters
+   * @param pageOptions Pagination parameters
    */
   findByPost(
     postId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<[CommentWithAuthor[], number]>;
 
   /**

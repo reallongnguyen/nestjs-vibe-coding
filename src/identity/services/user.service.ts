@@ -1,5 +1,5 @@
 import { Logger } from 'nestjs-pino';
-import { Collection, AppError } from 'src/common';
+import { PagedResult, AppError } from 'src/common';
 import { IEventBus } from 'src/common/event-manager';
 
 import { UpsertUserInput } from './dto/user.input';
@@ -119,7 +119,7 @@ export class UserService {
     return user;
   }
 
-  async searchUsers(filters: UserSearchFiltersDto): Promise<Collection<User>> {
+  async searchUsers(filters: UserSearchFiltersDto): Promise<PagedResult<User>> {
     return this.userRepository.search(filters);
   }
 
@@ -184,7 +184,7 @@ export class UserService {
   async getUserActivity(
     userId: string,
     filters: ActivityFiltersDto,
-  ): Promise<Collection<UserActivity>> {
+  ): Promise<PagedResult<UserActivity>> {
     return this.userActivityRepository.findByUserId(userId, filters);
   }
 

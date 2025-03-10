@@ -165,7 +165,7 @@ Do not implement code.
 Attach files:
 
 - `/prisma/schema.prisma`
-- Collection class
+- PagedResult class
 - BaseEvent class
 
 #### Integrate tasks specification with exist code

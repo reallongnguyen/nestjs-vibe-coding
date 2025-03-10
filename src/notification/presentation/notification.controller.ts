@@ -14,7 +14,7 @@ import {
   Role,
   RolesGuard,
   User,
-  Collection,
+  PagedResult,
   ErrorResponse,
   OkResponse,
   PaginatedResponse,
@@ -58,14 +58,18 @@ export class NotificationController {
   async list(
     @AuthContextUser() user: User,
     @Query() query: NotificationListQuery,
-  ): Promise<Collection<NotificationOutput>> {
-    const notiCollection = await this.notificationService.getManyNotifications({
-      where: { userId: user.id },
-      skip: query.offset,
-      take: query.limit,
-    });
+  ): Promise<PagedResult<NotificationOutput>> {
+    const { skip, take } = query.toDatabaseQuery();
 
-    return notiCollection;
+    const notiPagedResult = await this.notificationService.getManyNotifications(
+      {
+        where: { userId: user.id },
+        skip,
+        take,
+      },
+    );
+
+    return notiPagedResult;
   }
 
   @Patch('view')

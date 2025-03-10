@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
-import { AppError, PaginationQueryDto } from 'src/common';
+import { AppError, PageOptionsDto } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
 
@@ -31,17 +31,17 @@ export class FeedFallbackService {
    */
   async getFallbackFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): Promise<FeedItem[]> {
     try {
       switch (feedType) {
         case FeedType.PERSONALIZED:
-          return this.getPersonalizedFallback(userId, pagination);
+          return this.getPersonalizedFallback(userId, pageOptions);
         case FeedType.TRENDING:
-          return this.getTrendingFallback(pagination);
+          return this.getTrendingFallback(pageOptions);
         case FeedType.LATEST:
-          return this.getLatestFallback(pagination);
+          return this.getLatestFallback(pageOptions);
         default:
           throw new AppError('feed.type.invalid');
       }
@@ -99,18 +99,20 @@ export class FeedFallbackService {
    */
   private async getPersonalizedFallback(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<FeedItem[]> {
     const trendingRatio = 0.7; // 70% trending, 30% latest
-    const trendingLimit = Math.ceil(pagination.limit * trendingRatio);
-    const latestLimit = pagination.limit - trendingLimit;
+
+    const trendingPageSize = Math.ceil(pageOptions.pageSize * trendingRatio);
+    const latestPageSize = pageOptions.pageSize - trendingPageSize;
 
     const [trending, latest] = await Promise.all([
-      this.getTrendingFallback({
-        offset: pagination.offset,
-        limit: trendingLimit,
-      }),
-      this.getLatestFallback({ offset: pagination.offset, limit: latestLimit }),
+      this.getTrendingFallback(
+        new PageOptionsDto(pageOptions.pageNumber, trendingPageSize),
+      ),
+      this.getLatestFallback(
+        new PageOptionsDto(pageOptions.pageNumber, latestPageSize),
+      ),
     ]);
 
     return [...trending, ...latest];
@@ -120,12 +122,14 @@ export class FeedFallbackService {
    * Get trending fallback feed
    */
   private async getTrendingFallback(
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<FeedItem[]> {
+    const { skip, take } = pageOptions.toDatabaseQuery();
+
     const items = await this.redis.zrevrange(
       this.TRENDING_KEY,
-      pagination.offset,
-      pagination.offset + pagination.limit - 1,
+      skip,
+      take - 1,
       'WITHSCORES',
     );
 
@@ -136,12 +140,14 @@ export class FeedFallbackService {
    * Get latest fallback feed
    */
   private async getLatestFallback(
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<FeedItem[]> {
+    const { skip, take } = pageOptions.toDatabaseQuery();
+
     const items = await this.redis.zrevrange(
       this.LATEST_KEY,
-      pagination.offset,
-      pagination.offset + pagination.limit - 1,
+      skip,
+      take - 1,
       'WITHSCORES',
     );
 

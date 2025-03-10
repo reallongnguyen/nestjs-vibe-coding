@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService, PaginationQueryDto } from 'src/common';
+import { PrismaService, PageOptionsDto } from 'src/common';
 import { UserFollow, UserFollowWithUser } from '../entities/user-follow.entity';
 import { IUserFollowRepository } from '../services/interfaces/user-follow-repository.interface';
 
@@ -39,9 +39,9 @@ export class UserFollowRepository implements IUserFollowRepository {
 
   async getFollowers(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<[UserFollowWithUser[], number]> {
-    const { limit, offset } = pagination;
+    const { skip, take } = pageOptions.toDatabaseQuery();
 
     const followers = await this.prisma.userFollow.findMany({
       where: {
@@ -57,8 +57,8 @@ export class UserFollowRepository implements IUserFollowRepository {
           },
         },
       },
-      skip: offset,
-      take: limit,
+      skip,
+      take,
       orderBy: {
         createdAt: 'desc',
       },
@@ -75,9 +75,9 @@ export class UserFollowRepository implements IUserFollowRepository {
 
   async getFollowing(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<[UserFollowWithUser[], number]> {
-    const { limit, offset } = pagination;
+    const { skip, take } = pageOptions.toDatabaseQuery();
 
     const following = await this.prisma.userFollow.findMany({
       where: {
@@ -93,8 +93,8 @@ export class UserFollowRepository implements IUserFollowRepository {
           },
         },
       },
-      skip: offset,
-      take: limit,
+      skip,
+      take,
       orderBy: {
         createdAt: 'desc',
       },

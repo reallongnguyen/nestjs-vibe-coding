@@ -7,7 +7,7 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { PaginationQueryDto } from '../../../common/presentation/dtos/pagination-query.dto';
+import { PageOptionsDto } from 'src/common';
 
 export enum DraftPostSortField {
   CREATED_AT = 'createdAt',
@@ -21,7 +21,7 @@ export enum PublishedPostSortField {
   TITLE = 'title',
 }
 
-export class ListPostsQueryDto extends PaginationQueryDto {
+export class ListPostsQueryDto extends PageOptionsDto {
   @ApiPropertyOptional({ enum: PublishedPostSortField })
   @IsEnum(PublishedPostSortField)
   @IsOptional()
@@ -56,7 +56,7 @@ export class ListPostsQueryDto extends PaginationQueryDto {
   userId?: string;
 }
 
-export class ListDraftPostsQueryDto extends PaginationQueryDto {
+export class ListDraftPostsQueryDto extends PageOptionsDto {
   @ApiPropertyOptional({ enum: DraftPostSortField })
   @IsEnum(DraftPostSortField)
   @IsOptional()

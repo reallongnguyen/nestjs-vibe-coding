@@ -16,7 +16,8 @@ export class RecommendationHandler
   ) {}
 
   async execute(command: GetRecommendationsCommand): Promise<string[]> {
-    const { userId, feedType, pagination } = command;
+    const { userId, feedType, pageOptions } = command;
+    const { skip, take } = pageOptions.toDatabaseQuery();
 
     try {
       this.logger.debug(
@@ -24,10 +25,10 @@ export class RecommendationHandler
       );
 
       const contentIds = await this.recommendationService.getRecommendations(
-        userId as string | undefined,
+        userId,
         feedType,
-        pagination.offset,
-        pagination.limit,
+        skip,
+        take,
       );
 
       this.logger.debug(

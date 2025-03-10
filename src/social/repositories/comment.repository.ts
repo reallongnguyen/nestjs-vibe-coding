@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common';
-import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
+import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';
 import { Comment, CommentWithAuthor } from '../entities/comment.entity';
 import { ICommentRepository } from '../services/interfaces/comment-repository.interface';
 
@@ -47,8 +47,10 @@ export class CommentRepository implements ICommentRepository {
 
   async findByPost(
     postId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
   ): Promise<[CommentWithAuthor[], number]> {
+    const { skip, take } = pageOptions.toDatabaseQuery();
+
     return Promise.all([
       this.prisma.comment.findMany({
         where: { postId },
@@ -69,8 +71,8 @@ export class CommentRepository implements ICommentRepository {
             },
           },
         },
-        skip: pagination.offset,
-        take: pagination.limit,
+        skip,
+        take,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.comment.count({

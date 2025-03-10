@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IEventBus, InjectEventBus } from 'src/common/event-bus';
 import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 
 import { IPublishedPostRepository } from './interfaces/published-post.repository.interface';
@@ -67,7 +67,7 @@ export class PublishedPostService {
 
   async listPublished(
     query: ListPostsQueryDto,
-  ): Promise<Collection<PublishedPostWithAuthor>> {
+  ): Promise<PagedResult<PublishedPostWithAuthor>> {
     return this.publishedPostRepository.findAll(query);
   }
 

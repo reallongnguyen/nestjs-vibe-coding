@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AppError, Collection } from 'src/common/models';
+import { AppError, PagedResult } from 'src/common/models';
 import {
   AuthCtx,
   RequireAnyRoles,
@@ -110,16 +110,16 @@ export class UserController {
   @ErrorResponse('user.list', userErrorMap, { hasValidationErr: true })
   async list(
     @Query() filters: UserSearchFiltersDto,
-  ): Promise<Collection<UserDto>> {
-    const userCollection = await this.userService.searchUsers(filters);
+  ): Promise<PagedResult<UserDto>> {
+    const userPagedResult = await this.userService.searchUsers(filters);
 
-    const dtoCollection = Collection.transform(
-      userCollection,
+    const dtoPagedResult = PagedResult.transform(
+      userPagedResult,
       UserDto.fromApplication,
     );
 
     const collectionWithUrls = await withImageUrlMap(this.imageUrlService)(
-      dtoCollection,
+      dtoPagedResult,
       {
         width: ImageSize.SMALL,
         height: ImageSize.SMALL,
@@ -169,10 +169,10 @@ export class UserController {
   async getUserActivity(
     @Param('id') userId: string,
     @Query() filters: ActivityFiltersDto,
-  ): Promise<Collection<UserActivityDto>> {
+  ): Promise<PagedResult<UserActivityDto>> {
     const activities = await this.userService.getUserActivity(userId, filters);
 
-    return Collection.transform(activities, UserActivityDto.fromApplication);
+    return PagedResult.transform(activities, UserActivityDto.fromApplication);
   }
 
   @Post('/:id/reset-password')

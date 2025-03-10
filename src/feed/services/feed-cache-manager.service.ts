@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
-import { AppError, PaginationQueryDto } from 'src/common';
+import { AppError, PageOptionsDto } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
 
@@ -30,11 +30,11 @@ export class FeedCacheManagerService {
    */
   async getFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): Promise<FeedItem[] | null> {
     try {
-      const key = this.getCacheKey(userId, pagination, feedType);
+      const key = this.getCacheKey(userId, pageOptions, feedType);
       const cached = await this.redis.get(key);
 
       // Update cache stats
@@ -59,12 +59,12 @@ export class FeedCacheManagerService {
    */
   async cacheFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
     items: FeedItem[],
   ): Promise<void> {
     try {
-      const key = this.getCacheKey(userId, pagination, feedType);
+      const key = this.getCacheKey(userId, pageOptions, feedType);
       await this.redis.setex(key, this.DEFAULT_TTL, JSON.stringify(items));
 
       // Update cache write stats
@@ -202,10 +202,10 @@ export class FeedCacheManagerService {
    */
   private getCacheKey(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): string {
-    return `${this.FEED_CACHE_PREFIX}${userId}:${feedType}:${pagination.offset}:${pagination.limit}`;
+    return `${this.FEED_CACHE_PREFIX}${userId}:${feedType}:${pageOptions.pageNumber}:${pageOptions.pageSize}`;
   }
 
   /**

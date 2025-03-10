@@ -9,7 +9,7 @@ export interface FeedItem {
   updatedAt: Date;
 }
 
-export interface FeedCollection {
+export interface FeedPagedResult {
   items: FeedItem[];
   total: number;
   hasMore: boolean;

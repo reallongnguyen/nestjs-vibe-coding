@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { Redis } from 'ioredis';
-import { AppError } from 'src/common';
+import { AppError, PageOptionsDto } from 'src/common';
 import { FeedFallbackService } from './feed-fallback.service';
 import { FeedType } from '../entities/feed.types';
 
@@ -58,7 +58,7 @@ describe('FeedFallbackService', () => {
 
   describe('getFallbackFeed', () => {
     const userId = 'user123';
-    const pagination = { offset: 0, limit: 10 };
+    const pagination = new PageOptionsDto(0, 10);
     const mockItem = {
       id: '1',
       type: 'post',

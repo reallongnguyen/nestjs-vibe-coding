@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Logger } from 'nestjs-pino';
-import { PaginationQueryDto, Collection, AppError } from 'src/common';
+import { PagedResult, AppError, PageOptionsDto } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
 import { GetRecommendationsCommand } from '../entities/commands/get-recommendations.command';
@@ -12,12 +12,12 @@ import { FeedFallbackService } from './feed-fallback.service';
 interface IFeedCacheService {
   getFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): Promise<FeedItem[] | null>;
   cacheFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
     items: FeedItem[],
   ): Promise<void>;
@@ -44,26 +44,26 @@ export class FeedService {
   /**
    * Get feed for a user
    * @param userId User ID
-   * @param pagination Pagination parameters
+   * @param pageOptions Page options parameters
    * @param feedType Type of feed
    * @returns Feed collection with items
    */
   async getFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType = FeedType.PERSONALIZED,
-  ): Promise<Collection<FeedItem>> {
+  ): Promise<PagedResult<FeedItem>> {
     try {
       // Try to get from cache first
       try {
         const cached = await this.cacheManager.getFeed(
           userId,
-          pagination,
+          pageOptions,
           feedType,
         );
         if (cached) {
           this.logger.debug('Feed cache hit');
-          return this.createFeedCollection(cached, pagination);
+          return this.createFeedPagedResult(cached, pageOptions);
         }
       } catch (error) {
         this.logger.warn('Cache retrieval failed, using fallback', {
@@ -73,17 +73,17 @@ export class FeedService {
         });
         const fallbackItems = await this.fallbackService.getFallbackFeed(
           userId,
-          pagination,
+          pageOptions,
           feedType,
         );
-        return this.createFeedCollection(fallbackItems, pagination);
+        return this.createFeedPagedResult(fallbackItems, pageOptions);
       }
 
       try {
         // Try to get content IDs from Gorse
         const contentIds = await this.getContentIds(
           userId,
-          pagination,
+          pageOptions,
           feedType,
         );
 
@@ -95,11 +95,11 @@ export class FeedService {
         try {
           await this.cacheManager.cacheFeed(
             userId,
-            pagination,
+            pageOptions,
             feedType,
             enrichedItems,
           );
-          return this.createFeedCollection(enrichedItems, pagination);
+          return this.createFeedPagedResult(enrichedItems, pageOptions);
         } catch (error) {
           this.logger.warn('Cache write failed, using fallback', {
             error,
@@ -108,10 +108,10 @@ export class FeedService {
           });
           const fallbackItems = await this.fallbackService.getFallbackFeed(
             userId,
-            pagination,
+            pageOptions,
             feedType,
           );
-          return this.createFeedCollection(fallbackItems, pagination);
+          return this.createFeedPagedResult(fallbackItems, pageOptions);
         }
       } catch (error) {
         // If Gorse fails, use fallback strategy
@@ -122,11 +122,11 @@ export class FeedService {
         });
         const fallbackItems = await this.fallbackService.getFallbackFeed(
           userId,
-          pagination,
+          pageOptions,
           feedType,
         );
 
-        return this.createFeedCollection(fallbackItems, pagination);
+        return this.createFeedPagedResult(fallbackItems, pageOptions);
       }
     } catch (error) {
       this.logger.error('Failed to generate feed', { error, userId, feedType });
@@ -140,34 +140,33 @@ export class FeedService {
   /**
    * Get content IDs for feed using the recommendation command
    * @param userId User ID
-   * @param pagination Pagination parameters
+   * @param pageOptions Page options parameters
    * @param feedType Feed type
    * @returns Array of content IDs
    */
   private async getContentIds(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): Promise<string[]> {
     return this.commandBus.execute(
-      new GetRecommendationsCommand(userId, pagination, feedType),
+      new GetRecommendationsCommand(userId, pageOptions, feedType),
     );
   }
 
   /**
    * Create a feed collection with pagination
    * @param items Feed items
-   * @param pagination Pagination parameters
+   * @param pageOptions Page options parameters
    * @returns Feed collection
    */
-  private createFeedCollection(
+  private createFeedPagedResult(
     items: FeedItem[],
-    pagination: PaginationQueryDto,
-  ): Collection<FeedItem> {
-    return new Collection<FeedItem>(items, {
-      total: items.length,
-      limit: pagination.limit,
-      offset: pagination.offset,
-    });
+    pageOptions: PageOptionsDto,
+  ): PagedResult<FeedItem> {
+    return new PagedResult<FeedItem>(
+      items,
+      pageOptions.toResponseMeta(items.length),
+    );
   }
 }

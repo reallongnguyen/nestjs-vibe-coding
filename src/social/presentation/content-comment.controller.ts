@@ -24,8 +24,8 @@ import {
   OkResponse,
   PaginatedResponse,
   RestExceptionFilter,
-  Collection,
-  PaginationQueryDto,
+  PagedResult,
+  PageOptionsDto,
 } from 'src/common';
 import { ContentType } from '../entities/events/social.events';
 
@@ -89,17 +89,17 @@ export class ContentCommentController {
   async getCommentsByContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query() pagination: PaginationQueryDto,
+    @Query() pageOptions: PageOptionsDto,
     @AuthContextUser() user: User,
-  ): Promise<Collection<CommentDto>> {
+  ): Promise<PagedResult<CommentDto>> {
     const comments = await this.commentService.getCommentsByContent(
       type,
       id,
-      pagination,
+      pageOptions,
       user.id,
     );
 
-    return Collection.transform(comments, CommentDto.fromDomain);
+    return PagedResult.transform(comments, CommentDto.fromDomain);
   }
 
   @Patch(':id')

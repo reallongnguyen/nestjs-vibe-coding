@@ -1,4 +1,4 @@
-import { Collection, PaginationQueryDto } from 'src/common';
+import { PagedResult, PageOptionsDto } from 'src/common';
 import { UserFollow } from '../../entities/user-follow.entity';
 import { FollowerDto } from '../dtos/follower.dto';
 import { FollowCountsDto } from '../dtos/follow-counts.dto';
@@ -32,23 +32,23 @@ export interface IUserFollowService {
    * Get the followers of a user
    * @param userId ID of the user whose followers to get
    * @param pagination Pagination parameters
-   * @returns Collection of followers
+   * @returns PagedResult of followers
    */
   getFollowers(
     userId: string,
-    pagination: PaginationQueryDto,
-  ): Promise<Collection<FollowerDto>>;
+    pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FollowerDto>>;
 
   /**
    * Get the users a user is following
    * @param userId ID of the user whose followings to get
    * @param pagination Pagination parameters
-   * @returns Collection of followed users
+   * @returns PagedResult of followed users
    */
   getFollowing(
     userId: string,
-    pagination: PaginationQueryDto,
-  ): Promise<Collection<FollowerDto>>;
+    pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FollowerDto>>;
 
   /**
    * Get the follower and following counts for a user

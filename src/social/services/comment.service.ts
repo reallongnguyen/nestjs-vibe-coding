@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Collection, AppError, PrismaService } from 'src/common';
+import { PagedResult, AppError, PrismaService } from 'src/common';
 import { IEventBus, InjectEventBus } from 'src/common/event-manager';
-import { PaginationQueryDto } from 'src/common/presentation/dtos/pagination-query.dto';
+import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';
 import {
   CommentRepliedEvent,
   ContentType,
@@ -40,18 +40,14 @@ export class CommentService {
 
   async findByPost(
     postId: string,
-    pagination: PaginationQueryDto,
-  ): Promise<Collection<CommentOutput>> {
+    pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<CommentOutput>> {
     const [items, total] = await this.commentRepository.findByPost(
       postId,
-      pagination,
+      pageOptions,
     );
 
-    return new Collection(items, {
-      total,
-      offset: pagination.offset,
-      limit: pagination.limit,
-    });
+    return new PagedResult(items, pageOptions.toResponseMeta(total));
   }
 
   async update(
@@ -189,9 +185,9 @@ export class CommentService {
   async getCommentsByContent(
     type: string,
     contentId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     userId?: string,
-  ): Promise<Collection<CommentOutput>> {
+  ): Promise<PagedResult<CommentOutput>> {
     const upperType = type.toUpperCase();
 
     // For emotions, check privacy settings
@@ -201,13 +197,11 @@ export class CommentService {
         userId,
       );
       if (!canView) {
-        return Collection.empty();
+        return PagedResult.empty();
       }
     }
 
-    // Get comments based on content type
-    const skip = pagination.offset || 0;
-    const limit = pagination.limit || 10;
+    const { skip, take } = pageOptions.toDatabaseQuery();
 
     let where = {};
     if (upperType === 'POST') {
@@ -237,17 +231,13 @@ export class CommentService {
             },
           },
         },
-        take: limit,
+        take,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.comment.count({ where }),
     ]);
 
-    return new Collection(comments, {
-      offset: skip,
-      limit,
-      total,
-    });
+    return new PagedResult(comments, pageOptions.toResponseMeta(total));
   }
 
   private async validateContentAccess(

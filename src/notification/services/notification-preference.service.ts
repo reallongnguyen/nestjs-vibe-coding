@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AppError, Collection } from '../../common/models';
+import { AppError, PagedResult } from '../../common/models';
 import {
   NotificationPreference,
   NotificationType,
   NotificationChannel,
 } from '../entities/notification-preference.entity';
 import { INotificationPreferenceRepository } from './interfaces/notification-preference-repository.interface';
+import { NotificationPreferenceListQuery } from '../presentation/dtos/notification-preference.dto';
 
 /**
  * Service for managing notification preferences
@@ -24,30 +25,25 @@ export class NotificationPreferenceService {
    *
    * @param userId User ID
    * @param options Pagination options
-   * @returns Collection of notification preferences
+   * @returns PagedResult of notification preferences
    */
   async getPreferences(
     userId: string,
-    options: { offset?: number; limit?: number } = {},
-  ): Promise<Collection<NotificationPreference>> {
+    options: NotificationPreferenceListQuery,
+  ): Promise<PagedResult<NotificationPreference>> {
     try {
+      const { skip, take } = options.toDatabaseQuery();
+
       const preferences = await this.preferenceRepository.findMany({
         where: { userId },
-        skip: options.offset,
-        take: options.limit || 20,
+        skip,
+        take,
         orderBy: { updatedAt: 'desc' },
       });
 
       const total = await this.preferenceRepository.count({ userId });
 
-      return {
-        edges: preferences,
-        pagination: {
-          offset: options.offset || 0,
-          limit: options.limit || 20,
-          total,
-        },
-      };
+      return new PagedResult(preferences, options.toResponseMeta(total));
     } catch (err) {
       this.logger.error(
         `notification: notification-preference.service: getPreferences: ${err.message}`,

@@ -5,7 +5,7 @@ import {
   ApiOkResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import Collection from '../../../models/Collection';
+import { PagedResult } from '../../../models/PagedResult';
 
 export const OkResponse = <DataDto extends Type<unknown>>(
   dataDto: DataDto | null,
@@ -45,14 +45,14 @@ export const PaginatedResponse = <DataDto extends Type<unknown>>(
   dataDto: DataDto,
 ) =>
   applyDecorators(
-    ApiExtraModels(Collection, dataDto),
+    ApiExtraModels(PagedResult, dataDto),
     ApiOkResponse({
       schema: {
         allOf: [
-          { $ref: getSchemaPath(Collection) },
+          { $ref: getSchemaPath(PagedResult) },
           {
             properties: {
-              edges: {
+              items: {
                 type: 'array',
                 items: { $ref: getSchemaPath(dataDto) },
               },

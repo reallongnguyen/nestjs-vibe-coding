@@ -40,7 +40,7 @@ The Common Module provides core infrastructure and utilities used throughout the
 ### Utilities
 
 - `Retry`: Decorator for automatic retry logic
-- `Collection`: Pagination wrapper for API responses
+- `PagedResult`: Pagination wrapper for API responses
 - `delay`: Utility for async delays
 
 ## Common Patterns

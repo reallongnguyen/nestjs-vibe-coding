@@ -4,7 +4,7 @@ import {
   ErrorResponse,
   PaginatedResponse,
   RestExceptionFilter,
-  Collection,
+  PagedResult,
   OptionalAuthGuard,
   OptionalAuthContext,
   AuthCtx,
@@ -45,14 +45,14 @@ export class FeedController {
   async getFeed(
     @Query() filters: GetFeedFiltersDto,
     @OptionalAuthContext() authCtx?: AuthCtx,
-  ): Promise<Collection<FeedItemDto>> {
+  ): Promise<PagedResult<FeedItemDto>> {
     const { items, total } = await this.feedService.getFeed({
       userId: authCtx?.getUser()?.id,
       offset: filters.offset || 0,
       limit: filters.limit || 16,
     });
 
-    const collection = new Collection(items.map(FeedItemDto.fromApplication), {
+    const collection = new PagedResult(items.map(FeedItemDto.fromApplication), {
       limit: filters.limit || 16,
       offset: filters.offset || 0,
       total,

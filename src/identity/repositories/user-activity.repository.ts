@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import {
   UserActivity as PrismaUserActivity,
@@ -38,14 +38,10 @@ export class UserActivityRepository implements IUserActivityRepository {
   async findByUserId(
     userId: string,
     filters: ActivityFiltersDto,
-  ): Promise<Collection<UserActivity>> {
-    const {
-      offset = 0,
-      limit = 10,
-      activityType,
-      startDate,
-      endDate,
-    } = filters;
+  ): Promise<PagedResult<UserActivity>> {
+    const { activityType, startDate, endDate } = filters;
+
+    const { skip, take } = filters.toDatabaseQuery();
 
     const [items, total] = await Promise.all([
       this.prisma.userActivity.findMany({
@@ -60,8 +56,8 @@ export class UserActivityRepository implements IUserActivityRepository {
         orderBy: {
           timestamp: 'desc',
         },
-        skip: offset,
-        take: limit,
+        skip,
+        take,
       }),
 
       this.prisma.userActivity.count({
@@ -76,14 +72,10 @@ export class UserActivityRepository implements IUserActivityRepository {
       }),
     ]);
 
-    return {
-      edges: items.map(this.mapToEntity),
-      pagination: {
-        total,
-        offset,
-        limit,
-      },
-    };
+    return new PagedResult(
+      items.map(this.mapToEntity),
+      filters.toResponseMeta(total),
+    );
   }
 
   async findAll(): Promise<UserActivity[]> {

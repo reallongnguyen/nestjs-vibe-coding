@@ -9,8 +9,8 @@ import {
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
 import {
-  Collection,
-  PaginationQueryDto,
+  PagedResult,
+  PageOptionsDto,
   PaginatedResponse,
   ErrorResponse,
   RestExceptionFilter,
@@ -47,15 +47,15 @@ export class FeedGuestController {
   @PaginatedResponse(FeedItemDto)
   @ErrorResponse('feed.personalized', feedErrorMap)
   async getPersonalizedFeed(
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       undefined,
-      pagination,
+      pageOptions,
       FeedType.PERSONALIZED,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 
   @Get('trending')
@@ -69,15 +69,15 @@ export class FeedGuestController {
   @PaginatedResponse(FeedItemDto)
   @ErrorResponse('feed.trending', feedErrorMap)
   async getTrendingFeed(
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       undefined,
-      pagination,
+      pageOptions,
       FeedType.TRENDING,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 
   @Get('latest')
@@ -91,14 +91,14 @@ export class FeedGuestController {
   @PaginatedResponse(FeedItemDto)
   @ErrorResponse('feed.latest', feedErrorMap)
   async getLatestFeed(
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       undefined,
-      pagination,
+      pageOptions,
       FeedType.LATEST,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 }

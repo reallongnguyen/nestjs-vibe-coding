@@ -10,8 +10,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
 import {
   AuthGuard,
-  Collection,
-  PaginationQueryDto,
+  PagedResult,
   AuthContextUser,
   PaginatedResponse,
   ErrorResponse,
@@ -19,6 +18,7 @@ import {
   RestExceptionFilter,
   RequireAnyRoles,
   Role,
+  PageOptionsDto,
 } from 'src/common';
 import { FeedService } from '../services/feed.service';
 import { FeedType, feedErrorMap } from '../entities';
@@ -54,15 +54,15 @@ export class FeedController {
   @ErrorResponse('feed.personalized', feedErrorMap)
   async getPersonalizedFeed(
     @AuthContextUser('id') userId: string,
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       userId,
-      pagination,
+      pageOptions,
       FeedType.PERSONALIZED,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 
   @Get('following')
@@ -78,15 +78,15 @@ export class FeedController {
   @ErrorResponse('feed.following', feedErrorMap)
   async getFollowingFeed(
     @AuthContextUser('id') userId: string,
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       userId,
-      pagination,
+      pageOptions,
       FeedType.FOLLOWING,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 
   @Get('trending')
@@ -101,16 +101,16 @@ export class FeedController {
   @PaginatedResponse(FeedItemDto)
   @ErrorResponse('feed.trending', feedErrorMap)
   async getTrendingFeed(
-    @Query() pagination: PaginationQueryDto,
     @AuthContextUser('id') userId: string,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       userId,
-      pagination,
+      pageOptions,
       FeedType.TRENDING,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 
   @Get('latest')
@@ -126,14 +126,14 @@ export class FeedController {
   @ErrorResponse('feed.latest', feedErrorMap)
   async getLatestFeed(
     @AuthContextUser('id') userId: string,
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<Collection<FeedItemDto>> {
+    @Query() pageOptions: PageOptionsDto,
+  ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       userId,
-      pagination,
+      pageOptions,
       FeedType.LATEST,
     );
 
-    return Collection.transform(feed, FeedItemDto.fromDomain);
+    return PagedResult.transform(feed, FeedItemDto.fromDomain);
   }
 }

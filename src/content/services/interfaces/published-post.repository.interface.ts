@@ -1,5 +1,5 @@
 import { IBaseRepository } from 'src/common/repositories/base.repository.interface';
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import {
   PublishedPost,
   PublishedPostWithAuthor,
@@ -11,7 +11,7 @@ export interface IPublishedPostRepository extends IBaseRepository {
   delete(id: string): Promise<void>;
   findAll(
     query: ListPostsQueryDto,
-  ): Promise<Collection<PublishedPostWithAuthor>>;
+  ): Promise<PagedResult<PublishedPostWithAuthor>>;
   updateMetadata(
     id: string,
     metadata: {

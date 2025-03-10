@@ -1,4 +1,4 @@
-import { Collection } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 
 import { UserSearchFiltersDto } from '../../presentation/dtos/user-search-filters.input';
 import { User } from '../../entities/user.entity';
@@ -35,11 +35,11 @@ export interface UpsertUserParams {
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findUnique(params: FindUniqueUserParams): Promise<User | null>;
-  findMany(filters: UserSearchFiltersDto): Promise<Collection<User>>;
+  findMany(filters: UserSearchFiltersDto): Promise<PagedResult<User>>;
   count(): Promise<number>;
   upsert(params: UpsertUserParams): Promise<User>;
   update(params: UpdateUserParams): Promise<User>;
-  search(filters: UserSearchFiltersDto): Promise<Collection<User>>;
+  search(filters: UserSearchFiltersDto): Promise<PagedResult<User>>;
   updateRole(userId: string, role: Role[]): Promise<User>;
   deactivate(userId: string): Promise<User>;
   activate(userId: string): Promise<User>;

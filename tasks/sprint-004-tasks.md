@@ -183,7 +183,7 @@ GET /api/v1/feeds
 
 Response:
 {
-  edges: [
+  items: [
     {
       node: {
         id: string;
@@ -439,7 +439,7 @@ Dependencies: SOC-006-1
 - Add proper validation and error handling
 - Implement in the `user-follow` module
 - Follow RESTful API design principles
-- Use the Collection class from common/models for consistent pagination responses
+- Use the PagedResult class from common/models for consistent pagination responses
 - Use PaginationQueryDto for request parameters
 
 ### API Specification
@@ -520,7 +520,7 @@ Dependencies: SOC-006-2
 ### Technical Notes
 
 - Use the UserFollow model in Prisma
-- Implement proper pagination using the Collection class
+- Implement proper pagination using the PagedResult class
 - Follow RESTful API design principles
 - Ensure efficient database queries
 
@@ -532,7 +532,7 @@ GET /api/v1/users/{userId}/followers?limit=10&offset=0
 
 Response (200):
 {
-  edges: [
+  items: [
     {
       id: string;
       firstName: string;
@@ -553,7 +553,7 @@ GET /api/v1/users/{userId}/following?limit=10&offset=0
 
 Response (200):
 {
-  edges: [
+  items: [
     {
       id: string;
       firstName: string;
@@ -639,7 +639,7 @@ GET /api/v1/feed/following?limit=10&offset=0&sortBy=recent
 
 Response (200):
 {
-  edges: [
+  items: [
     {
       id: string;
       type: "POST" | "USER_EMOTION";

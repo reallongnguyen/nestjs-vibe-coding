@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { Redis } from 'ioredis';
-import { AppError } from 'src/common';
+import { AppError, PageOptionsDto } from 'src/common';
 import { FeedCacheManagerService } from './feed-cache-manager.service';
 import { FeedType } from '../entities/feed.types';
 
@@ -61,7 +61,7 @@ describe('FeedCacheManagerService', () => {
 
   describe('getFeed', () => {
     const userId = 'user123';
-    const pagination = { offset: 0, limit: 10 };
+    const pageOptions = new PageOptionsDto(0, 10);
     const feedType = FeedType.PERSONALIZED;
     const mockFeedItems = [
       {
@@ -84,7 +84,7 @@ describe('FeedCacheManagerService', () => {
     it('should return cached feed items when cache hit', async () => {
       mockRedis.get.mockResolvedValue(JSON.stringify(mockFeedItems));
 
-      const result = await service.getFeed(userId, pagination, feedType);
+      const result = await service.getFeed(userId, pageOptions, feedType);
 
       expect(result).toEqual(mockFeedItems);
       expect(redis.get).toHaveBeenCalledWith(
@@ -95,7 +95,7 @@ describe('FeedCacheManagerService', () => {
     it('should return null when cache miss', async () => {
       mockRedis.get.mockResolvedValue(null);
 
-      const result = await service.getFeed(userId, pagination, feedType);
+      const result = await service.getFeed(userId, pageOptions, feedType);
 
       expect(result).toBeNull();
     });
@@ -104,7 +104,7 @@ describe('FeedCacheManagerService', () => {
       mockRedis.get.mockRejectedValue(new Error('Redis error'));
 
       await expect(
-        service.getFeed(userId, pagination, feedType),
+        service.getFeed(userId, pageOptions, feedType),
       ).rejects.toThrow(AppError);
       expect(logger.error).toHaveBeenCalled();
     });
@@ -112,7 +112,7 @@ describe('FeedCacheManagerService', () => {
 
   describe('cacheFeed', () => {
     const userId = 'user123';
-    const pagination = { offset: 0, limit: 10 };
+    const pageOptions = new PageOptionsDto(0, 10);
     const feedType = FeedType.PERSONALIZED;
     const mockFeedItems = [
       {
@@ -133,7 +133,7 @@ describe('FeedCacheManagerService', () => {
     ];
 
     it('should cache feed items with TTL', async () => {
-      await service.cacheFeed(userId, pagination, feedType, mockFeedItems);
+      await service.cacheFeed(userId, pageOptions, feedType, mockFeedItems);
 
       expect(redis.setex).toHaveBeenCalledWith(
         expect.stringContaining(`feed:cache:${userId}:${feedType}`),
@@ -146,7 +146,7 @@ describe('FeedCacheManagerService', () => {
       mockRedis.setex.mockRejectedValue(new Error('Redis error'));
 
       await expect(
-        service.cacheFeed(userId, pagination, feedType, mockFeedItems),
+        service.cacheFeed(userId, pageOptions, feedType, mockFeedItems),
       ).rejects.toThrow(AppError);
       expect(logger.error).toHaveBeenCalled();
     });

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { PaginationQueryDto, AppError } from 'src/common';
+import { PageOptionsDto, AppError } from 'src/common';
 import { CacheService } from 'src/common/cache';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
@@ -14,11 +14,11 @@ export class FeedCacheService {
 
   async getFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): Promise<FeedItem[] | null> {
     try {
-      const key = this.getCacheKey(userId, pagination, feedType);
+      const key = this.getCacheKey(userId, pageOptions, feedType);
       const cached = await this.cache.get<FeedItem[]>(key);
       return cached;
     } catch (error) {
@@ -36,12 +36,12 @@ export class FeedCacheService {
 
   async cacheFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
     items: FeedItem[],
   ): Promise<void> {
     try {
-      const key = this.getCacheKey(userId, pagination, feedType);
+      const key = this.getCacheKey(userId, pageOptions, feedType);
       await this.cache.set(key, items);
     } catch (error) {
       this.logger.error('Failed to cache feed', { error, userId, feedType });
@@ -74,9 +74,9 @@ export class FeedCacheService {
 
   private getCacheKey(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): string {
-    return `feed:${userId}:${feedType}:${pagination.offset}:${pagination.limit}`;
+    return `feed:${userId}:${feedType}:${pageOptions.pageNumber}:${pageOptions.pageSize}`;
   }
 }

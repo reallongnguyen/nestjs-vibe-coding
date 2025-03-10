@@ -3,12 +3,12 @@ import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
   AuthGuard,
   RolesGuard,
-  Collection,
-  PaginationQueryDto,
+  PagedResult,
   ErrorResponse,
   RestExceptionFilter,
   AuthContextUser,
   OkResponse,
+  PageOptionsDto,
 } from 'src/common';
 import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin';
 import {
@@ -42,15 +42,15 @@ export class FollowingFeedController {
     enum: ['recent', 'popular'],
     description: 'Sort order for the feed',
   })
-  @OkResponse(Collection)
+  @OkResponse(PagedResult)
   async getFollowingFeed(
     @AuthContextUser('id') userId: string,
-    @Query() pagination: PaginationQueryDto,
+    @Query() pageOptions: PageOptionsDto,
     @Query('sortBy') sortBy?: string,
-  ): Promise<Collection<ContentDto>> {
+  ): Promise<PagedResult<ContentDto>> {
     const collection = await this.followingFeedService.getFollowingFeed(
       userId,
-      pagination,
+      pageOptions,
       sortBy,
     );
 

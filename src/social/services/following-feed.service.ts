@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Collection, PaginationQueryDto } from 'src/common';
+import { PagedResult, PageOptionsDto } from 'src/common';
 import { ContentDto } from '../presentation/dtos/content.dto';
 import { ISocialRepository } from './interfaces/social-repository.interface';
 import { IFollowingFeedService } from './interfaces/following-feed-service.interface';
@@ -13,24 +13,20 @@ export class FollowingFeedService implements IFollowingFeedService {
 
   async getFollowingFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     sortBy: string = 'recent',
-  ): Promise<Collection<ContentDto>> {
+  ): Promise<PagedResult<ContentDto>> {
     // Get content from followed users
     const [contents, total] =
       await this.socialRepository.getContentFromFollowedUsers(
         userId,
-        pagination,
+        pageOptions,
         sortBy,
       );
 
     // If no content found, return empty collection
     if (contents.length === 0) {
-      return new Collection<ContentDto>([], {
-        total: 0,
-        limit: pagination.limit,
-        offset: pagination.offset,
-      });
+      return PagedResult.empty();
     }
 
     // Map to DTOs
@@ -58,10 +54,9 @@ export class FollowingFeedService implements IFollowingFeedService {
       },
     }));
 
-    return new Collection<ContentDto>(contentDtos, {
-      total,
-      limit: pagination.limit,
-      offset: pagination.offset,
-    });
+    return new PagedResult<ContentDto>(
+      contentDtos,
+      pageOptions.toResponseMeta(total),
+    );
   }
 }

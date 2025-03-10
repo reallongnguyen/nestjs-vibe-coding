@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { performance } from 'perf_hooks';
+import { PageOptionsDto } from 'src/common';
 import { FeedFallbackService } from '../../services/feed-fallback.service';
 import { FeedType } from '../../entities/feed.types';
 
@@ -50,7 +51,7 @@ describe('FeedFallbackService Performance', () => {
 
   describe('Performance Requirements', () => {
     const userId = 'testUser';
-    const pagination = { offset: 0, limit: 10 };
+    const pagination = new PageOptionsDto(0, 10);
     const mockItem = {
       id: '1',
       type: 'post',

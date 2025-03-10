@@ -602,7 +602,7 @@ flowchart TD
 
 #### Components
 
-1. **Content Collection Service**
+1. **Content PagedResult Service**
    - **Purpose**: Retrieve recent content from database with basic metadata
    - **Implementation**:
      - Database queries with efficient joins and pagination
