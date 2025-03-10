@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { Logger } from 'nestjs-pino';
 import { AppError } from 'src/common';
-import { ContentService } from 'src/content/services/content.service';
 import { FeedItem } from '../entities/feed.entity';
+import { GetContentsCommand } from '../entities/commands/get-contents.command';
 
 @Injectable()
 export class FeedEnrichmentService {
   constructor(
-    private readonly contentService: ContentService,
+    private readonly commandBus: CommandBus,
     private readonly logger: Logger,
   ) {}
 
@@ -22,7 +23,9 @@ export class FeedEnrichmentService {
         return [];
       }
 
-      const contents = await this.contentService.getContentByIds(contentIds);
+      const contents = await this.commandBus.execute(
+        new GetContentsCommand(contentIds),
+      );
 
       return contents.map(
         (content): FeedItem => ({

@@ -12,6 +12,9 @@ import { DraftPostRepository } from './repositories/draft-post.repository';
 import { TopicRepository } from './repositories/topic.repository';
 import { ContentEvents } from './services/content.events';
 import { PublishedPostRepository } from './repositories/published-post.repository';
+import { GetContentsHandler } from './presentation/handlers/get-contents.handler';
+
+const CommandHandlers = [GetContentsHandler];
 
 @Module({
   imports: [EventBusModule, CqrsModule, PrismaModule],
@@ -38,6 +41,7 @@ import { PublishedPostRepository } from './repositories/published-post.repositor
       useClass: TopicRepository,
     },
     ContentEvents,
+    ...CommandHandlers,
   ],
   exports: [DraftPostService, ContentService],
 })

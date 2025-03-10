@@ -135,16 +135,16 @@ export class ContentDistributionService {
   }
 
   private async getFollowingRecommendations(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     userId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     limit: number,
   ): Promise<string[]> {
-    const recommendations = await this.gorseClient.getUserNeighbors(
-      userId,
-      limit,
-      offset,
-    );
-    return recommendations.map((item) => item.Id);
+    this.logger.warn('getFollowingRecommendations is not implemented');
+
+    return [];
   }
 
   private async getTrendingRecommendations(
