@@ -97,7 +97,7 @@ describe('ContentService', () => {
       expect(result).toHaveLength(2);
       expect(result).toContainEqual({
         id: mockPublishedPost.id,
-        type: 'post',
+        type: 'POST',
         title: mockPublishedPost.title,
         content: mockPublishedPost.content,
         authorId: mockPublishedPost.userId,

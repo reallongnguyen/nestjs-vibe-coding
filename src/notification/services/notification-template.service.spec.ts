@@ -55,7 +55,7 @@ describe('NotificationTemplateService', () => {
           useValue: mockTemplateRepository,
         },
         {
-          provide: 'IEventBus',
+          provide: 'EventBusPort',
           useValue: mockEventBus,
         },
       ],
@@ -162,6 +162,7 @@ describe('NotificationTemplateService', () => {
         [TemplateLanguage.EN]: 'Hello {{name}}!',
         [TemplateLanguage.VI]: 'Xin chào {{name}}!',
       };
+      mockTemplate.validate.mockReturnValue(true);
 
       const result = await service.hotReloadTemplate('test-template');
 
@@ -177,6 +178,9 @@ describe('NotificationTemplateService', () => {
         [TemplateLanguage.EN]: 'Hello {{name!', // Invalid Handlebars syntax
         [TemplateLanguage.VI]: 'Xin chào {{name}}!',
       };
+      mockTemplate.validate.mockImplementation(() => {
+        throw new AppError('notification.template.invalidSyntax');
+      });
 
       await expect(service.hotReloadTemplate('test-template')).rejects.toThrow(
         AppError,
@@ -190,6 +194,7 @@ describe('NotificationTemplateService', () => {
         [TemplateLanguage.EN]: [],
         [TemplateLanguage.VI]: [],
       });
+      mockTemplate.validate.mockReturnValue(true);
 
       const result = service.validateTemplateVariables(mockTemplate, ['name']);
 
@@ -206,6 +211,9 @@ describe('NotificationTemplateService', () => {
         [TemplateLanguage.VI]: ['age'],
       };
       mockTemplate.checkRequiredVariables.mockReturnValue(missingVars);
+      mockTemplate.validate.mockImplementation(() => {
+        throw new AppError('notification.template.invalidSyntax');
+      });
 
       const result = service.validateTemplateVariables(mockTemplate, [
         'name',
@@ -213,7 +221,10 @@ describe('NotificationTemplateService', () => {
       ]);
 
       expect(result.isValid).toBe(false);
-      expect(result.missingVariables).toEqual(missingVars);
+      expect(result.missingVariables).toEqual({
+        ...missingVars,
+        syntax: ['Template contains syntax errors'],
+      });
       expect(mockTemplate.checkRequiredVariables).toHaveBeenCalledWith([
         'name',
         'age',

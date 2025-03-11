@@ -1,3 +1,4 @@
+import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import {
   UserSyncEvent,
@@ -5,7 +6,12 @@ import {
   FeedbackSyncEvent,
   GORSE_EVENTS,
 } from './gorse-sync.events';
-import { SyncOperation } from '../../../common/event-manager/entities/events/schemas/recommendation.events';
+import {
+  SyncOperation,
+  UserSyncPayload,
+  ItemSyncPayload,
+  FeedbackSyncPayload,
+} from '../../../common/event-manager';
 
 describe('Gorse Sync Events', () => {
   const timestamp = Date.now();
@@ -29,7 +35,12 @@ describe('Gorse Sync Events', () => {
 
     it('should validate payload schema', async () => {
       const event = new UserSyncEvent(validPayload);
-      const errors = await validate(event.payload);
+      const validationInstance = plainToInstance(
+        UserSyncPayload,
+        event.payload as object,
+        {},
+      );
+      const errors = await validate(validationInstance);
       expect(errors).toHaveLength(0);
     });
 
@@ -40,7 +51,12 @@ describe('Gorse Sync Events', () => {
       };
 
       const event = new UserSyncEvent(invalidPayload);
-      const errors = await validate(event.payload);
+      const validationInstance = plainToInstance(
+        UserSyncPayload,
+        event.payload as object,
+        {},
+      );
+      const errors = await validate(validationInstance);
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('userId');
     });
@@ -66,7 +82,12 @@ describe('Gorse Sync Events', () => {
 
     it('should validate payload schema', async () => {
       const event = new ItemSyncEvent(validPayload);
-      const errors = await validate(event.payload);
+      const validationInstance = plainToInstance(
+        ItemSyncPayload,
+        event.payload as object,
+        {},
+      );
+      const errors = await validate(validationInstance);
       expect(errors).toHaveLength(0);
     });
 
@@ -77,7 +98,12 @@ describe('Gorse Sync Events', () => {
       };
 
       const event = new ItemSyncEvent(invalidPayload);
-      const errors = await validate(event.payload);
+      const validationInstance = plainToInstance(
+        ItemSyncPayload,
+        event.payload as object,
+        {},
+      );
+      const errors = await validate(validationInstance);
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('itemId');
     });
@@ -102,7 +128,12 @@ describe('Gorse Sync Events', () => {
 
     it('should validate payload schema', async () => {
       const event = new FeedbackSyncEvent(validPayload);
-      const errors = await validate(event.payload);
+      const validationInstance = plainToInstance(
+        FeedbackSyncPayload,
+        event.payload as object,
+        {},
+      );
+      const errors = await validate(validationInstance);
       expect(errors).toHaveLength(0);
     });
 
@@ -113,7 +144,12 @@ describe('Gorse Sync Events', () => {
       };
 
       const event = new FeedbackSyncEvent(invalidPayload);
-      const errors = await validate(event.payload);
+      const validationInstance = plainToInstance(
+        FeedbackSyncPayload,
+        event.payload as object,
+        {},
+      );
+      const errors = await validate(validationInstance);
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('feedbackType');
     });

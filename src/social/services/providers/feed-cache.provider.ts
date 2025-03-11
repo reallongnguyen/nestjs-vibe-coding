@@ -16,11 +16,12 @@ export class FeedCacheProvider implements FeedProvider {
 
   async getFeed(input: GetFeedInput): Promise<GetFeedOutput> {
     try {
+      const { skip, take } = input.pageOptions.toDatabaseQuery();
       // Try to get from cache
       const cached = await this.cacheService.getCachedFeed(
         input.userId,
-        input.offset,
-        input.limit,
+        skip,
+        take,
       );
 
       if (cached) {
@@ -33,12 +34,7 @@ export class FeedCacheProvider implements FeedProvider {
       const result = await this.databaseProvider.getFeed(input);
 
       // Cache the result
-      await this.cacheService.cacheFeed(
-        input.userId,
-        input.offset,
-        input.limit,
-        result,
-      );
+      await this.cacheService.cacheFeed(input.userId, skip, take, result);
 
       return result;
     } catch (error) {

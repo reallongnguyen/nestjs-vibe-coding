@@ -60,7 +60,14 @@ describe('CommentService', () => {
         count: jest.fn().mockResolvedValue(1),
       },
       publishedPost: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: 'post123', userId: 'user123' }),
         count: jest.fn().mockResolvedValue(1),
+      },
+      userEmotion: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        count: jest.fn().mockResolvedValue(0),
       },
     } as any;
 

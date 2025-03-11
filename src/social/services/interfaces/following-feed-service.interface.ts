@@ -1,4 +1,4 @@
-import { PagedResult, PaginationQueryDto } from 'src/common';
+import { PagedResult, PageOptionsDto } from 'src/common';
 import { ContentDto } from '../../presentation/dtos/content.dto';
 
 export interface IFollowingFeedService {
@@ -11,7 +11,7 @@ export interface IFollowingFeedService {
    */
   getFollowingFeed(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     sortBy?: string,
   ): Promise<PagedResult<ContentDto>>;
 }

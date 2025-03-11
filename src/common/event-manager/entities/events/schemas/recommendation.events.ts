@@ -21,7 +21,7 @@ export enum SyncOperation {
 /**
  * Schema for user sync events
  */
-class UserSyncPayload {
+export class UserSyncPayload {
   @IsString()
   @MinLength(1)
   userId: string;
@@ -45,7 +45,7 @@ class UserSyncPayload {
 /**
  * Schema for item sync events
  */
-class ItemSyncPayload {
+export class ItemSyncPayload {
   @IsString()
   @MinLength(1)
   itemId: string;
@@ -73,7 +73,7 @@ class ItemSyncPayload {
 /**
  * Schema for feedback sync events
  */
-class FeedbackSyncPayload {
+export class FeedbackSyncPayload {
   @IsString()
   @MinLength(1)
   feedbackType: string;

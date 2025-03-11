@@ -73,16 +73,27 @@ describe('FeedCacheManagerService', () => {
           type: 'post',
           content: 'Test content',
           authorId: 'author1',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: new Date('2025-03-10T23:38:54.263Z'),
+          updatedAt: new Date('2025-03-10T23:38:54.263Z'),
         },
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date('2025-03-10T23:38:54.263Z'),
+        updatedAt: new Date('2025-03-10T23:38:54.263Z'),
       },
     ];
 
     it('should return cached feed items when cache hit', async () => {
-      mockRedis.get.mockResolvedValue(JSON.stringify(mockFeedItems));
+      const mockRedisData = mockFeedItems.map((item) => ({
+        ...item,
+        content: {
+          ...item.content,
+          createdAt: item.content.createdAt.toISOString(),
+          updatedAt: item.content.updatedAt.toISOString(),
+        },
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
+      }));
+
+      mockRedis.get.mockResolvedValue(JSON.stringify(mockRedisData));
 
       const result = await service.getFeed(userId, pageOptions, feedType);
 
@@ -124,11 +135,11 @@ describe('FeedCacheManagerService', () => {
           type: 'post',
           content: 'Test content',
           authorId: 'author1',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: new Date('2025-03-10T23:38:54.263Z'),
+          updatedAt: new Date('2025-03-10T23:38:54.263Z'),
         },
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date('2025-03-10T23:38:54.263Z'),
+        updatedAt: new Date('2025-03-10T23:38:54.263Z'),
       },
     ];
 
@@ -138,7 +149,18 @@ describe('FeedCacheManagerService', () => {
       expect(redis.setex).toHaveBeenCalledWith(
         expect.stringContaining(`feed:cache:${userId}:${feedType}`),
         300,
-        JSON.stringify(mockFeedItems),
+        JSON.stringify(
+          mockFeedItems.map((item) => ({
+            ...item,
+            content: {
+              ...item.content,
+              createdAt: item.content.createdAt.toISOString(),
+              updatedAt: item.content.updatedAt.toISOString(),
+            },
+            createdAt: item.createdAt.toISOString(),
+            updatedAt: item.updatedAt.toISOString(),
+          })),
+        ),
       );
     });
 

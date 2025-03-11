@@ -48,15 +48,13 @@ export class FeedController {
   ): Promise<PagedResult<FeedItemDto>> {
     const { items, total } = await this.feedService.getFeed({
       userId: authCtx?.getUser()?.id,
-      offset: filters.offset || 0,
-      limit: filters.limit || 16,
+      pageOptions: filters,
     });
 
-    const collection = new PagedResult(items.map(FeedItemDto.fromApplication), {
-      limit: filters.limit || 16,
-      offset: filters.offset || 0,
-      total,
-    });
+    const collection = new PagedResult(
+      items.map(FeedItemDto.fromApplication),
+      filters.toResponseMeta(total),
+    );
 
     return withImageUrlMap(this.imageUrlService)(collection, {
       width: ImageSize.CONTENT_XL,

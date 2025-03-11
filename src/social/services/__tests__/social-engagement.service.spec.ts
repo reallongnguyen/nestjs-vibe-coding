@@ -16,12 +16,15 @@ describe('SocialEngagementService', () => {
   const mockPrisma = {
     publishedPost: {
       findUnique: jest.fn(),
+      count: jest.fn(),
     },
     userEmotion: {
       findUnique: jest.fn(),
+      count: jest.fn(),
     },
     comment: {
       findUnique: jest.fn(),
+      count: jest.fn(),
     },
     engageable: {
       findUnique: jest.fn(),
@@ -61,7 +64,13 @@ describe('SocialEngagementService', () => {
     eventBus = module.get<IEventBus>('IEventBus');
     viewRepository = module.get<IViewRepository>('IViewRepository');
 
+    // Reset all mocks
     jest.clearAllMocks();
+
+    // Setup default mock responses
+    mockPrisma.publishedPost.count.mockResolvedValue(1);
+    mockPrisma.userEmotion.count.mockResolvedValue(1);
+    mockPrisma.comment.count.mockResolvedValue(1);
   });
 
   describe('likeContent', () => {

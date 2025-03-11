@@ -8,8 +8,6 @@ import {
   UserFollowNotFoundError,
   UserNotFoundError,
 } from '../entities/user-follow.error';
-import { UserFollowedEvent } from '../entities/events/user-followed.event';
-import { UserUnfollowedEvent } from '../entities/events/user-unfollowed.event';
 
 describe('UserFollowService', () => {
   let service: UserFollowService;
@@ -26,6 +24,7 @@ describe('UserFollowService', () => {
       getFollowersCount: jest.fn(),
       getFollowingCount: jest.fn(),
       getFollowerDetails: jest.fn(),
+      getFollowingIds: jest.fn(),
     };
 
     const eventBusMock = {
@@ -40,7 +39,7 @@ describe('UserFollowService', () => {
           useValue: repositoryMock,
         },
         {
-          provide: 'IEventBus',
+          provide: 'EventBusPort',
           useValue: eventBusMock,
         },
       ],
@@ -48,7 +47,7 @@ describe('UserFollowService', () => {
 
     service = module.get<UserFollowService>(UserFollowService);
     repository = module.get('IUserFollowRepository');
-    eventBus = module.get('IEventBus');
+    eventBus = module.get('EventBusPort');
   });
 
   describe('followUser', () => {
@@ -71,18 +70,37 @@ describe('UserFollowService', () => {
       );
     });
 
+    it('should throw UserNotFoundError when following user not found', async () => {
+      const followerId = 'follower-123';
+      const followingId = 'following-123';
+
+      repository.exists.mockResolvedValue(false);
+      repository.getFollowerDetails.mockResolvedValue(null);
+
+      await expect(service.followUser(followerId, followingId)).rejects.toThrow(
+        UserNotFoundError,
+      );
+    });
+
     it('should throw UserNotFoundError when follower not found', async () => {
       const followerId = 'follower-123';
       const followingId = 'following-123';
 
       repository.exists.mockResolvedValue(false);
+      repository.getFollowerDetails
+        .mockResolvedValueOnce({
+          firstName: 'Following',
+          lastName: 'User',
+          avatar: 'avatar.jpg',
+        })
+        .mockResolvedValueOnce(null);
+
       repository.create.mockResolvedValue({
         id: 'follow-123',
         followerId,
         followingId,
         createdAt: new Date(),
       });
-      repository.getFollowerDetails.mockResolvedValue(null);
 
       await expect(service.followUser(followerId, followingId)).rejects.toThrow(
         UserNotFoundError,
@@ -106,15 +124,26 @@ describe('UserFollowService', () => {
 
       repository.exists.mockResolvedValue(false);
       repository.create.mockResolvedValue(follow);
-      repository.getFollowerDetails.mockResolvedValue(followerDetails);
+      repository.getFollowerDetails
+        .mockResolvedValueOnce({
+          firstName: 'Following',
+          lastName: 'User',
+          avatar: 'avatar.jpg',
+        })
+        .mockResolvedValueOnce(followerDetails);
 
       const result = await service.followUser(followerId, followingId);
 
       expect(result).toEqual(follow);
       expect(repository.create).toHaveBeenCalledWith(followerId, followingId);
       expect(eventBus.publish).toHaveBeenCalledWith(
-        UserFollowedEvent.eventName,
-        expect.any(UserFollowedEvent),
+        expect.objectContaining({
+          followerId,
+          followingId,
+          followerName: 'John Doe',
+          followerAvatar: 'avatar.jpg',
+          timestamp: expect.any(Date),
+        }),
       );
     });
   });
@@ -149,8 +178,11 @@ describe('UserFollowService', () => {
       expect(result).toEqual(follow);
       expect(repository.delete).toHaveBeenCalledWith(followerId, followingId);
       expect(eventBus.publish).toHaveBeenCalledWith(
-        UserUnfollowedEvent.eventName,
-        expect.any(UserUnfollowedEvent),
+        expect.objectContaining({
+          followerId,
+          followingId,
+          timestamp: expect.any(Date),
+        }),
       );
     });
   });

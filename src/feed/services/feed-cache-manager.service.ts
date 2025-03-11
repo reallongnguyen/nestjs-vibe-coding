@@ -40,7 +40,21 @@ export class FeedCacheManagerService {
       // Update cache stats
       await this.updateCacheStats(userId, feedType, !!cached);
 
-      return cached ? JSON.parse(cached) : null;
+      if (!cached) {
+        return null;
+      }
+
+      const items = JSON.parse(cached);
+      return items.map((item: any) => ({
+        ...item,
+        content: {
+          ...item.content,
+          createdAt: new Date(item.content.createdAt),
+          updatedAt: new Date(item.content.updatedAt),
+        },
+        createdAt: new Date(item.createdAt),
+        updatedAt: new Date(item.updatedAt),
+      }));
     } catch (error) {
       this.logger.error('Failed to get feed from cache', {
         error,

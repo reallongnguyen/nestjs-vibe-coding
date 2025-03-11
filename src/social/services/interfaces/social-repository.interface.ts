@@ -1,4 +1,4 @@
-import { PaginationQueryDto } from 'src/common';
+import { PageOptionsDto } from 'src/common';
 import { ContentWithMetrics } from '../../entities/content-with-metrics.entity';
 
 export interface ISocialRepository {
@@ -11,7 +11,7 @@ export interface ISocialRepository {
    */
   getContentByAuthors(
     authorIds: string[],
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     sortBy?: string,
   ): Promise<[ContentWithMetrics[], number]>;
 
@@ -24,7 +24,7 @@ export interface ISocialRepository {
    */
   getContentFromFollowedUsers(
     userId: string,
-    pagination: PaginationQueryDto,
+    pageOptions: PageOptionsDto,
     sortBy?: string,
   ): Promise<[ContentWithMetrics[], number]>;
 }

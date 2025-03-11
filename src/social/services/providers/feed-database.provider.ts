@@ -19,10 +19,9 @@ export class FeedDatabaseProvider implements FeedProvider {
   ) {}
 
   async getFeed(input: GetFeedInput): Promise<GetFeedOutput> {
-    const feedItems = await this.distributionService.getGlobalFeed(
-      input.offset,
-      input.limit,
-    );
+    const { skip, take } = input.pageOptions.toDatabaseQuery();
+
+    const feedItems = await this.distributionService.getGlobalFeed(skip, take);
 
     const enrichedItems = await this.enrichFeedItems(feedItems);
 
