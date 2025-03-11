@@ -23,6 +23,10 @@ export const commonErrorMap: ErrorMap = {
       status: HttpStatus.UNAUTHORIZED,
       message: 'Access token has expired or is not valid',
     },
+    invalidApiKey: {
+      status: HttpStatus.UNAUTHORIZED,
+      message: 'Invalid or missing API key',
+    },
     noPrivilege: {
       status: HttpStatus.FORBIDDEN,
       message: 'Required one of the following roles: [{{roles}}]',

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '../common/prisma/prisma.module';
-import { EventManagerModule } from '../common/event-manager/event-manager.module';
 import { GorseClient } from './services/gorse.client';
 import { GorseSyncService } from './services/gorse-sync.service';
 import moduleConfig from './recommendation.config';
@@ -12,11 +10,7 @@ import { ContentDistributionService } from './services/content-distribution.serv
 import { RecommendationHandler } from './presentation/handlers/recommendation.handler';
 
 @Module({
-  imports: [
-    ConfigModule.forFeature(moduleConfig),
-    PrismaModule,
-    EventManagerModule,
-  ],
+  imports: [ConfigModule.forFeature(moduleConfig)],
   providers: [
     GorseClient,
     GorseSyncService,

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
-import { PrismaModule } from '../../../src/common/prisma/prisma.module';
 import { NotificationModule } from '../../../src/notification/notification.module';
 import { NotificationTestHelper } from './helpers/notification.test-helper';
 import { TestDataGenerator } from './helpers/test-data.generator';
@@ -14,7 +13,6 @@ import { TestDataGenerator } from './helpers/test-data.generator';
       envFilePath: '.env.test',
     }),
     EventEmitterModule.forRoot(),
-    PrismaModule,
     RedisModule.forRoot({
       config: {
         host: 'localhost',
