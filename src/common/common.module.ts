@@ -13,6 +13,7 @@ import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ImgProxyModule } from './img-proxy/img-proxy.module';
 import { EventManagerModule } from './event-manager/event-manager.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { EventManagerModule } from './event-manager/event-manager.module';
     PrismaModule,
     ConfigModule,
     ImgProxyModule,
+    MonitoringModule,
   ],
 })
 export class CommonModule {}

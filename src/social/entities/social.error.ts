@@ -38,3 +38,12 @@ export class EngageableNotFoundError extends AppError {
     });
   }
 }
+
+export class RedisOperationError extends Error {
+  constructor(operation: string, cause: unknown) {
+    super(
+      `Redis operation '${operation}' failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+    );
+    this.name = 'RedisOperationError';
+  }
+}

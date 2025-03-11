@@ -6,6 +6,7 @@ import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CqrsModule } from '@nestjs/cqrs';
+
 import moduleConfig from './social.config';
 import { FeedController } from './presentation/feed.controller';
 import { FeedService } from './services/feed.service';
@@ -31,6 +32,8 @@ import { ViewRepository } from './repositories/view.repository';
 import { SocialRepository } from './repositories/social.repository';
 import { FollowingFeedService } from './services/following-feed.service';
 import { FollowingFeedController } from './presentation/following-feed.controller';
+import { SocialEngagementRedisService } from './services/social-engagement-redis.service';
+import { SocialEngagementMetricsService } from './services/social-engagement-metrics.service';
 
 @Module({
   imports: [
@@ -88,6 +91,8 @@ import { FollowingFeedController } from './presentation/following-feed.controlle
       useClass: SocialRepository,
     },
     FollowingFeedService,
+    SocialEngagementRedisService,
+    SocialEngagementMetricsService,
   ],
 })
 export class SocialModule {}

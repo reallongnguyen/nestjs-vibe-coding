@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { IEventBus, InjectEventBus } from 'src/common/event-manager';
 import {
@@ -9,8 +9,13 @@ import {
 import { ContentViewedEvent } from '../entities/events/content-viewed.event';
 
 import { EngagementStatsDto } from '../presentation/dtos/engagement-stats.dto';
-import { EngageableNotFoundError } from '../entities/social.error';
-import { IViewRepository } from './interfaces/view-repository.interface';
+import {
+  EngageableNotFoundError,
+  ContentAlreadyLikedError,
+  ContentNotLikedError,
+} from '../entities/social.error';
+import { SocialEngagementRedisService } from './social-engagement-redis.service';
+import { SocialEngagementMetricsService } from './social-engagement-metrics.service';
 
 interface CommentCountUpdate {
   type: string;
@@ -23,8 +28,8 @@ export class SocialEngagementService {
     private readonly prisma: PrismaService,
     @InjectEventBus()
     private readonly eventBus: IEventBus,
-    @Inject('IViewRepository')
-    private readonly viewRepository: IViewRepository,
+    private readonly redisService: SocialEngagementRedisService,
+    private readonly metricsService: SocialEngagementMetricsService,
   ) {}
 
   async batchUpdateCommentCount(updates: CommentCountUpdate[]) {
@@ -108,40 +113,84 @@ export class SocialEngagementService {
     userId: string,
   ): Promise<void> {
     const upperType = type.toUpperCase() as ContentType;
+    const startTime = Date.now();
 
-    // Validate content exists
-    await this.validateContentExists(upperType, contentId);
+    try {
+      // Validate content exists
+      await this.validateContentExists(upperType, contentId);
 
-    // Get target user ID based on content type
-    let targetUserId = '';
-    if (upperType === ContentType.POST) {
-      const post = await this.prisma.publishedPost.findUnique({
-        where: { id: contentId },
-        select: { userId: true },
-      });
-      targetUserId = post?.userId || '';
-    } else if (upperType === ContentType.EMOTION) {
-      const emotion = await this.prisma.userEmotion.findUnique({
-        where: { id: contentId },
-        select: { userId: true },
-      });
-      targetUserId = emotion?.userId || '';
-    } else if (upperType === ContentType.COMMENT) {
-      const comment = await this.prisma.comment.findUnique({
-        where: { id: contentId },
-        select: { userId: true },
-      });
-      targetUserId = comment?.userId || '';
+      // Get distributed lock
+      const hasLock = await this.redisService.acquireLikeLock(
+        upperType,
+        contentId,
+        userId,
+      );
+
+      if (!hasLock) {
+        throw new ContentAlreadyLikedError(userId, contentId, upperType);
+      }
+
+      try {
+        // Check if already liked
+        const isLiked = await this.redisService.isContentLiked(
+          upperType,
+          contentId,
+          userId,
+        );
+
+        if (isLiked) {
+          throw new ContentAlreadyLikedError(userId, contentId, upperType);
+        }
+
+        // Add to Redis set
+        await this.redisService.addLike(upperType, contentId, userId);
+
+        // Get target user ID based on content type
+        let targetUserId = '';
+        if (upperType === ContentType.POST) {
+          const post = await this.prisma.publishedPost.findUnique({
+            where: { id: contentId },
+            select: { userId: true },
+          });
+          targetUserId = post?.userId || '';
+        } else if (upperType === ContentType.EMOTION) {
+          const emotion = await this.prisma.userEmotion.findUnique({
+            where: { id: contentId },
+            select: { userId: true },
+          });
+          targetUserId = emotion?.userId || '';
+        } else if (upperType === ContentType.COMMENT) {
+          const comment = await this.prisma.comment.findUnique({
+            where: { id: contentId },
+            select: { userId: true },
+          });
+          targetUserId = comment?.userId || '';
+        }
+
+        const event = new LikeCreatedEvent({
+          actorId: userId,
+          contentType: upperType,
+          contentId,
+          targetUserId,
+        });
+
+        await this.eventBus.publish(event);
+
+        this.metricsService.trackLikeOperation(upperType, 'like', 'success');
+      } finally {
+        // Release lock
+        await this.redisService.releaseLikeLock(upperType, contentId, userId);
+      }
+    } catch (error) {
+      this.metricsService.trackLikeOperation(upperType, 'like', 'error');
+      throw error;
+    } finally {
+      this.metricsService.trackLikeOperationDuration(
+        upperType,
+        'like',
+        Date.now() - startTime,
+      );
     }
-
-    const event = new LikeCreatedEvent({
-      actorId: userId,
-      contentType: upperType,
-      contentId,
-      targetUserId,
-    });
-
-    await this.eventBus.publish(event);
   }
 
   /**
@@ -156,40 +205,84 @@ export class SocialEngagementService {
     userId: string,
   ): Promise<void> {
     const upperType = type.toUpperCase() as ContentType;
+    const startTime = Date.now();
 
-    // Validate content exists
-    await this.validateContentExists(upperType, contentId);
+    try {
+      // Validate content exists
+      await this.validateContentExists(upperType, contentId);
 
-    // Get target user ID based on content type
-    let targetUserId = '';
-    if (upperType === ContentType.POST) {
-      const post = await this.prisma.publishedPost.findUnique({
-        where: { id: contentId },
-        select: { userId: true },
-      });
-      targetUserId = post?.userId || '';
-    } else if (upperType === ContentType.EMOTION) {
-      const emotion = await this.prisma.userEmotion.findUnique({
-        where: { id: contentId },
-        select: { userId: true },
-      });
-      targetUserId = emotion?.userId || '';
-    } else if (upperType === ContentType.COMMENT) {
-      const comment = await this.prisma.comment.findUnique({
-        where: { id: contentId },
-        select: { userId: true },
-      });
-      targetUserId = comment?.userId || '';
+      // Get distributed lock
+      const hasLock = await this.redisService.acquireLikeLock(
+        upperType,
+        contentId,
+        userId,
+      );
+
+      if (!hasLock) {
+        throw new ContentNotLikedError(userId, contentId, upperType);
+      }
+
+      try {
+        // Check if liked
+        const isLiked = await this.redisService.isContentLiked(
+          upperType,
+          contentId,
+          userId,
+        );
+
+        if (!isLiked) {
+          throw new ContentNotLikedError(userId, contentId, upperType);
+        }
+
+        // Remove from Redis set
+        await this.redisService.removeLike(upperType, contentId, userId);
+
+        // Get target user ID based on content type
+        let targetUserId = '';
+        if (upperType === ContentType.POST) {
+          const post = await this.prisma.publishedPost.findUnique({
+            where: { id: contentId },
+            select: { userId: true },
+          });
+          targetUserId = post?.userId || '';
+        } else if (upperType === ContentType.EMOTION) {
+          const emotion = await this.prisma.userEmotion.findUnique({
+            where: { id: contentId },
+            select: { userId: true },
+          });
+          targetUserId = emotion?.userId || '';
+        } else if (upperType === ContentType.COMMENT) {
+          const comment = await this.prisma.comment.findUnique({
+            where: { id: contentId },
+            select: { userId: true },
+          });
+          targetUserId = comment?.userId || '';
+        }
+
+        const event = new LikeDeletedEvent({
+          actorId: userId,
+          contentType: upperType,
+          contentId,
+          targetUserId,
+        });
+
+        await this.eventBus.publish(event);
+
+        this.metricsService.trackLikeOperation(upperType, 'unlike', 'success');
+      } finally {
+        // Release lock
+        await this.redisService.releaseLikeLock(upperType, contentId, userId);
+      }
+    } catch (error) {
+      this.metricsService.trackLikeOperation(upperType, 'unlike', 'error');
+      throw error;
+    } finally {
+      this.metricsService.trackLikeOperationDuration(
+        upperType,
+        'unlike',
+        Date.now() - startTime,
+      );
     }
-
-    const event = new LikeDeletedEvent({
-      actorId: userId,
-      contentType: upperType,
-      contentId,
-      targetUserId,
-    });
-
-    await this.eventBus.publish(event);
   }
 
   /**
@@ -206,27 +299,39 @@ export class SocialEngagementService {
     viewerId?: string,
   ): Promise<void> {
     const upperType = type.toUpperCase() as ContentType;
+    const startTime = Date.now();
 
-    // Validate content exists
-    await this.validateContentExists(upperType, contentId);
+    try {
+      // Validate content exists
+      await this.validateContentExists(upperType, contentId);
 
-    // Insert view record
-    const { isNewView } = await this.viewRepository.insertView(
-      contentId,
-      upperType,
-      viewerHash,
-      viewerId,
-    );
-
-    // Emit content viewed event if it's a new view
-    if (isNewView) {
-      const event = new ContentViewedEvent(
-        contentId,
+      // Track view in Redis
+      const isNewView = await this.redisService.trackView(
         upperType,
+        contentId,
         viewerHash,
-        viewerId,
       );
-      await this.eventBus.publish(event);
+
+      // Emit content viewed event if it's a new view
+      if (isNewView) {
+        const event = new ContentViewedEvent(
+          contentId,
+          upperType,
+          viewerHash,
+          viewerId,
+        );
+        await this.eventBus.publish(event);
+      }
+
+      this.metricsService.trackViewOperation(upperType, 'success');
+    } catch (error) {
+      this.metricsService.trackViewOperation(upperType, 'error');
+      throw error;
+    } finally {
+      this.metricsService.trackViewOperationDuration(
+        upperType,
+        Date.now() - startTime,
+      );
     }
   }
 
