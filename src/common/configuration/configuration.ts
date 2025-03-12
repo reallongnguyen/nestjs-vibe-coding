@@ -26,4 +26,7 @@ export default () => ({
     key: process.env.IMGPROXY_KEY || '',
     salt: process.env.IMGPROXY_SALT || '',
   },
+  monitoring: {
+    apiKey: process.env.MONITORING_API_KEY || '',
+  },
 });

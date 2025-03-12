@@ -5,17 +5,13 @@ import {
   InjectEventBus,
   PageOptionsDto,
 } from 'src/common';
+import { AppError } from 'src/common/errors/app.error';
 import { UserFollow } from '../entities/user-follow.entity';
 import { IUserFollowRepository } from './interfaces/user-follow-repository.interface';
 import { IUserFollowService } from './interfaces/user-follow-service.interface';
 import { FollowerDto } from './dtos/follower.dto';
 import { FollowCountsDto } from './dtos/follow-counts.dto';
-import {
-  SelfFollowError,
-  AlreadyFollowingError,
-  UserFollowNotFoundError,
-  UserNotFoundError,
-} from '../entities/user-follow.error';
+import { USER_FOLLOW_ERRORS } from '../entities/user-follow.errors';
 import { UserFollowedEvent } from '../entities/events/user-followed.event';
 import { UserUnfollowedEvent } from '../entities/events/user-unfollowed.event';
 
@@ -33,7 +29,9 @@ export class UserFollowService implements IUserFollowService {
   ): Promise<UserFollow> {
     // Validate that users are not the same
     if (followerId === followingId) {
-      throw new SelfFollowError(followerId);
+      throw new AppError('self-follow', USER_FOLLOW_ERRORS['self-follow'], {
+        params: { userId: followerId },
+      });
     }
 
     // Check if already following
@@ -43,7 +41,13 @@ export class UserFollowService implements IUserFollowService {
     );
 
     if (isAlreadyFollowing) {
-      throw new AlreadyFollowingError(followerId, followingId);
+      throw new AppError(
+        'already-following',
+        USER_FOLLOW_ERRORS['already-following'],
+        {
+          params: { followerId, followingId },
+        },
+      );
     }
 
     // Check if the user being followed exists
@@ -51,7 +55,13 @@ export class UserFollowService implements IUserFollowService {
       await this.userFollowRepository.getFollowerDetails(followingId);
 
     if (!followingUser) {
-      throw new UserNotFoundError(followingId);
+      throw new AppError(
+        'user-not-found',
+        USER_FOLLOW_ERRORS['user-not-found'],
+        {
+          params: { userId: followingId },
+        },
+      );
     }
 
     // Create follow relationship
@@ -65,7 +75,13 @@ export class UserFollowService implements IUserFollowService {
       await this.userFollowRepository.getFollowerDetails(followerId);
 
     if (!followerDetails) {
-      throw new UserNotFoundError(followerId);
+      throw new AppError(
+        'user-not-found',
+        USER_FOLLOW_ERRORS['user-not-found'],
+        {
+          params: { userId: followerId },
+        },
+      );
     }
 
     // Publish event
@@ -93,7 +109,13 @@ export class UserFollowService implements IUserFollowService {
     );
 
     if (!isFollowing) {
-      throw new UserFollowNotFoundError(followerId, followingId);
+      throw new AppError(
+        'follow-not-found',
+        USER_FOLLOW_ERRORS['follow-not-found'],
+        {
+          params: { followerId, followingId },
+        },
+      );
     }
 
     // Delete follow relationship

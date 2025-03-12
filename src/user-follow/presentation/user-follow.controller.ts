@@ -16,17 +16,20 @@ import {
   RolesGuard,
   PagedResult,
   PageOptionsDto,
-  ErrorResponse,
-  RestExceptionFilter,
-  AuthContextUser,
   CreatedResponse,
   OkResponse,
+  AuthContextUser,
 } from 'src/common';
+import {
+  COMMON_ERRORS,
+  GlobalErrorFilter,
+  ErrorResponse,
+} from 'src/common/errors';
 import { UserFollowService } from '../services/user-follow.service';
 import { FollowerDto } from './dtos/follower.dto';
 import { FollowCountsDto } from './dtos/follow-counts.dto';
-import { userFollowErrorMap } from '../entities/user-follow-error.map';
 import { IsFollowingDto } from './dtos/is-following.dto';
+import { USER_FOLLOW_ERRORS } from '../entities/user-follow.errors';
 
 @ApiTags('User Follow')
 @Controller({
@@ -34,8 +37,8 @@ import { IsFollowingDto } from './dtos/is-following.dto';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseFilters(new RestExceptionFilter(userFollowErrorMap))
-@ErrorResponse('common', userFollowErrorMap)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class UserFollowController {
   constructor(private readonly userFollowService: UserFollowService) {}
 
@@ -43,7 +46,11 @@ export class UserFollowController {
   @ApiOperation({ summary: 'Follow a user' })
   @ApiParam({ name: 'targetUserId', description: 'ID of the user to follow' })
   @CreatedResponse(null)
-  @ErrorResponse('user-follow.followUser', userFollowErrorMap)
+  @ErrorResponse({
+    'self-follow': USER_FOLLOW_ERRORS['self-follow'],
+    'already-following': USER_FOLLOW_ERRORS['already-following'],
+    'user-not-found': USER_FOLLOW_ERRORS['user-not-found'],
+  })
   async followUser(
     @AuthContextUser('id') currentUserId: string,
     @Param('targetUserId') targetUserId: string,
@@ -56,7 +63,9 @@ export class UserFollowController {
   @ApiOperation({ summary: 'Unfollow a user' })
   @ApiParam({ name: 'targetUserId', description: 'ID of the user to unfollow' })
   @OkResponse(null)
-  @ErrorResponse('user-follow.unfollowUser', userFollowErrorMap)
+  @ErrorResponse({
+    'follow-not-found': USER_FOLLOW_ERRORS['follow-not-found'],
+  })
   async unfollowUser(
     @AuthContextUser('id') currentUserId: string,
     @Param('targetUserId') targetUserId: string,
@@ -72,6 +81,9 @@ export class UserFollowController {
     description: 'ID of the user being followed',
   })
   @OkResponse(IsFollowingDto)
+  @ErrorResponse({
+    'user-not-found': USER_FOLLOW_ERRORS['user-not-found'],
+  })
   async isFollowing(
     @Param('userId') userId: string,
     @Param('targetUserId') targetUserId: string,
@@ -87,6 +99,9 @@ export class UserFollowController {
   @ApiOperation({ summary: 'Get followers of a user' })
   @ApiParam({ name: 'userId', description: 'ID of the user' })
   @OkResponse(PagedResult)
+  @ErrorResponse({
+    'user-not-found': USER_FOLLOW_ERRORS['user-not-found'],
+  })
   async getFollowers(
     @Param('userId') userId: string,
     @Query() pageOptions: PageOptionsDto,
@@ -95,7 +110,6 @@ export class UserFollowController {
       userId,
       pageOptions,
     );
-
     return PagedResult.transform(followers, FollowerDto.fromService);
   }
 
@@ -103,6 +117,9 @@ export class UserFollowController {
   @ApiOperation({ summary: 'Get users followed by a user' })
   @ApiParam({ name: 'userId', description: 'ID of the user' })
   @OkResponse(PagedResult)
+  @ErrorResponse({
+    'user-not-found': USER_FOLLOW_ERRORS['user-not-found'],
+  })
   async getFollowing(
     @Param('userId') userId: string,
     @Query() pageOptions: PageOptionsDto,
@@ -111,7 +128,6 @@ export class UserFollowController {
       userId,
       pageOptions,
     );
-
     return PagedResult.transform(following, FollowerDto.fromService);
   }
 
@@ -119,6 +135,9 @@ export class UserFollowController {
   @ApiOperation({ summary: 'Get follower and following counts for a user' })
   @ApiParam({ name: 'userId', description: 'ID of the user' })
   @OkResponse(FollowCountsDto)
+  @ErrorResponse({
+    'user-not-found': USER_FOLLOW_ERRORS['user-not-found'],
+  })
   async getFollowCounts(
     @Param('userId') userId: string,
   ): Promise<FollowCountsDto> {

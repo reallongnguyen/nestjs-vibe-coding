@@ -52,7 +52,7 @@ export const PaginatedResponse = <DataDto extends Type<unknown>>(
           { $ref: getSchemaPath(PagedResult) },
           {
             properties: {
-              items: {
+              data: {
                 type: 'array',
                 items: { $ref: getSchemaPath(dataDto) },
               },
