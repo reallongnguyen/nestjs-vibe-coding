@@ -3,7 +3,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Logger } from 'nestjs-pino';
 import { Retry } from 'src/common/decorators/retry.decorator';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { InjectEventBus, IEventBus } from 'src/common/event-bus';
+import { InjectEventBus, IEventBus } from 'src/common/event-manager';
 
 import { FeedContentType } from '../entities/feed.entity';
 import { ContentProcessedEvent } from '../entities/events/content.event';

@@ -1,10 +1,13 @@
-import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
+import {
+  BaseEvent,
+  SocialEventSchemas,
+  ContentProcessedPayload,
+} from 'src/common/event-manager';
+import { v4 as uuid } from 'uuid';
 import { FeedContentType } from '../feed.entity';
 
-export class PostPublishedEvent extends BaseEvent {
-  constructor(public readonly postId: string) {
-    super();
-  }
+export class PostPublishedEvent {
+  constructor(public readonly postId: string) {}
 
   eventName(): string {
     return 'post.published';
@@ -17,10 +20,8 @@ export class PostPublishedEvent extends BaseEvent {
   }
 }
 
-export class EmotionCreatedEvent extends BaseEvent {
-  constructor(public readonly emotionId: string) {
-    super();
-  }
+export class EmotionCreatedEvent {
+  constructor(public readonly emotionId: string) {}
 
   eventName(): string {
     return 'emotion.created';
@@ -33,37 +34,37 @@ export class EmotionCreatedEvent extends BaseEvent {
   }
 }
 
-export class ContentProcessedEvent extends BaseEvent {
+export class ContentProcessedEvent extends BaseEvent<ContentProcessedPayload> {
+  private readonly payloadData: ContentProcessedPayload;
+
   constructor(
-    public readonly type: FeedContentType,
-    public readonly id: string,
-    public readonly score: number,
-    public readonly timestamp: Date,
+    type: FeedContentType,
+    id: string,
+    score: number,
+    timestamp: Date,
   ) {
-    super();
-  }
+    super(SocialEventSchemas.CONTENT_PROCESSED, {
+      correlationId: uuid(),
+    });
 
-  eventName(): string {
-    return 'content.processed';
-  }
-
-  toJSON(): any {
-    return {
-      type: this.type,
-      id: this.id,
-      score: this.score,
-      timestamp: this.timestamp,
+    this.payloadData = {
+      type,
+      id,
+      score,
+      timestamp,
     };
+  }
+
+  toJSON(): ContentProcessedPayload {
+    return this.payloadData;
   }
 }
 
-export class PostUpdatedEvent extends BaseEvent {
+export class PostUpdatedEvent {
   constructor(
     public readonly postId: string,
     public readonly updatedAt: Date,
-  ) {
-    super();
-  }
+  ) {}
 
   eventName(): string {
     return 'post.updated';
@@ -77,10 +78,8 @@ export class PostUpdatedEvent extends BaseEvent {
   }
 }
 
-export class PostDeletedEvent extends BaseEvent {
-  constructor(public readonly postId: string) {
-    super();
-  }
+export class PostDeletedEvent {
+  constructor(public readonly postId: string) {}
 
   eventName(): string {
     return 'post.deleted';
@@ -93,10 +92,8 @@ export class PostDeletedEvent extends BaseEvent {
   }
 }
 
-export class EmotionDeletedEvent extends BaseEvent {
-  constructor(public readonly emotionId: string) {
-    super();
-  }
+export class EmotionDeletedEvent {
+  constructor(public readonly emotionId: string) {}
 
   eventName(): string {
     return 'emotion.deleted';

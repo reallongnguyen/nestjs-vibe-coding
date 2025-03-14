@@ -2,13 +2,13 @@ import { Test } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ContentModule } from '../content/content.module';
-import { EventBusModule } from '../common/event-bus/event-bus.module';
+import { EventManagerModule } from '../common/event-manager/event-manager.module';
 
 export async function createTestingApp() {
   const moduleRef = await Test.createTestingModule({
     imports: [
       ContentModule,
-      EventBusModule,
+      EventManagerModule,
       CacheModule.register(),
       ThrottlerModule.forRoot([
         {

@@ -24,8 +24,9 @@ export class FeedDistributionService {
   })
   async distributeContent(content: ContentProcessedEvent): Promise<void> {
     const contentKey = this.createContentKey(content);
+    const contentData = content.toJSON();
 
-    if (content.score === 0) {
+    if (contentData.score === 0) {
       await this.removeFromFeed(contentKey);
       return;
     }
@@ -48,10 +49,12 @@ export class FeedDistributionService {
     }
 
     const contents = await Promise.all(
-      contentKeys.map((key) => this.redis.get(key).then(JSON.parse)),
+      contentKeys.map((key) => this.redis.get(key)),
     );
 
-    return contents.filter(Boolean) as FeedItem[];
+    return contents
+      .filter(Boolean)
+      .map((content) => JSON.parse(content) as FeedItem);
   }
 
   async getTotalFeedCount(): Promise<number> {
@@ -70,22 +73,24 @@ export class FeedDistributionService {
     content: ContentProcessedEvent,
     contentKey: string,
   ): Promise<void> {
+    const contentData = content.toJSON();
     await Promise.all([
-      this.redis.zadd(this.GLOBAL_FEED_KEY, content.score, contentKey),
+      this.redis.zadd(this.GLOBAL_FEED_KEY, contentData.score, contentKey),
       this.redis.setex(
         contentKey,
         this.FEED_TTL,
         JSON.stringify({
-          type: content.type,
-          id: content.id,
-          score: content.score,
-          timestamp: content.timestamp,
+          type: contentData.type,
+          id: contentData.id,
+          score: contentData.score,
+          timestamp: contentData.timestamp,
         }),
       ),
     ]);
   }
 
   private createContentKey(content: ContentProcessedEvent): string {
-    return `feed:content:${content.type}:${content.id}`;
+    const contentData = content.toJSON();
+    return `feed:content:${contentData.type}:${contentData.id}`;
   }
 }

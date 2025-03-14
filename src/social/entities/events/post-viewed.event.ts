@@ -1,4 +1,6 @@
-import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
+import { v4 as uuid } from 'uuid';
+import { BaseEvent } from 'src/common/event-manager/entities/events/base.event';
+import { EventSchema } from 'src/common/event-manager/entities/events/event.interface';
 
 export interface PostViewedEventPayload {
   postId: string;
@@ -6,29 +8,41 @@ export interface PostViewedEventPayload {
   viewerId?: string;
 }
 
-export class PostViewedEvent
-  extends BaseEvent
-  implements PostViewedEventPayload
-{
-  static readonly eventName = 'post.viewed';
+/**
+ * Custom schema for post viewed event
+ */
+const POST_VIEWED_SCHEMA: EventSchema<PostViewedEventPayload> = {
+  eventName: 'post.viewed',
+  schema: {} as PostViewedEventPayload,
+  version: '1.0.0',
+  module: 'social',
+  description: 'Emitted when a post is viewed',
+};
 
+/**
+ * Event emitted when a post is viewed
+ */
+export class PostViewedEvent extends BaseEvent<PostViewedEventPayload> {
+  /**
+   * Create a new PostViewedEvent
+   * @param postId ID of the post that was viewed
+   * @param viewerHash Hash identifying the viewer
+   * @param viewerId Optional ID of the logged-in viewer
+   */
   constructor(
-    readonly postId: string,
-    readonly viewerHash: string,
-    readonly viewerId?: string,
-    params?: {
-      correlationId?: string;
-      metadata?: Record<string, unknown>;
-      occurredOn?: Date;
-    },
+    private readonly postId: string,
+    private readonly viewerHash: string,
+    private readonly viewerId?: string,
   ) {
-    super(params);
+    super(POST_VIEWED_SCHEMA, {
+      correlationId: uuid(),
+    });
   }
 
-  eventName(): string {
-    return PostViewedEvent.eventName;
-  }
-
+  /**
+   * Convert to JSON representation
+   * @returns JSON payload
+   */
   toJSON(): PostViewedEventPayload {
     return {
       postId: this.postId,

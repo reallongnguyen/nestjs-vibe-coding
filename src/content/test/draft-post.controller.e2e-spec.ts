@@ -8,8 +8,7 @@ import { mockUser } from 'src/common/test/mock-user';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { DatabaseHelper } from 'src/common/test/database.helper';
 import { LoggerHelper } from 'src/common/test/logger.helper';
-import { EventBusPort } from 'src/common/event-bus/core/ports/event-bus.port';
-import { EventBusAdapter } from 'src/common/event-manager';
+import { IEventBus, EventBusAdapter } from 'src/common/event-manager';
 import { generateSlug } from '../services/utils/content.utils';
 import { ContentModule } from '../content.module';
 import {
@@ -397,7 +396,7 @@ describe('DraftPostController (Integration)', () => {
   describe('POST /posts/drafts/:id/publish', () => {
     describe('Success cases', () => {
       it('should publish draft post and emit event', async () => {
-        const eventBus = app.get<EventBusPort>(EventBusAdapter);
+        const eventBus = app.get<IEventBus>(EventBusAdapter);
         const publishSpy = jest.spyOn(eventBus, 'publish');
 
         const publishData = {

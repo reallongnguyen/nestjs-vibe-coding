@@ -94,7 +94,7 @@ export class UpdateLikeCountHandler implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  @OnEvent(PostUnlikedEvent.eventName)
+  @OnEvent('post.unliked')
   async handlePostUnliked(event: PostUnlikedEvent) {
     const payload = event.toJSON();
 
@@ -106,7 +106,7 @@ export class UpdateLikeCountHandler implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  @OnEvent(EmotionUnlikedEvent.eventName)
+  @OnEvent('emotion.unliked')
   async handleEmotionUnliked(event: EmotionUnlikedEvent) {
     const payload = event.toJSON();
 

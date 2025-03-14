@@ -1,6 +1,7 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
+import { DeleteImageCommand } from 'src/common/event-manager/entities/events/commands/delete-image.command';
+import { ContentEventSchemas } from 'src/common/event-manager/entities/events/schemas';
 import { FileService } from '../../file.service';
 
 @Injectable()
@@ -9,13 +10,14 @@ export class DeleteImageHandler {
 
   constructor(private readonly fileService: FileService) {}
 
-  @OnEvent(DeleteImageCommand.getEventName())
+  @OnEvent(ContentEventSchemas.DELETE_IMAGE.eventName)
   async execute(command: DeleteImageCommand): Promise<void> {
     try {
-      this.logger.debug(`Deleting image: ${command.imageUrl}`);
-      await this.fileService.deleteFile(command.imageUrl);
+      const { imageUrl } = command.payload;
+      this.logger.debug(`Deleting image: ${imageUrl}`);
+      await this.fileService.deleteFile(imageUrl);
     } catch (error) {
-      this.logger.error(`Failed to delete image: ${command.imageUrl}`, error);
+      this.logger.error(`Failed to delete image: ${error.message}`, error);
       throw error;
     }
   }

@@ -146,250 +146,78 @@ model UserEmotion {
 }
 ```
 
-## Event-Driven Architecture
+## Event System
 
-Prefer use event bus to communicate between modules. Use event bus instead of EventEmitter.
+The application uses an event-driven architecture to decouple modules and handle asynchronous operations.
 
-### Event Bus Configuration
+### Event Manager
+
+The `EventManagerModule` provides event-driven communication between modules. This system replaced the previous `EventBusModule` implementation to improve performance, reliability, and maintainability.
+
+Key components:
+
+- `EventManagerModule`: The main module that provides event handling capabilities
+- `IEventBus`: Interface for event publishing
+- `InjectEventBus`: Decorator for injecting the event bus into services
+- `BaseEvent`: Base class for all events
+- `EventSchema`: Interface for defining event schemas
+- Event handlers: Use the `@OnEvent` decorator from NestJS event-emitter
+
+Usage example:
 
 ```typescript
-// src/common/event-manager/event-bus.module.ts
+// 1. Import EventManagerModule in your module
 @Module({
-  imports: [
-    EventEmitterModule.forRoot({
-      wildcard: true,      // Enable wildcard event listeners
-      delimiter: '.',      // Event name delimiter for namespacing
-      maxListeners: 20,    // Maximum listeners per event
-      verboseMemoryLeak: true, // Log warnings for potential memory leaks
-    }),
-  ],
-  exports: [EVENT_BUS_TOKEN],
+  imports: [EventManagerModule],
+  providers: [MyService]
 })
-export class EventBusModule {}
-```
+export class MyModule {}
 
-### Event Handling Patterns
-
-1. **Publishing Events**
-
-```typescript
-@Injectable()
-export class UserService {
-  constructor(private readonly eventBus: EventBusAdapter) {}
-
-  async createUser(data: CreateUserDto): Promise<User> {
-    const user = await this.userRepository.create(data);
-    
-    // Publish event
-    await this.eventBus.publish(
-      new UserCreatedEvent({
-        userId: user.id,
-        email: user.email,
-      })
-    );
-
-    return user;
-  }
-}
-```
-
-2. **Handling Events**
-
-```typescript
-@Injectable()
-export class UserActivityHandler {
-  constructor(private readonly activityService: UserActivityService) {}
-
-  @OnEvent('user.created')
-  async handleUserCreated(event: EventBusMessage<UserCreatedPayload>) {
-    await this.activityService.logActivity({
-      userId: event.payload.userId,
-      type: UserActivityType.ACCOUNT_CREATED,
-      metadata: event.metadata,
+// 2. Define an event
+export class MyEvent extends BaseEvent<MyPayload> {
+  constructor(private readonly data: MyPayload) {
+    super(MyEventSchema, {
+      correlationId: uuid(),
     });
   }
 
-  @OnEvent('user.*') // Wildcard pattern to handle all user events
-  async logAllUserEvents(event: EventBusMessage<unknown>) {
-    this.logger.debug(`User event received: ${event.eventName}`);
+  toJSON(): MyPayload {
+    return this.data;
   }
 }
-```
 
-3. **Event Validation**
-
-```typescript
-// Define event payload validation in src/event-manager/entities/events/schemas/
-export class UserCreatedPayload {
-  @IsUUID()
-  userId: string;
-
-  @IsEmail()
-  email: string;
-}
-
-// Create event class in business module /entities/events/
-export class UserCreatedEvent extends BaseEvent<
-  typeof IdentityEventSchemas.USER_CREATED.schema
-> {
-  private readonly eventPayload: typeof IdentityEventSchemas.USER_CREATED.schema;
-
-  constructor(
-    user: User,
-    params?: Omit<EventMetadata, 'version' | 'timestamp'>,
-  ) {
-    super(IdentityEventSchemas.USER_CREATED, params);
-    this.eventPayload = {
-      userId: user.id,
-      authId: user.authId,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatar: user.avatar,
-      roles: user.roles,
-      isActive: user.isActive,
-      email: user.email,
-      phone: user.phone,
-    };
-  }
-
-  toJSON() {
-    return this.eventPayload;
-  }
-}
-```
-
-### Best Practices
-
-1. **Event Naming**
-   - Use dot notation for namespacing: `module.entity.action`
-   - Examples: `user.created`, `post.published`, `comment.deleted`
-   - Keep names consistent across the application
-
-2. **Event Payload**
-   - Keep payloads minimal and focused
-   - Include only necessary data
-   - Use proper validation
-   - Consider versioning for schema changes
-
-3. **Error Handling**
-   - Always use try-catch in event handlers
-   - Log errors appropriately
-   - Consider retry mechanisms for critical events
-
-```typescript
+// 3. Publish an event
 @Injectable()
-export class NotificationHandler {
-  @OnEvent('user.created')
-  async handleUserCreated(event: EventBusMessage<UserCreatedPayload>) {
-    try {
-      await this.sendWelcomeEmail(event.payload);
-    } catch (error) {
-      this.logger.error(
-        `Failed to send welcome email to user ${event.payload.userId}`,
-        error.stack,
-      );
-      // Consider retry or fallback mechanism
-    }
+export class MyService {
+  constructor(@InjectEventBus() private readonly eventBus: IEventBus) {}
+
+  async doSomething(): Promise<void> {
+    // Do something
+    await this.eventBus.publish(new MyEvent({ id: '123', data: 'value' }));
   }
 }
-```
 
-4. **Testing Events**
-
-```typescript
-describe('UserService', () => {
-  it('should publish user.created event', async () => {
-    const eventBus = app.get<EventBusAdapter>(EventBusAdapter);
-    const publishSpy = jest.spyOn(eventBus, 'publish');
-
-    await userService.createUser(userData);
-
-    expect(publishSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        eventName: 'user.created',
-        payload: expect.objectContaining({
-          userId: expect.any(String),
-          email: userData.email,
-        }),
-      }),
-    );
-  });
-});
-```
-
-### Common Event Patterns
-
-1. **Notification Events**
-
-```typescript
-// Event payload
-interface NotificationEventPayload {
-  userId: string;
-  type: string;
-  data: Record<string, unknown>;
-}
-
-// Event handler
+// 4. Handle an event
 @Injectable()
-export class NotificationHandler {
-  @OnEvent('*.notification')
-  async handleNotification(event: EventBusMessage<NotificationEventPayload>) {
-    await this.notificationService.send(event.payload);
+export class MyHandler {
+  @OnEvent('my.event.name')
+  async handleEvent(event: MyEvent): Promise<void> {
+    // Handle the event
+    console.log(event.toJSON());
   }
 }
 ```
 
-2. **Audit Events**
+### Migration from EventBusModule
 
-```typescript
-// Event payload
-interface AuditEventPayload {
-  userId: string;
-  action: string;
-  resource: string;
-  changes?: Record<string, unknown>;
-}
+The previous `EventBusModule` has been completely replaced by `EventManagerModule`. The migration involved:
 
-// Event handler
-@Injectable()
-export class AuditHandler {
-  @OnEvent('*.audit')
-  async handleAudit(event: EventBusMessage<AuditEventPayload>) {
-    await this.auditService.log(event.payload);
-  }
-}
-```
+1. Updating module imports to use `EventManagerModule` instead of `EventBusModule`
+2. Migrating event providers and handlers to use the new system
+3. Updating event interfaces and classes
+4. Ensuring backward compatibility during the transition
 
-3. **Cache Invalidation Events**
-
-```typescript
-// Event handler
-@Injectable()
-export class CacheHandler {
-  @OnEvent('*.updated')
-  async handleUpdate(event: EventBusMessage<unknown>) {
-    const cacheKey = this.getCacheKey(event);
-    await this.cacheService.invalidate(cacheKey);
-  }
-}
-```
-
-### Performance Considerations
-
-1. **Async Event Handling**
-   - Use `emitAsync` for asynchronous event handling
-   - Consider using queues for long-running tasks
-   - Monitor event processing times
-
-2. **Memory Management**
-   - Set appropriate maxListeners
-   - Clean up listeners when no longer needed
-   - Monitor for memory leaks
-
-3. **Error Recovery**
-   - Implement retry mechanisms
-   - Use dead letter queues
-   - Log failed events for manual recovery
+All modules now use the new event manager system, and the old event-bus module has been removed.
 
 ## Database Schema
 

@@ -1,4 +1,11 @@
-import { IsDate, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsDate,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { EventSchema } from '../event.interface';
 
 export enum ContentType {
@@ -116,6 +123,23 @@ export class BaseViewEventPayload {
 export class ContentViewedEventPayload extends BaseViewEventPayload {}
 
 /**
+ * Schema for content processed events
+ */
+export class ContentProcessedPayload {
+  @IsEnum(ContentType)
+  type: string;
+
+  @IsUUID()
+  id: string;
+
+  @IsNumber()
+  score: number;
+
+  @IsDate()
+  timestamp: Date;
+}
+
+/**
  * All social related event schemas
  */
 export const SocialEventSchemas = {
@@ -174,6 +198,14 @@ export const SocialEventSchemas = {
     module: 'social',
     description: 'Emitted when content is viewed by a user or anonymous viewer',
   } satisfies EventSchema<ContentViewedEventPayload>,
+
+  CONTENT_PROCESSED: {
+    eventName: 'social.content.processed',
+    schema: new ContentProcessedPayload(),
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when content is processed for the feed',
+  } as EventSchema<ContentProcessedPayload>,
 } as const;
 
 export type SocialEventName =

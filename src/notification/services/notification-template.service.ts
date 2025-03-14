@@ -4,10 +4,9 @@ import {
   NotificationTemplateCreatedEvent,
   NotificationTemplateDeletedEvent,
   NotificationTemplateUpdatedEvent,
-} from '../../common/event-bus/core/domain/events/notification.events';
+} from '../../common/event-manager/entities/events/notification.events';
+import { IEventBus, InjectEventBus } from '../../common/event-manager';
 import {
-  IEventBus,
-  InjectEventBus,
   CreateNotificationTemplateCommand,
   UpdateNotificationTemplateCommand,
   AppError,

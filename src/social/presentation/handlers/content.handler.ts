@@ -47,18 +47,20 @@ export class ContentHandler {
     await this.contentProcessor.removeEmotion(event.emotionId);
   }
 
-  @OnEvent('content.processed')
+  @OnEvent('social.content.processed')
   async handleContentProcessed(event: ContentProcessedEvent): Promise<void> {
     try {
+      const eventData = event.toJSON();
       await this.distributionService.distributeContent(event);
       await this.cacheService.invalidateUserFeeds();
 
       this.logger.log(
-        `Content ${event.id} processed and distributed with score ${event.score}`,
+        `Content ${eventData.id} processed and distributed with score ${eventData.score}`,
       );
     } catch (error) {
+      const eventData = event.toJSON();
       this.logger.error(
-        `Failed to handle processed content ${event.id}: ${error.message}`,
+        `Failed to handle processed content ${eventData.id}: ${error.message}`,
       );
       throw error;
     }

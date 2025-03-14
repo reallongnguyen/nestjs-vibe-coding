@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { EVENT_BUS_TOKEN } from '../src/common/event-manager/entities/tokens';
 
 const mockLogger = {
   log: jest.fn(),
@@ -34,7 +35,7 @@ export const createTestingModule = async (
         useValue: mockRedisService,
       },
       {
-        provide: 'EventBus',
+        provide: EVENT_BUS_TOKEN,
         useValue: mockEventBus,
       },
       ...providers,

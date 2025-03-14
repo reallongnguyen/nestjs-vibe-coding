@@ -165,35 +165,6 @@ Implement notifications for new content from followed users.
 - System handles high-volume creators efficiently
 - User preferences are respected
 
-#### NOT-003.5: Notification Delivery Optimization (3 points)
-
-**Priority**: Medium
-**Dependencies**: NOT-003.2, NOT-003.3, NOT-003.4
-
-**Description**:
-Optimize notification delivery and storage for high-volume scenarios.
-
-**Tasks**:
-
-1. Implement notification batching
-2. Add rate limiting per user
-3. Optimize database queries
-4. Add performance monitoring
-
-**Technical Notes**:
-
-- Use Bull queue for processing
-- Implement proper indexing
-- Add monitoring and alerting
-- Optimize storage usage
-
-**Acceptance Criteria**:
-
-- Notifications are delivered within 5 seconds
-- System handles high notification volume efficiently
-- Storage usage is optimized
-- Performance metrics are tracked
-
 ### REC-001: Gorse Integration Research and POC
 
 **Priority**: High
@@ -737,15 +708,16 @@ Implement a systematic rollout of the new error handling module across all backe
    - FED-001.6: Redis-Based Fallback Strategy
    - REC-001: Gorse Integration Research and POC
    - EVT-001: Event System Short-term Improvements
+   - NOT-003.5: Notification Delivery Optimization
+   - NOT-003.6: Notification Cache Enhancement
+   - EVT-002: Event Bus Module Deprecation
 
 2. Next Priority Tasks:
-   - NOT-003.5: Notification Delivery Optimization
    - REC-002: Gorse Integration Phase 1
    - NOT-004: Notification Module Integration
    - ERR-001: Error Module Rollout
 
 3. Dependencies:
-   - NOT-003.5 can proceed (NOT-003.2, NOT-003.3, NOT-003.4 are complete)
    - REC-002 is ready to start (REC-001 is complete)
    - Remaining FED-001 tasks can proceed in parallel
 

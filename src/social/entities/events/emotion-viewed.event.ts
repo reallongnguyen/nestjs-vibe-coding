@@ -1,4 +1,6 @@
-import { BaseEvent } from 'src/common/event-bus/core/domain/events/base.event';
+import { v4 as uuid } from 'uuid';
+import { BaseEvent } from 'src/common/event-manager/entities/events/base.event';
+import { EventSchema } from 'src/common/event-manager/entities/events/event.interface';
 
 export interface EmotionViewedEventPayload {
   emotionId: string;
@@ -6,29 +8,41 @@ export interface EmotionViewedEventPayload {
   viewerId?: string;
 }
 
-export class EmotionViewedEvent
-  extends BaseEvent
-  implements EmotionViewedEventPayload
-{
-  static readonly eventName = 'emotion.viewed';
+/**
+ * Custom schema for emotion viewed event
+ */
+const EMOTION_VIEWED_SCHEMA: EventSchema<EmotionViewedEventPayload> = {
+  eventName: 'emotion.viewed',
+  schema: {} as EmotionViewedEventPayload,
+  version: '1.0.0',
+  module: 'social',
+  description: 'Emitted when an emotion is viewed',
+};
 
+/**
+ * Event emitted when an emotion is viewed
+ */
+export class EmotionViewedEvent extends BaseEvent<EmotionViewedEventPayload> {
+  /**
+   * Create a new EmotionViewedEvent
+   * @param emotionId ID of the emotion that was viewed
+   * @param viewerHash Hash identifying the viewer
+   * @param viewerId Optional ID of the logged-in viewer
+   */
   constructor(
-    readonly emotionId: string,
-    readonly viewerHash: string,
-    readonly viewerId?: string,
-    params?: {
-      correlationId?: string;
-      metadata?: Record<string, unknown>;
-      occurredOn?: Date;
-    },
+    private readonly emotionId: string,
+    private readonly viewerHash: string,
+    private readonly viewerId?: string,
   ) {
-    super(params);
+    super(EMOTION_VIEWED_SCHEMA, {
+      correlationId: uuid(),
+    });
   }
 
-  eventName(): string {
-    return EmotionViewedEvent.eventName;
-  }
-
+  /**
+   * Convert to JSON representation
+   * @returns JSON payload
+   */
   toJSON(): EmotionViewedEventPayload {
     return {
       emotionId: this.emotionId,

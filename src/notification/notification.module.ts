@@ -68,7 +68,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EventBusModule } from 'src/common/event-bus/event-bus.module';
+import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { NotificationController } from './presentation/notification.controller';
 import { NotificationPreferenceController } from './presentation/notification-preference.controller';
 import { NotificationTemplateController } from './presentation/notification-template.controller';
@@ -111,7 +111,7 @@ import { NotificationRateLimitService } from './services/notification-rate-limit
         }),
       },
     ]),
-    EventBusModule,
+    EventManagerModule,
   ],
   controllers: [
     NotificationController,

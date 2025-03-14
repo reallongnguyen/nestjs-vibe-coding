@@ -49,12 +49,14 @@ export class FeedCacheService {
   async handleContentProcessed(event: ContentProcessedEvent): Promise<void> {
     try {
       await this.invalidateUserFeeds();
+      const payload = event.toJSON();
       this.logger.log(
-        `Cache invalidated for content: ${event.type} ${event.id}`,
+        `Cache invalidated for content: ${payload.type} ${payload.id}`,
       );
     } catch (error) {
+      const payload = event.toJSON();
       this.logger.error(
-        `Failed to invalidate cache for content ${event.id}: ${error.message}`,
+        `Failed to invalidate cache for content ${payload.id}: ${error.message}`,
       );
     }
   }

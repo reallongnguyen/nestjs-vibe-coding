@@ -33,24 +33,26 @@ export class SocialEngagementHandler {
     });
   }
 
-  @OnEvent(PostUnlikedEvent.eventName)
+  @OnEvent('post.unliked')
   async handlePostUnliked(event: PostUnlikedEvent): Promise<void> {
-    this.logger.debug(`Post unliked: ${event.postId} by ${event.userId}`);
+    const payload = event.toJSON();
+    this.logger.debug(`Post unliked: ${payload.postId} by ${payload.userId}`);
 
     // Update post metadata or perform other actions
-    await this.publishedPostService.updateEngagementMetadata(event.postId, {
-      lastEngagementAt: event.occurredOn,
+    await this.publishedPostService.updateEngagementMetadata(payload.postId, {
+      lastEngagementAt: new Date(),
     });
   }
 
-  @OnEvent(PostViewedEvent.eventName)
+  @OnEvent('post.viewed')
   async handlePostViewed(event: PostViewedEvent): Promise<void> {
-    this.logger.debug(`Post viewed: ${event.postId}`);
+    const payload = event.toJSON();
+    this.logger.debug(`Post viewed: ${payload.postId}`);
 
     // Update post metadata or perform other actions
-    await this.publishedPostService.updateEngagementMetadata(event.postId, {
-      lastViewedAt: event.occurredOn,
-      lastEngagementAt: event.occurredOn,
+    await this.publishedPostService.updateEngagementMetadata(payload.postId, {
+      lastViewedAt: new Date(),
+      lastEngagementAt: new Date(),
     });
   }
 }
