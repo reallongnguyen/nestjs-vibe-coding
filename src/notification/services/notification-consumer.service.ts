@@ -21,6 +21,7 @@ import {
 } from '../entities/notification-preference.entity';
 import { NotificationTemplateService } from './notification-template.service';
 import { TemplateLanguage } from '../entities/notification-template.domain';
+import { NotificationMetricsService } from './notification-metrics.service';
 
 @Injectable()
 export class NotificationConsumerService {
@@ -39,6 +40,7 @@ export class NotificationConsumerService {
     private readonly mutex: RedlockMutex,
     private readonly preferenceService: NotificationPreferenceService,
     private readonly templateService: NotificationTemplateService,
+    private readonly metricsService: NotificationMetricsService,
     @InjectQueue('notification') private readonly notiQueue: Queue,
   ) {
     this.mergeNotificationThreshold = this.configService.get<number>(
@@ -128,6 +130,9 @@ export class NotificationConsumerService {
         this.logger.verbose(
           `notification: notification-consumer.service: upsertNotification: skipped - user ${inputClone.userId} has disabled ${inputClone.type} notifications`,
         );
+
+        this.metricsService.incrementCounter(inputClone.type, 'skipped');
+
         return;
       }
 

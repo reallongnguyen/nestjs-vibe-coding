@@ -32,3 +32,17 @@ export class NotificationUpdateError extends AppError {
     });
   }
 }
+
+export class NotificationProducerError extends AppError {
+  constructor(
+    message: string,
+    public readonly code: string,
+    cause?: Error,
+  ) {
+    super('notification.producer.failed', {
+      message,
+      code,
+      cause: cause?.message,
+    });
+  }
+}

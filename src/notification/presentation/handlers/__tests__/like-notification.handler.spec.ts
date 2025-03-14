@@ -3,56 +3,21 @@ import { Logger } from 'nestjs-pino';
 import { ContentType } from 'src/common/event-manager';
 import { LikeCreatedEvent } from 'src/social/entities/events/social.events';
 import { LikeNotificationHandler } from '../like-notification.handler';
-import { NotificationConsumerService } from '../../../services/notification-consumer.service';
-import { NotificationTemplateService } from '../../../services/notification-template.service';
-import { NotificationPreferenceService } from '../../../services/notification-preference.service';
-import {
-  NotificationType,
-  NotificationChannel,
-} from '../../../entities/notification-preference.entity';
-import { NotificationCreateInput } from '../../dtos/notification.dto';
+import { NotificationProducerService } from '../../../services/notification-producer.service';
 
 describe('LikeNotificationHandler', () => {
   let handler: LikeNotificationHandler;
-  let notificationConsumer: NotificationConsumerService;
-  let preferenceService: NotificationPreferenceService;
+  let notificationProducer: NotificationProducerService;
   let logger: Logger;
-
-  const mockPreference = {
-    id: 'pref-123',
-    userId: '789',
-    type: NotificationType.POST_LIKE,
-    channels: [NotificationChannel.IN_APP],
-    enabled: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LikeNotificationHandler,
         {
-          provide: NotificationConsumerService,
+          provide: NotificationProducerService,
           useValue: {
-            upsertNotificationSerialByKey: jest
-              .fn()
-              .mockResolvedValue(undefined),
-          },
-        },
-        {
-          provide: NotificationTemplateService,
-          useValue: {
-            renderTemplate: jest.fn().mockResolvedValue({
-              text: 'John liked your post',
-              decorators: [],
-            }),
-          },
-        },
-        {
-          provide: NotificationPreferenceService,
-          useValue: {
-            getPreferenceByType: jest.fn().mockResolvedValue(mockPreference),
+            handleLikeCreated: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -66,11 +31,8 @@ describe('LikeNotificationHandler', () => {
     }).compile();
 
     handler = module.get<LikeNotificationHandler>(LikeNotificationHandler);
-    notificationConsumer = module.get<NotificationConsumerService>(
-      NotificationConsumerService,
-    );
-    preferenceService = module.get<NotificationPreferenceService>(
-      NotificationPreferenceService,
+    notificationProducer = module.get<NotificationProducerService>(
+      NotificationProducerService,
     );
     logger = module.get<Logger>(Logger);
   });
@@ -93,88 +55,46 @@ describe('LikeNotificationHandler', () => {
     it('should process like notification successfully', async () => {
       await handler.handleLikeCreated(mockEvent);
 
-      expect(preferenceService.getPreferenceByType).toHaveBeenCalledWith(
-        '789',
-        NotificationType.POST_LIKE,
+      // Check producer service was called
+      expect(notificationProducer.handleLikeCreated).toHaveBeenCalledWith(
+        mockEvent,
       );
 
-      expect(
-        notificationConsumer.upsertNotificationSerialByKey,
-      ).toHaveBeenCalledWith(
+      // Check logging
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Processing like notification',
         expect.objectContaining({
-          key: 'like:post:456',
-          type: NotificationType.POST_LIKE,
-          userId: '789',
-          subjects: [
-            {
-              id: '123',
-              type: 'USER',
-              firstName: 'John',
-              lastName: 'Doe',
-              avatar: undefined,
-            },
-          ],
-          subjectCount: 1,
-          diObject: {
-            id: '456',
-            type: 'post',
-            name: '',
-          },
-          link: '/post/456',
-          metadata: {
-            contentId: '456',
-            contentType: 'post',
-            language: 'EN',
-          },
-        } as NotificationCreateInput),
-      );
-
-      expect(logger.debug).toHaveBeenCalledWith(
-        'notification: processing like notification for user 789',
+          eventId: mockEvent.eventId,
+          targetUserId: '789',
+        }),
       );
       expect(logger.debug).toHaveBeenCalledWith(
-        'notification: like notification processed for user 789',
+        'Like notification forwarded to producer',
+        expect.objectContaining({
+          eventId: mockEvent.eventId,
+          targetUserId: '789',
+        }),
       );
     });
 
-    it('should skip notification when preference is disabled', async () => {
-      jest
-        .spyOn(preferenceService, 'getPreferenceByType')
-        .mockResolvedValueOnce({
-          ...mockPreference,
-          enabled: false,
-        });
-
-      await handler.handleLikeCreated(mockEvent);
-
-      expect(preferenceService.getPreferenceByType).toHaveBeenCalledWith(
-        '789',
-        NotificationType.POST_LIKE,
-      );
-
-      expect(
-        notificationConsumer.upsertNotificationSerialByKey,
-      ).not.toHaveBeenCalled();
-
-      expect(logger.debug).toHaveBeenCalledWith(
-        'notification: processing like notification for user 789',
-      );
-      expect(logger.debug).toHaveBeenCalledWith(
-        'notification: skipping like notification for user 789 (disabled)',
-      );
-    });
-
-    it('should handle errors properly', async () => {
+    it('should handle errors correctly', async () => {
+      // Mock error
       const error = new Error('Test error');
       jest
-        .spyOn(notificationConsumer, 'upsertNotificationSerialByKey')
+        .spyOn(notificationProducer, 'handleLikeCreated')
         .mockRejectedValueOnce(error);
 
+      // Expect the error to be re-thrown
       await expect(handler.handleLikeCreated(mockEvent)).rejects.toThrow(error);
 
+      // Check error logging
       expect(logger.error).toHaveBeenCalledWith(
-        'notification: error processing like notification: Test error',
-        error.stack,
+        'Error processing like notification: Test error',
+        expect.objectContaining({
+          eventId: mockEvent.eventId,
+          stack: expect.any(String),
+          targetUserId: '789',
+        }),
       );
     });
   });

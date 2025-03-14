@@ -12,7 +12,8 @@ import { Retry } from 'src/common';
 
 import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 import { NotificationType } from '../entities/notification-preference.entity';
-import { NotificationPreferenceService } from './notification-preference.service';
+import { NotificationMetricsService } from './notification-metrics.service';
+import { NotificationProducerError } from '../entities/notification.error';
 
 @Injectable()
 export class NotificationProducerService {
@@ -20,7 +21,7 @@ export class NotificationProducerService {
     private readonly logger: Logger,
     private readonly prisma: PrismaService,
     @InjectQueue('notification') private readonly notiQueue: Queue,
-    private readonly preferenceService: NotificationPreferenceService,
+    private readonly metricsService: NotificationMetricsService,
   ) {}
 
   /**
@@ -32,142 +33,171 @@ export class NotificationProducerService {
   async handleLikeCreated(
     event: EventBusMessage<typeof SocialEventSchemas.LIKE_CREATED.schema>,
   ): Promise<void> {
-    const { targetUserId, actorId, contentId, contentType } = event.payload;
+    const timer = this.metricsService.startTimer('like', 'producer');
 
-    if (actorId === targetUserId) {
-      this.logger.debug(
-        `notification: notification-producer.service: handleLikeCreated: skipping because actorId is the same as targetUserId`,
-      );
+    try {
+      const { targetUserId, actorId, contentId, contentType } = event.payload;
 
-      return;
-    }
-
-    // Get actor details
-    const actor = await this.prisma.user.findUnique({
-      where: { id: actorId },
-      select: {
-        firstName: true,
-        lastName: true,
-        avatar: true,
-      },
-    });
-
-    if (!actor) {
-      this.logger.debug(
-        `notification: notification-producer.service: handleLikeCreated: skipping because actor is not found`,
-      );
-
-      return;
-    }
-
-    const notification = new NotificationCreateInput();
-    notification.key = `like:${contentType}:${contentId}`;
-    notification.userId = targetUserId;
-    notification.subjects = [
-      {
-        id: actorId,
-        type: 'USER',
-        firstName: actor.firstName,
-        lastName: actor.lastName,
-        avatar: actor.avatar,
-      },
-    ];
-    notification.subjectCount = 1;
-
-    if (contentType === 'POST') {
-      const post = await this.prisma.publishedPost.findUnique({
-        where: { id: contentId },
-        select: { title: true },
-      });
-
-      if (!post) {
+      if (actorId === targetUserId) {
         this.logger.debug(
-          `notification: notification-producer.service: handleLikeCreated: skipping because post is not found`,
+          `notification: notification-producer.service: handleLikeCreated: skipping because actorId is the same as targetUserId`,
         );
-
+        this.metricsService.incrementCounter('like', 'skipped');
         return;
       }
 
-      notification.type = NotificationType.POST_LIKE;
-
-      notification.diObject = {
-        id: contentId,
-        type: contentType,
-        name: post?.title || 'a post',
-      };
-
-      notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
-    } else if (contentType === 'EMOTION') {
-      const emotion = await this.prisma.userEmotion.findUnique({
-        where: { id: contentId },
-        select: { emotion: true },
-      });
-
-      if (!emotion) {
-        this.logger.debug(
-          `notification: notification-producer.service: handleLikeCreated: skipping because emotion is not found`,
-        );
-
-        return;
-      }
-
-      notification.type = NotificationType.EMOTION_LIKE;
-
-      notification.diObject = {
-        id: contentId,
-        type: contentType,
-        name: emotion?.emotion || 'an emotion',
-      };
-
-      notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
-    } else if (contentType === 'COMMENT') {
-      const comment = await this.prisma.comment.findUnique({
-        where: { id: contentId },
+      // Get actor details
+      const actor = await this.prisma.user.findUnique({
+        where: { id: actorId },
         select: {
-          content: true,
-          postId: true,
-          post: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
+          firstName: true,
+          lastName: true,
+          avatar: true,
         },
       });
 
-      if (!comment) {
+      if (!actor) {
         this.logger.debug(
-          `notification: notification-producer.service: handleLikeCreated: skipping because comment is not found`,
+          `notification: notification-producer.service: handleLikeCreated: skipping because actor is not found`,
         );
-
+        this.metricsService.incrementCounter('like', 'skipped');
         return;
       }
 
-      notification.type = NotificationType.COMMENT_LIKE;
+      const notification = new NotificationCreateInput();
+      notification.key = `like:${contentType}:${contentId}`;
+      notification.userId = targetUserId;
+      notification.subjects = [
+        {
+          id: actorId,
+          type: 'USER',
+          firstName: actor.firstName,
+          lastName: actor.lastName,
+          avatar: actor.avatar,
+        },
+      ];
+      notification.subjectCount = 1;
 
-      notification.diObject = {
-        id: contentId,
-        type: contentType,
-        name: comment?.content || 'a comment',
-      };
+      if (contentType === 'POST') {
+        const post = await this.prisma.publishedPost.findUnique({
+          where: { id: contentId },
+          select: { title: true },
+        });
 
-      notification.prObject = {
-        id: comment?.postId,
-        type: 'POST',
-        name: comment?.post?.title || 'a post',
-      };
+        if (!post) {
+          this.logger.debug(
+            `notification: notification-producer.service: handleLikeCreated: skipping because post is not found`,
+          );
+          this.metricsService.incrementCounter('like', 'skipped');
+          return;
+        }
 
-      notification.link = `/posts/${comment?.postId}?comment=${contentId}`;
+        notification.type = NotificationType.POST_LIKE;
+
+        notification.diObject = {
+          id: contentId,
+          type: contentType,
+          name: post?.title || 'a post',
+        };
+
+        notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
+      } else if (contentType === 'EMOTION') {
+        const emotion = await this.prisma.userEmotion.findUnique({
+          where: { id: contentId },
+          select: { emotion: true },
+        });
+
+        if (!emotion) {
+          this.logger.debug(
+            `notification: notification-producer.service: handleLikeCreated: skipping because emotion is not found`,
+          );
+          this.metricsService.incrementCounter('like', 'skipped');
+          return;
+        }
+
+        notification.type = NotificationType.EMOTION_LIKE;
+
+        notification.diObject = {
+          id: contentId,
+          type: contentType,
+          name: emotion?.emotion || 'an emotion',
+        };
+
+        notification.link = `/${contentType.toLowerCase()}s/${contentId}`;
+      } else if (contentType === 'COMMENT') {
+        const comment = await this.prisma.comment.findUnique({
+          where: { id: contentId },
+          select: {
+            content: true,
+            postId: true,
+            post: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        });
+
+        if (!comment) {
+          this.logger.debug(
+            `notification: notification-producer.service: handleLikeCreated: skipping because comment is not found`,
+          );
+          this.metricsService.incrementCounter('like', 'skipped');
+          return;
+        }
+
+        notification.type = NotificationType.COMMENT_LIKE;
+
+        notification.diObject = {
+          id: contentId,
+          type: contentType,
+          name: comment?.content || 'a comment',
+        };
+
+        notification.prObject = {
+          id: comment?.postId,
+          type: 'POST',
+          name: comment?.post?.title || 'a post',
+        };
+
+        notification.link = `/posts/${comment?.postId}?comment=${contentId}`;
+      }
+
+      await this.notiQueue.add(notification, {
+        attempts: 3,
+        timeout: 60000,
+        backoff: {
+          type: 'exponential',
+          delay: 32000,
+        },
+      });
+
+      this.metricsService.incrementCounter('like', 'success');
+      this.logger.debug('Like notification successfully queued', {
+        eventId: event.eventId,
+        targetUserId,
+        contentType,
+        contentId,
+      });
+    } catch (err) {
+      this.metricsService.incrementCounter('like', 'error');
+
+      const errorCode = 'PRODUCER_ERROR';
+      const errorMessage = `Failed to produce like notification: ${err.message}`;
+
+      this.logger.error(errorMessage, {
+        eventId: event.eventId,
+        targetUserId: event.payload.targetUserId,
+        contentId: event.payload.contentId,
+        contentType: event.payload.contentType,
+        stack: err.stack,
+      });
+
+      throw new NotificationProducerError(errorMessage, errorCode, err);
+    } finally {
+      timer.end();
     }
-
-    await this.notiQueue.add(notification, {
-      attempts: 3,
-      timeout: 60000,
-      backoff: {
-        type: 'exponential',
-        delay: 32000,
-      },
-    });
   }
 
   /**
