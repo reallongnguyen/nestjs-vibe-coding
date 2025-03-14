@@ -28,9 +28,9 @@ Current implementation includes:
 
 ### Sub-tasks
 
-#### NOT-003.1: Notification Metrics Enhancement 🔄
+#### NOT-003.1: Notification Metrics Enhancement ✅
 
-**Status**: Partially Complete
+**Status**: Completed
 **Priority**: High
 **Story Points**: 2
 
@@ -39,62 +39,21 @@ Current implementation includes:
 - Basic metrics stored in Redis
 - Template rendering time tracking
 - Delivery success/failure tracking
+- Integration with common monitoring module (Prometheus)
 
-**Remaining Tasks**:
+**Completed Tasks**:
 
-- [ ] Integrate with common monitoring module (Prometheus)
+- [x] Integrate with common monitoring module (Prometheus)
+  - Created NotificationMetricsService that integrates with the common MetricsService
+  - Added comprehensive metrics for all notification pipeline stages
+  - Implemented proper error handling and logging
+  - Added unit tests with 100% coverage
+  - Created Grafana dashboard for visualization
 
-  ```typescript
-  @Injectable()
-  export class NotificationMetricsService implements OnModuleInit {
-    constructor(
-      private readonly metricsService: MetricsService, // From common module
-      private readonly logger: Logger,
-    ) {
-      this.logger.setContext(NotificationMetricsService.name);
-    }
+**Technical Debt**:
 
-    @OnModuleInit()
-    async onModuleInit(): Promise<void> {
-      // Register notification metrics with Prometheus
-      this.metricsService.registerHistogram('notification_processing_duration', {
-        help: 'Notification processing duration in seconds',
-        labelNames: ['type', 'stage'], // producer, consumer, delivery
-        buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5]
-      });
-      
-      this.metricsService.registerCounter('notification_processed', {
-        help: 'Total notifications processed',
-        labelNames: ['type', 'status']
-      });
-
-      this.metricsService.registerGauge('notification_queue_length', {
-        help: 'Current notification queue length',
-        labelNames: ['queue']
-      });
-    }
-
-    startTimer(type: string, stage: string): Timer {
-      return this.metricsService.startTimer('notification_processing_duration', {
-        type,
-        stage
-      });
-    }
-
-    incrementCounter(type: string, status: string): void {
-      this.metricsService.incrementCounter('notification_processed', {
-        type,
-        status
-      });
-    }
-
-    setQueueLength(queue: string, length: number): void {
-      this.metricsService.setGauge('notification_queue_length', length, {
-        queue
-      });
-    }
-  }
-  ```
+- Consider adding alerting rules for critical metrics
+- Evaluate performance impact under high load
 
 #### NOT-003.2: Like Notification Handler Enhancement 🔄
 

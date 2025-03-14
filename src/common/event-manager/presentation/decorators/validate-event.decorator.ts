@@ -9,11 +9,11 @@ import { BaseEvent } from '../../entities/events/base.event';
  * Provides type safety and runtime validation
  */
 export function ValidateEvent() {
-  return function (
+  return (
     target: any,
     propertyKey: string,
     descriptor: PropertyDescriptor,
-  ): PropertyDescriptor {
+  ): PropertyDescriptor => {
     const originalMethod = descriptor.value;
     const logger = new Logger('ValidateEvent');
 

@@ -89,6 +89,7 @@ import { NotificationTemplateRepository } from './repositories/notification-temp
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
 import { NotificationCounterService } from './services/notification-counter.service';
+import { NotificationMetricsService } from './services/notification-metrics.service';
 
 @Module({
   imports: [
@@ -122,6 +123,7 @@ import { NotificationCounterService } from './services/notification-counter.serv
     NotificationDeliveryService,
     NotificationMonitoringService,
     NotificationCounterService,
+    NotificationMetricsService,
 
     // Repositories
     {
