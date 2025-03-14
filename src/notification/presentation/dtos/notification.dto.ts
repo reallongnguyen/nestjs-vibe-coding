@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsBoolean } from 'class-validator';
 import { PageOptionsDto } from 'src/common';
+import { Transform } from 'class-transformer';
 import {
   Notification,
   NotificationDecorator,
@@ -34,7 +35,27 @@ export class NotificationCreateInput
   metadata?: Record<string, unknown>;
 }
 
-export class NotificationListQuery extends PageOptionsDto {}
+export class NotificationListQuery extends PageOptionsDto {
+  @ApiProperty({
+    description: 'Include viewed notifications',
+    type: 'boolean',
+    required: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  includeViewed?: boolean;
+
+  toDatabaseQuery() {
+    const { skip, take } = super.toDatabaseQuery();
+    return {
+      skip,
+      take,
+      includeViewed: this.includeViewed || false,
+    };
+  }
+}
 
 export class NotificationDecoratorOutput extends NotificationDecorator {
   @ApiProperty({

@@ -91,11 +91,17 @@ import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
 import { NotificationCounterService } from './services/notification-counter.service';
 import { NotificationMetricsService } from './services/notification-metrics.service';
+import { NotificationBatchService } from './services/notification-batch.service';
+import { NotificationBatchProcessor } from './presentation/notification-batch.processor';
+import { NotificationCacheService } from './services/notification-cache.service';
 
 @Module({
   imports: [
     ConfigModule.forFeature(moduleConfig),
-    BullModule.registerQueue({ name: 'notification' }),
+    BullModule.registerQueue(
+      { name: 'notification' },
+      { name: 'notification-batch' },
+    ),
     ClientsModule.registerAsync([
       {
         imports: [ConfigModule.forFeature(moduleConfig)],
@@ -125,6 +131,8 @@ import { NotificationMetricsService } from './services/notification-metrics.serv
     NotificationMonitoringService,
     NotificationCounterService,
     NotificationMetricsService,
+    NotificationBatchService,
+    NotificationCacheService,
 
     // Repositories
     {
@@ -150,6 +158,7 @@ import { NotificationMetricsService } from './services/notification-metrics.serv
     CommentNotificationHandler,
     FollowNotificationHandler,
     NotificationProcessor,
+    NotificationBatchProcessor,
   ],
 })
 export class NotificationModule {}

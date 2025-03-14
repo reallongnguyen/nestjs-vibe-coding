@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectQueue } from '@nestjs/bull';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
-import { Queue } from 'bull';
 import { Prisma } from '@prisma/client';
 import { cloneDeep } from 'lodash';
 import dayjs from 'dayjs';
@@ -41,7 +39,6 @@ export class NotificationConsumerService {
     private readonly preferenceService: NotificationPreferenceService,
     private readonly templateService: NotificationTemplateService,
     private readonly metricsService: NotificationMetricsService,
-    @InjectQueue('notification') private readonly notiQueue: Queue,
   ) {
     this.mergeNotificationThreshold = this.configService.get<number>(
       'notification.mergeNotificationThreshold',

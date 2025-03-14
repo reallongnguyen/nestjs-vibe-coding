@@ -59,17 +59,15 @@ export class NotificationController {
     @AuthContextUser() user: User,
     @Query() query: NotificationListQuery,
   ): Promise<PagedResult<NotificationOutput>> {
-    const { skip, take } = query.toDatabaseQuery();
+    const { skip, take, includeViewed } = query.toDatabaseQuery();
 
-    const notiPagedResult = await this.notificationService.getManyNotifications(
-      {
-        where: { userId: user.id },
-        skip,
-        take,
-      },
+    // Use the optimized method for better performance
+    return this.notificationService.getNotificationsForUser(
+      user.id,
+      take,
+      skip,
+      includeViewed,
     );
-
-    return notiPagedResult;
   }
 
   @Patch('view')

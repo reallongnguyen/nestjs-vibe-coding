@@ -14,6 +14,7 @@ import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 import { NotificationType } from '../entities/notification-preference.entity';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationProducerError } from '../entities/notification.error';
+import { NotificationBatchService } from './notification-batch.service';
 
 @Injectable()
 export class NotificationProducerService {
@@ -22,6 +23,7 @@ export class NotificationProducerService {
     private readonly prisma: PrismaService,
     @InjectQueue('notification') private readonly notiQueue: Queue,
     private readonly metricsService: NotificationMetricsService,
+    private readonly batchService: NotificationBatchService,
   ) {}
 
   /**
@@ -164,14 +166,11 @@ export class NotificationProducerService {
         notification.link = `/posts/${comment?.postId}?comment=${contentId}`;
       }
 
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
+      notification.link = `/posts/${contentId}`;
+      notification.metadata = { postId: contentId };
+
+      // Add notification to batch instead of directly to queue
+      await this.batchService.addToBatch(notification);
 
       this.metricsService.incrementCounter('like', 'success');
       this.logger.debug('Like notification successfully queued', {
@@ -324,14 +323,7 @@ export class NotificationProducerService {
         };
       }
 
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
+      await this.batchService.addToBatch(notification);
 
       this.metricsService.incrementCounter('comment', 'success');
       this.logger.debug('Comment notification successfully queued', {
@@ -508,14 +500,7 @@ export class NotificationProducerService {
         };
       }
 
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
+      await this.batchService.addToBatch(notification);
 
       this.metricsService.incrementCounter('comment_reply', 'success');
       this.logger.debug('Comment reply notification successfully queued', {
@@ -614,14 +599,7 @@ export class NotificationProducerService {
       notification.subjectCount = 1;
       notification.link = `/users/${followerId}/profile`;
 
-      await this.notiQueue.add(notification, {
-        attempts: 3,
-        timeout: 60000,
-        backoff: {
-          type: 'exponential',
-          delay: 32000,
-        },
-      });
+      await this.batchService.addToBatch(notification);
 
       this.metricsService.incrementCounter('follow', 'success');
       this.logger.debug('Follow notification successfully queued', {

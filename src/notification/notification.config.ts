@@ -27,5 +27,14 @@ export default registerAs('notification', () => {
     maxDeliveryRetries:
       parseInt(process.env.NOTIFICATION_MAX_DELIVERY_RETRIES, 10) || 3,
     retryDelayMs: parseInt(process.env.NOTIFICATION_RETRY_DELAY_MS, 10) || 1000,
+    // Cache configuration
+    cache: {
+      ttl: parseInt(process.env.NOTIFICATION_CACHE_TTL, 10) || 60, // 60 seconds default
+      notificationsTtl:
+        parseInt(process.env.NOTIFICATION_CACHE_NOTIFICATIONS_TTL, 10) || 300, // 5 minutes for notifications
+      countsTtl: parseInt(process.env.NOTIFICATION_CACHE_COUNTS_TTL, 10) || 60, // 1 minute for counts
+      cleanupInterval:
+        parseInt(process.env.NOTIFICATION_CACHE_CLEANUP_INTERVAL, 10) || 3600, // 1 hour
+    },
   };
 });
