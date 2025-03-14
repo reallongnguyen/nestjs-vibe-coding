@@ -1183,10 +1183,10 @@
     iterare "1.2.1"
     tslib "2.8.1"
 
-"@nestjs/platform-express@^11.0.5":
-  version "11.0.5"
-  resolved "https://registry.npmjs.org/@nestjs/platform-express/-/platform-express-11.0.5.tgz"
-  integrity sha512-nG/doauKHuy27Y/3pUKfQFC+mB8ezPayZ/4hTDaysITsOVLBrd7xtS0DW68kSufXnLhIkPgAfB9Ddhm/NHux4g==
+"@nestjs/platform-express@^11.0.11":
+  version "11.0.11"
+  resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-11.0.11.tgz#762d743b46addf52e086aa9a872a41ef803d132f"
+  integrity sha512-iv6nH66i/RuRQufg5UUboQ4jQX4NuuePrYQpHB3ueiEIhJm2yLhhNYM6Y2l/76y9woW2eckbiqbzmW/JajAgeQ==
   dependencies:
     cors "2.8.5"
     express "5.0.1"
