@@ -243,7 +243,7 @@ class NotificationRepository {
 **Key Components**:
 
 - `NotificationMetricsService`: Collects and reports metrics
-- Prometheus integration for metrics storage
+- Integration with common/monitoring module
 - Grafana dashboards for visualization
 - Alert rules for performance issues
 
@@ -252,49 +252,78 @@ class NotificationRepository {
 ```typescript
 class NotificationMetricsService {
   constructor(
-    private readonly metricsRegistry: PrometheusRegistry,
+    @Inject(PROMETHEUS_TOKEN) private readonly prometheus: PrometheusService,
     private readonly logger: LoggerService
   ) {
     this.initializeMetrics();
   }
 
   private initializeMetrics(): void {
-    // Define metrics
-    this.deliveryTimeHistogram = new Histogram({
+    // Define metrics using our common monitoring module
+    this.deliveryTimeHistogram = this.prometheus.createHistogram({
       name: 'notification_delivery_time_seconds',
       help: 'Time taken to deliver notifications',
       labelNames: ['type', 'priority'],
       buckets: [0.1, 0.5, 1, 2, 5, 10]
     });
     
-    this.batchSizeHistogram = new Histogram({
+    this.batchSizeHistogram = this.prometheus.createHistogram({
       name: 'notification_batch_size',
       help: 'Size of notification batches',
       buckets: [1, 5, 10, 20, 50, 100]
     });
     
-    this.rateLimitCounter = new Counter({
+    this.rateLimitCounter = this.prometheus.createCounter({
       name: 'notification_rate_limited_total',
       help: 'Total number of rate-limited notifications',
       labelNames: ['user_id', 'type']
     });
     
-    // Register metrics
-    this.metricsRegistry.registerMetric(this.deliveryTimeHistogram);
-    this.metricsRegistry.registerMetric(this.batchSizeHistogram);
-    this.metricsRegistry.registerMetric(this.rateLimitCounter);
+    this.processingDurationHistogram = this.prometheus.createHistogram({
+      name: 'notification_processing_duration_seconds',
+      help: 'Time taken to process notification batches',
+      labelNames: ['batch_size', 'notification_type'],
+      buckets: [0.01, 0.05, 0.1, 0.5, 1, 5]
+    });
+    
+    this.queueLengthGauge = this.prometheus.createGauge({
+      name: 'notification_queue_length',
+      help: 'Current length of notification queues',
+      labelNames: ['queue_name']
+    });
+    
+    this.errorCounter = this.prometheus.createCounter({
+      name: 'notification_errors_total',
+      help: 'Total number of notification errors',
+      labelNames: ['error_type', 'notification_type']
+    });
   }
 
   recordDeliveryTime(type: string, priority: string, timeMs: number): void {
-    this.deliveryTimeHistogram.labels(type, priority).observe(timeMs / 1000);
+    this.deliveryTimeHistogram.observe({ type, priority }, timeMs / 1000);
   }
 
   recordBatchSize(size: number): void {
-    this.batchSizeHistogram.observe(size);
+    this.batchSizeHistogram.observe({}, size);
   }
 
   recordRateLimited(userId: string, type: string): void {
-    this.rateLimitCounter.labels(userId, type).inc();
+    this.rateLimitCounter.inc({ user_id: userId, type });
+  }
+  
+  recordProcessingDuration(batchSize: number, notificationType: string, durationMs: number): void {
+    this.processingDurationHistogram.observe(
+      { batch_size: batchSize.toString(), notification_type: notificationType }, 
+      durationMs / 1000
+    );
+  }
+  
+  updateQueueLength(queueName: string, length: number): void {
+    this.queueLengthGauge.set({ queue_name: queueName }, length);
+  }
+  
+  recordError(errorType: string, notificationType: string): void {
+    this.errorCounter.inc({ error_type: errorType, notification_type: notificationType });
   }
 }
 ```
@@ -353,7 +382,6 @@ CREATE TABLE notification_counts (
 #### 5.1 New Endpoints
 
 ```
-GET /api/v1/notifications/metrics
 GET /api/v1/notifications/rate-limits
 POST /api/v1/notifications/rate-limits/override
 ```
@@ -362,29 +390,95 @@ POST /api/v1/notifications/rate-limits/override
 
 ```json
 {
-  "metrics": {
-    "deliveryTime": {
-      "avg": 0.5,
-      "p95": 2.1,
-      "p99": 4.8
+  "rateLimits": {
+    "perMinute": 10,
+    "perHour": 50,
+    "perDay": 200,
+    "current": {
+      "minute": 3,
+      "hour": 27,
+      "day": 142
     },
-    "batchSize": {
-      "avg": 15.3,
-      "max": 50
-    },
-    "rateLimited": {
-      "total": 120,
-      "byType": {
-        "like": 45,
-        "comment": 35,
-        "follow": 40
-      }
+    "remaining": {
+      "minute": 7,
+      "hour": 23,
+      "day": 58
     }
   }
 }
 ```
 
-### 6. Implementation Plan
+### 6. Monitoring and Alerting
+
+#### 6.1 Grafana Dashboards
+
+We will create dedicated Grafana dashboards for notification metrics with the following panels:
+
+**1. Notification Overview Dashboard**
+
+- Notification volume by type (gauge and trend)
+- Delivery success rate (gauge)
+- Average delivery time (gauge and trend)
+- Error rate (gauge and trend)
+- Rate-limited notifications (gauge and trend)
+
+**2. Performance Dashboard**
+
+- Delivery time histogram
+- Processing time histogram
+- Queue length by queue
+- Batch size distribution
+- Database query performance
+
+**3. User Experience Dashboard**
+
+- Delivery time by notification type
+- Notifications per user (top 10)
+- Rate-limited notifications by user
+- Error rate by notification type
+
+#### 6.2 Alerting Rules
+
+We will configure the following Grafana alerts:
+
+**1. Performance Alerts**
+
+- Delivery time P95 > 5s for 5 minutes
+- Processing time P95 > 1s for 5 minutes
+- Queue length > 1000 for 10 minutes
+- Error rate > 5% for 5 minutes
+
+**2. Resource Alerts**
+
+- Redis memory usage > 80%
+- Database connection pool usage > 80%
+- CPU usage > 70% for 10 minutes
+
+**3. User Experience Alerts**
+
+- Rate-limited notifications > 10% of total for 15 minutes
+- Delivery success rate < 95% for 5 minutes
+
+#### 6.3 Monitoring Integration
+
+The notification metrics will be integrated with our existing monitoring infrastructure:
+
+1. **Metrics Collection**:
+   - All metrics are collected via the common/monitoring module
+   - Metrics are stored in Prometheus
+   - Standard naming conventions are followed
+
+2. **Dashboard Management**:
+   - Dashboards are defined as code
+   - Version controlled with the application
+   - Automatically provisioned during deployment
+
+3. **Alert Management**:
+   - Alerts are defined as code
+   - Integrated with our on-call system
+   - Include runbooks for common issues
+
+### 7. Implementation Plan
 
 1. **Phase 1: Infrastructure Setup**
    - Set up Bull queue for batch processing
@@ -410,7 +504,7 @@ POST /api/v1/notifications/rate-limits/override
    - Performance tests under load
    - Validation of metrics accuracy
 
-### 7. Rollout Strategy
+### 8. Rollout Strategy
 
 1. **Development Environment**
    - Deploy all components
