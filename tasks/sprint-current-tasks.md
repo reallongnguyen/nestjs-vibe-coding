@@ -8,6 +8,394 @@
 **Story Points**: 19
 **Team Velocity**: 20-25 points per sprint
 
+## Task NOT-003: Social Notification System Enhancement
+
+### Current State Analysis
+
+The notification system has a three-stage pipeline architecture:
+
+1. **Producer Stage**: Converts domain events to notification requests
+2. **Consumer Stage**: Processes requests with grouping and rendering
+3. **Delivery Stage**: Delivers notifications through configured channels
+
+Current implementation includes:
+
+- Event bus integration with handlers for likes and comments
+- Notification grouping using notification.key
+- Template-based notification content stored in database
+- Multi-channel delivery system
+- Basic metrics stored in Redis
+
+### Sub-tasks
+
+#### NOT-003.1: Notification Metrics Enhancement 🔄
+
+**Status**: Partially Complete
+**Priority**: High
+**Story Points**: 2
+
+**Current Implementation**:
+
+- Basic metrics stored in Redis
+- Template rendering time tracking
+- Delivery success/failure tracking
+
+**Remaining Tasks**:
+
+- [ ] Integrate with common monitoring module (Prometheus)
+
+  ```typescript
+  @Injectable()
+  export class NotificationMetricsService implements OnModuleInit {
+    constructor(
+      private readonly metricsService: MetricsService, // From common module
+      private readonly logger: Logger,
+    ) {
+      this.logger.setContext(NotificationMetricsService.name);
+    }
+
+    @OnModuleInit()
+    async onModuleInit(): Promise<void> {
+      // Register notification metrics with Prometheus
+      this.metricsService.registerHistogram('notification_processing_duration', {
+        help: 'Notification processing duration in seconds',
+        labelNames: ['type', 'stage'], // producer, consumer, delivery
+        buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5]
+      });
+      
+      this.metricsService.registerCounter('notification_processed', {
+        help: 'Total notifications processed',
+        labelNames: ['type', 'status']
+      });
+
+      this.metricsService.registerGauge('notification_queue_length', {
+        help: 'Current notification queue length',
+        labelNames: ['queue']
+      });
+    }
+
+    startTimer(type: string, stage: string): Timer {
+      return this.metricsService.startTimer('notification_processing_duration', {
+        type,
+        stage
+      });
+    }
+
+    incrementCounter(type: string, status: string): void {
+      this.metricsService.incrementCounter('notification_processed', {
+        type,
+        status
+      });
+    }
+
+    setQueueLength(queue: string, length: number): void {
+      this.metricsService.setGauge('notification_queue_length', length, {
+        queue
+      });
+    }
+  }
+  ```
+
+#### NOT-003.2: Like Notification Handler Enhancement 🔄
+
+**Status**: Partially Complete
+**Priority**: High
+**Story Points**: 2
+
+**Current Implementation**:
+
+```typescript
+@Injectable()
+export class LikeNotificationHandler {
+  constructor(
+    private readonly logger: Logger,
+    private readonly notificationProducer: NotificationProducerService,
+  ) {}
+
+  @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
+  async handleLikeCreated(event: EventBusMessage<LikeCreatedPayload>): Promise<void> {
+    try {
+      // Forward to producer service
+      await this.notificationProducer.produceLikeNotification(event);
+    } catch (err) {
+      this.logger.error(`Error processing like notification: ${err.message}`);
+      throw err;
+    }
+  }
+}
+```
+
+**Remaining Tasks**:
+
+- [ ] Add metrics tracking to handler
+- [ ] Improve error handling with specific error types
+- [ ] Add unit tests for handler
+- [ ] Add structured logging
+
+```typescript
+@Injectable()
+export class EnhancedLikeNotificationHandler {
+  constructor(
+    private readonly logger: Logger,
+    private readonly notificationProducer: NotificationProducerService,
+    private readonly metricsService: NotificationMetricsService,
+  ) {
+    this.logger.setContext(EnhancedLikeNotificationHandler.name);
+  }
+
+  @OnEvent(SocialEventSchemas.LIKE_CREATED.eventName)
+  async handleLikeCreated(event: EventBusMessage<LikeCreatedPayload>): Promise<void> {
+    const timer = this.metricsService.startTimer('like', 'handler');
+    
+    try {
+      this.logger.debug('Processing like notification', {
+        eventId: event.eventId,
+        contentType: event.payload.contentType,
+        targetUserId: event.payload.targetUserId
+      });
+      
+      await this.notificationProducer.produceLikeNotification(event);
+      
+      this.metricsService.incrementCounter('like', 'success');
+      this.logger.debug('Like notification processed successfully');
+    } catch (err) {
+      this.metricsService.incrementCounter('like', 'error');
+      
+      if (err instanceof NotificationProducerError) {
+        this.logger.error(`Producer error: ${err.message}`, {
+          eventId: event.eventId,
+          errorCode: err.code
+        });
+      } else {
+        this.logger.error(`Unexpected error processing like notification: ${err.message}`, {
+          eventId: event.eventId,
+          stack: err.stack
+        });
+      }
+      
+      throw err;
+    } finally {
+      timer.end();
+    }
+  }
+}
+```
+
+#### NOT-003.3: Comment Notification Handler Enhancement 🔄
+
+**Status**: Partially Complete
+**Priority**: High
+**Story Points**: 2
+
+**Current Implementation**:
+
+```typescript
+@Injectable()
+export class CommentNotificationHandler {
+  constructor(
+    private readonly logger: Logger,
+    private readonly notificationProducer: NotificationProducerService,
+  ) {}
+
+  @OnEvent(SocialEventSchemas.COMMENT_CREATED.eventName)
+  async handleCommentCreated(event: EventBusMessage<CommentCreatedPayload>): Promise<void> {
+    try {
+      await this.notificationProducer.produceCommentNotification(event);
+    } catch (err) {
+      this.logger.error(`Error processing comment notification: ${err.message}`);
+      throw err;
+    }
+  }
+}
+```
+
+**Remaining Tasks**:
+
+- [ ] Add metrics tracking to handler
+- [ ] Improve error handling with specific error types
+- [ ] Add unit tests for handler
+- [ ] Add structured logging
+
+```typescript
+@Injectable()
+export class EnhancedCommentNotificationHandler {
+  constructor(
+    private readonly logger: Logger,
+    private readonly notificationProducer: NotificationProducerService,
+    private readonly metricsService: NotificationMetricsService,
+  ) {
+    this.logger.setContext(EnhancedCommentNotificationHandler.name);
+  }
+
+  @OnEvent(SocialEventSchemas.COMMENT_CREATED.eventName)
+  async handleCommentCreated(event: EventBusMessage<CommentCreatedPayload>): Promise<void> {
+    const timer = this.metricsService.startTimer('comment', 'handler');
+    
+    try {
+      this.logger.debug('Processing comment notification', {
+        eventId: event.eventId,
+        commentId: event.payload.commentId,
+        targetUserId: event.payload.targetUserId
+      });
+      
+      await this.notificationProducer.produceCommentNotification(event);
+      
+      this.metricsService.incrementCounter('comment', 'success');
+      this.logger.debug('Comment notification processed successfully');
+    } catch (err) {
+      this.metricsService.incrementCounter('comment', 'error');
+      
+      if (err instanceof NotificationProducerError) {
+        this.logger.error(`Producer error: ${err.message}`, {
+          eventId: event.eventId,
+          errorCode: err.code
+        });
+      } else {
+        this.logger.error(`Unexpected error processing comment notification: ${err.message}`, {
+          eventId: event.eventId,
+          stack: err.stack
+        });
+      }
+      
+      throw err;
+    } finally {
+      timer.end();
+    }
+  }
+}
+```
+
+### Technical Requirements
+
+1. **Architecture Alignment**:
+   - Follow existing Producer → Consumer → Delivery pipeline
+   - Maintain clear separation of responsibilities
+   - Use proper dependency injection
+   - Follow existing error handling patterns
+
+2. **Performance**:
+   - Handler processing < 50ms
+   - Proper error handling and logging
+   - Minimal memory footprint
+   - No blocking operations
+
+3. **Monitoring**:
+   - Integration with Prometheus
+   - Track processing duration per stage
+   - Monitor success/failure rates
+   - Track queue lengths
+
+### Implementation Guidelines
+
+1. **Handler Pattern**:
+
+   ```typescript
+   @Injectable()
+   export class NotificationHandler {
+     constructor(
+       private readonly logger: Logger,
+       private readonly notificationProducer: NotificationProducerService,
+       private readonly metricsService: NotificationMetricsService,
+     ) {}
+
+     @OnEvent('event.name')
+     async handleEvent(event: EventBusMessage<Payload>): Promise<void> {
+       const timer = this.metricsService.startTimer('type', 'handler');
+       
+       try {
+         // Log event details
+         // Forward to producer
+         // Track success
+       } catch (error) {
+         // Track failure
+         // Log detailed error
+         throw error;
+       } finally {
+         timer.end();
+       }
+     }
+   }
+   ```
+
+2. **Error Handling**:
+   - Define specific error types
+   - Log structured error information
+   - Include event context in logs
+   - Track error metrics
+
+3. **Testing Strategy**:
+   - Unit test each handler
+   - Mock dependencies
+   - Test error scenarios
+   - Verify metrics tracking
+
+### Testing Strategy
+
+1. **Unit Tests**:
+   - Test each handler in isolation
+   - Verify template rendering
+   - Test aggregation logic
+   - Validate event handling
+
+2. **Integration Tests**:
+   - Test end-to-end notification flow
+   - Verify MQTT delivery
+   - Test batch processing
+   - Validate error handling
+
+3. **Performance Tests**:
+   - Measure notification latency
+   - Test under high load
+   - Verify batch processing
+   - Monitor resource usage
+
+### Documentation Requirements
+
+1. **Technical Documentation**:
+   - Architecture overview
+   - Component interactions
+   - Database schema
+   - API specifications
+
+2. **Operational Documentation**:
+   - Setup guide
+   - Monitoring guide
+   - Troubleshooting guide
+   - Performance tuning
+
+## Implementation Progress
+
+### NOT-003.2: Like Notification Implementation ✅
+
+**Status**: Completed
+**Phase**: Done
+
+**Completed Items**:
+
+- [x] Implemented `LikeNotificationHandler` with proper error handling
+- [x] Added comprehensive unit tests for the handler
+- [x] Integrated with notification preferences system
+- [x] Implemented proper type safety and validation
+- [x] Removed redundant template file in favor of database storage
+- [x] Templates properly stored in database with i18n support
+- [x] Integrated with event bus system
+- [x] Added proper logging and error tracking
+
+**Technical Debt**:
+
+- Consider adding performance monitoring for template rendering
+- Consider implementing template hot-reload mechanism
+
+### NOT-003.3: Comment Notification Implementation 🚧
+
+**Status**: Not Started
+**Phase**: Analysis
+
+### NOT-003.4: Follower Content Notification Implementation 🚧
+
+**Status**: Not Started
+**Phase**: Analysis
+
 ## Business Value
 
 - Increase user engagement through immediate feedback
@@ -112,438 +500,6 @@ export class NotificationPreferencesDto {
 }
 ```
 
-2. **Base Notification Handler**:
-
-```typescript
-@Injectable()
-export abstract class BaseNotificationHandler<T extends Event> implements OnModuleInit {
-  constructor(
-    protected readonly logger: Logger,
-    protected readonly templateEngine: NotificationTemplateEngine,
-    protected readonly mqttService: MqttService,
-    protected readonly redis: RedisService,
-    protected readonly metrics: MetricsService,
-    protected readonly userPreferences: UserPreferencesService,
-  ) {
-    this.logger.setContext(this.constructor.name);
-  }
-
-  @ValidateEvent()
-  async process(event: T): Promise<void> {
-    const timer = this.metrics.startTimer('notification_processing');
-    const traceId = event.metadata.traceId;
-
-    try {
-      this.logger.debug(`Processing ${this.type} notification`, { traceId });
-
-      // Check rate limits
-      if (await this.isRateLimited(event)) {
-        this.logger.warn(`Rate limit exceeded for ${this.type}`, { traceId });
-        return;
-      }
-
-      // Check user preferences
-      if (!await this.shouldNotifyUser(event)) {
-        this.logger.debug(`Notification disabled for user`, { traceId });
-        return;
-      }
-
-      // Generate notification
-      const notification = await this.generateNotification(event);
-
-      // Check for duplicates
-      if (await this.isDuplicate(notification)) {
-        this.logger.debug(`Duplicate notification detected`, { traceId });
-        return;
-      }
-
-      // Store notification
-      await this.storeNotification(notification);
-
-      // Deliver notification
-      await this.deliverNotification(notification);
-
-      // Track metrics
-      timer.end();
-      this.metrics.incrementCounter('notifications_sent', { 
-        type: this.type,
-        status: 'success'
-      });
-    } catch (error) {
-      this.metrics.incrementCounter('notifications_failed', { 
-        type: this.type,
-        error: error.name
-      });
-      await this.handleError(error, event);
-    }
-  }
-
-  protected abstract generateNotification(event: T): Promise<Notification>;
-  protected abstract get type(): NotificationType;
-
-  protected async isRateLimited(event: T): Promise<boolean> {
-    const key = `ratelimit:${this.type}:${event.metadata.userId}`;
-    const limit = await this.getRateLimit();
-    return this.redis.isRateLimited(key, limit);
-  }
-
-  protected async isDuplicate(notification: Notification): Promise<boolean> {
-    if (!notification.metadata.deduplicationKey) return false;
-    
-    const key = `dedup:${notification.metadata.deduplicationKey}`;
-    const ttl = notification.metadata.ttl || 3600;
-    return this.redis.setNX(key, '1', ttl);
-  }
-
-  protected async storeNotification(notification: Notification): Promise<void> {
-    await this.redis.hSet(
-      `notifications:${notification.userId}`,
-      notification.id,
-      JSON.stringify(notification)
-    );
-  }
-
-  protected async deliverNotification(notification: Notification): Promise<void> {
-    const channels = await this.userPreferences.getNotificationChannels(
-      notification.userId,
-      notification.type
-    );
-
-    await Promise.all(
-      channels.map(channel => this.deliverToChannel(notification, channel))
-    );
-  }
-
-  protected async deliverToChannel(
-    notification: Notification,
-    channel: NotificationChannel
-  ): Promise<void> {
-    switch (channel) {
-      case NotificationChannel.MQTT:
-        await this.mqttService.publish(
-          `notifications/${notification.userId}`,
-          notification,
-          { qos: 1 }
-        );
-        break;
-      // Add other channels as needed
-    }
-  }
-
-  protected async handleError(error: Error, event: T): Promise<void> {
-    this.logger.error(
-      `Failed to process ${this.type} notification`,
-      error,
-      { traceId: event.metadata.traceId }
-    );
-
-    // Store failed event for retry
-    await this.redis.lPush(
-      `notifications:failed:${this.type}`,
-      JSON.stringify({ event, error: error.message })
-    );
-  }
-
-  @OnModuleInit()
-  async onModuleInit(): Promise<void> {
-    // Register metrics
-    this.metrics.registerCounter(`notifications_sent`, {
-      help: `Total notifications sent by type`,
-      labelNames: ['type', 'status']
-    });
-
-    this.metrics.registerCounter(`notifications_failed`, {
-      help: `Total failed notifications by type`,
-      labelNames: ['type', 'error']
-    });
-
-    this.metrics.registerHistogram(`notification_processing_duration`, {
-      help: `Notification processing duration in seconds`,
-      labelNames: ['type'],
-      buckets: [0.1, 0.5, 1, 2, 5]
-    });
-  }
-}
-```
-
-3. **Template Engine**:
-
-```typescript
-@Injectable()
-export class NotificationTemplateEngine {
-  private readonly cache: Map<string, CompiledTemplate>;
-  private readonly defaultTTL = 3600; // 1 hour
-
-  constructor(
-    private readonly logger: Logger,
-    private readonly redis: RedisService,
-    private readonly i18n: I18nService,
-    private readonly config: ConfigService,
-    private readonly metrics: MetricsService,
-  ) {
-    this.logger.setContext(NotificationTemplateEngine.name);
-    this.cache = new Map();
-  }
-
-  @Cacheable('notification:templates', { ttl: 3600 })
-  async render(
-    templateName: string,
-    data: NotificationData,
-    options: RenderOptions = {}
-  ): Promise<string> {
-    const timer = this.metrics.startTimer('template_rendering');
-
-    try {
-      const template = await this.getTemplate(
-        templateName,
-        data.locale || this.config.get('defaultLocale')
-      );
-
-      const rendered = await template.compile({
-        ...data,
-        i18n: this.i18n.getTranslations(data.locale),
-        helpers: this.getTemplateHelpers()
-      });
-
-      timer.end();
-      return rendered;
-    } catch (error) {
-      this.metrics.incrementCounter('template_errors', {
-        template: templateName,
-        error: error.name
-      });
-      throw new TemplateRenderingError(
-        `Failed to render template ${templateName}`,
-        error
-      );
-    }
-  }
-
-  private async getTemplate(
-    name: string,
-    locale: string
-  ): Promise<CompiledTemplate> {
-    const cacheKey = `template:${name}:${locale}`;
-    
-    // Check memory cache first
-    let template = this.cache.get(cacheKey);
-    if (template) return template;
-
-    // Check Redis cache
-    const cached = await this.redis.get(cacheKey);
-    if (cached) {
-      template = this.compileTemplate(JSON.parse(cached));
-      this.cache.set(cacheKey, template);
-      return template;
-    }
-
-    // Load and compile template
-    template = await this.loadAndCompileTemplate(name, locale);
-    
-    // Cache in Redis and memory
-    await this.redis.setEx(
-      cacheKey,
-      this.defaultTTL,
-      JSON.stringify(template.source)
-    );
-    this.cache.set(cacheKey, template);
-
-    return template;
-  }
-
-  private async loadAndCompileTemplate(
-    name: string,
-    locale: string
-  ): Promise<CompiledTemplate> {
-    const source = await this.loadTemplateSource(name, locale);
-    return this.compileTemplate(source);
-  }
-
-  private getTemplateHelpers(): Record<string, Function> {
-    return {
-      formatDate: (date: Date, format?: string) => {
-        return dayjs(date).format(format || 'YYYY-MM-DD HH:mm:ss');
-      },
-      truncate: (text: string, length: number) => {
-        return text.length > length
-          ? text.substring(0, length - 3) + '...'
-          : text;
-      },
-      // Add more helpers as needed
-    };
-  }
-
-  @OnModuleInit()
-  async onModuleInit(): Promise<void> {
-    // Register metrics
-    this.metrics.registerHistogram('template_rendering_duration', {
-      help: 'Template rendering duration in seconds',
-      labelNames: ['template'],
-      buckets: [0.01, 0.05, 0.1, 0.5, 1]
-    });
-
-    this.metrics.registerCounter('template_errors', {
-      help: 'Template rendering errors',
-      labelNames: ['template', 'error']
-    });
-  }
-}
-```
-
-4. **MQTT Service**:
-
-```typescript
-@Injectable()
-export class MqttService implements OnModuleInit, OnModuleDestroy {
-  private client: mqtt.Client;
-  private readonly subscriptions = new Map<string, Function[]>();
-  private readonly reconnectDelay = 1000;
-  private readonly maxReconnectAttempts = 10;
-
-  constructor(
-    private readonly logger: Logger,
-    private readonly config: ConfigService,
-    private readonly metrics: MetricsService,
-  ) {
-    this.logger.setContext(MqttService.name);
-  }
-
-  async publish(
-    topic: string,
-    message: unknown,
-    options: mqtt.IClientPublishOptions = {}
-  ): Promise<void> {
-    const timer = this.metrics.startTimer('mqtt_publish');
-
-    try {
-      const payload = typeof message === 'string'
-        ? message
-        : JSON.stringify(message);
-
-      await new Promise<void>((resolve, reject) => {
-        this.client.publish(
-          topic,
-          payload,
-          { qos: 1, ...options },
-          (error) => {
-            if (error) {
-              reject(error);
-              return;
-            }
-            resolve();
-          }
-        );
-      });
-
-      timer.end();
-      this.metrics.incrementCounter('mqtt_messages_published', { topic });
-    } catch (error) {
-      this.metrics.incrementCounter('mqtt_publish_errors', {
-        topic,
-        error: error.name
-      });
-      throw new MqttPublishError(
-        `Failed to publish message to ${topic}`,
-        error
-      );
-    }
-  }
-
-  async batchPublish(
-    messages: { topic: string; payload: unknown }[],
-    options: mqtt.IClientPublishOptions = {}
-  ): Promise<void> {
-    const timer = this.metrics.startTimer('mqtt_batch_publish');
-
-    try {
-      await Promise.all(
-        messages.map(msg => this.publish(msg.topic, msg.payload, options))
-      );
-
-      timer.end();
-      this.metrics.incrementCounter('mqtt_batch_messages_published', {
-        count: messages.length.toString()
-      });
-    } catch (error) {
-      this.metrics.incrementCounter('mqtt_batch_publish_errors', {
-        error: error.name
-      });
-      throw new MqttBatchPublishError(
-        `Failed to publish batch messages`,
-        error
-      );
-    }
-  }
-
-  @OnModuleInit()
-  async onModuleInit(): Promise<void> {
-    await this.connect();
-
-    // Register metrics
-    this.metrics.registerHistogram('mqtt_publish_duration', {
-      help: 'MQTT message publish duration in seconds',
-      labelNames: ['topic'],
-      buckets: [0.01, 0.05, 0.1, 0.5, 1]
-    });
-
-    this.metrics.registerCounter('mqtt_messages_published', {
-      help: 'Total MQTT messages published',
-      labelNames: ['topic']
-    });
-
-    this.metrics.registerCounter('mqtt_publish_errors', {
-      help: 'MQTT publish errors',
-      labelNames: ['topic', 'error']
-    });
-  }
-
-  @OnModuleDestroy()
-  async onModuleDestroy(): Promise<void> {
-    await this.disconnect();
-  }
-
-  private async connect(): Promise<void> {
-    const config = this.config.get('mqtt');
-
-    this.client = mqtt.connect(config.url, {
-      ...config.options,
-      reconnectPeriod: this.reconnectDelay,
-      connectTimeout: 5000,
-    });
-
-    this.client.on('connect', () => {
-      this.logger.log('Connected to MQTT broker');
-      this.metrics.incrementCounter('mqtt_connections');
-    });
-
-    this.client.on('error', (error) => {
-      this.logger.error('MQTT client error', error);
-      this.metrics.incrementCounter('mqtt_errors', {
-        type: error.name
-      });
-    });
-
-    this.client.on('offline', () => {
-      this.logger.warn('MQTT client offline');
-      this.metrics.incrementCounter('mqtt_disconnections');
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      this.client.once('connect', resolve);
-      this.client.once('error', reject);
-    });
-  }
-
-  private async disconnect(): Promise<void> {
-    if (!this.client) return;
-
-    await new Promise<void>((resolve) => {
-      this.client.end(true, {}, () => resolve());
-    });
-  }
-}
-```
-
 These common components provide a robust foundation for the notification system with:
 
 - Type-safe event handling
@@ -558,542 +514,601 @@ These common components provide a robust foundation for the notification system 
 
 ## Tasks
 
-### NOT-003.2: Like Notification Implementation
-
-**Metadata**:
-  Type: Feature
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 3
-  Sprint: 011
-  Change Type: New Feature
-
-**Time Tracking**:
-  Estimated Hours: 12
-  Start Date: TBD
-  Due Date: TBD
-
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Like Service
-    - Notification Service
-    - MQTT Broker
-    - Redis Cache
-  Current Implementation:
-    - Like system with distributed locking
-    - Event system with type safety
-    - Basic notification infrastructure
-  Integration Points:
-    - Like event handlers
-    - Notification templates
-    - MQTT channels
-    - User preferences
-  Breaking Changes: None
-
-**Quick Start**:
-  Similar Feature: src/social/notifications/comment
-  Example Test: src/notification/tests/like-notification.spec.ts
-  Key Files:
-    - src/social/events/like-events.ts
-    - src/notification/handlers/like-notification.handler.ts
-    - src/notification/templates/like-notification.template.ts
-  Setup Steps:
-    1. Review like event system
-    2. Set up notification templates
-    3. Configure MQTT channels
-
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review like event structure
-    - [ ] Analyze notification templates
-    - [ ] Plan MQTT topics
-    - [ ] Design aggregation logic
-  Design Review:
-    - [ ] Template structure
-    - [ ] Performance impact
-    - [ ] Scaling strategy
-    - [ ] Error handling
-  Integration Planning:
-    - [ ] Event flow mapping
-    - [ ] Template system
-    - [ ] MQTT configuration
-    - [ ] Redis caching
-
-**Technical Design**:
-
-1. **Like Event Handler**:
-
-```typescript
-@Injectable()
-export class LikeNotificationHandler extends BaseNotificationHandler<LikeCreatedEvent> {
-  constructor(
-    templateEngine: NotificationTemplateEngine,
-    mqttService: MqttService,
-    redis: RedisService,
-    metrics: MetricsService,
-    private readonly aggregator: NotificationAggregator,
-  ) {
-    super(templateEngine, mqttService, redis, metrics);
-  }
-
-  protected get type(): string {
-    return 'like';
-  }
-
-  protected async generateNotification(event: LikeCreatedEvent): Promise<Notification> {
-    // Aggregate likes within time window
-    const aggregatedLikes = await this.aggregator.aggregateLikes({
-      targetUserId: event.targetUserId,
-      contentId: event.contentId,
-      timeWindow: 5 * 60 * 1000 // 5 minutes
-    });
-
-    // Generate notification content
-    return this.templateEngine.render('like.notification', {
-      ...aggregatedLikes,
-      locale: await this.getUserLocale(event.targetUserId)
-    });
-  }
-}
-```
-
-2. **Like Aggregator Service**:
-
-```typescript
-@Injectable()
-export class NotificationAggregator {
-  constructor(
-    private readonly redis: RedisService,
-    private readonly metrics: MetricsService,
-  ) {}
-
-  async aggregateLikes(params: AggregationParams): Promise<AggregatedLikes> {
-    const key = `likes:${params.contentId}:${params.timeWindow}`;
-    
-    // Use Redis Sorted Set for time-based aggregation
-    const recentLikes = await this.redis.zrangebyscore(
-      key,
-      Date.now() - params.timeWindow,
-      Date.now()
-    );
-
-    return this.processLikes(recentLikes);
-  }
-
-  private async processLikes(likes: RawLike[]): Promise<AggregatedLikes> {
-    // Group likes by user type (friend, follower, other)
-    const grouped = await this.groupByUserType(likes);
-    
-    return {
-      totalCount: likes.length,
-      friendLikes: grouped.friends,
-      followerLikes: grouped.followers,
-      otherLikes: grouped.others,
-      sample: await this.getSampleUsers(grouped)
-    };
-  }
-}
-```
-
-**Technical Notes**:
-
-- Use Redis for notification caching
-- Implement proper error handling
-- Add comprehensive monitoring
-- Follow security best practices
-- Consider mobile optimization
-- Plan for high volume
-
-### NOT-003.3: Comment Notification Implementation
-
-**Metadata**:
-  Type: Feature
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 3
-  Sprint: 011
-  Change Type: New Feature
-
-**Time Tracking**:
-  Estimated Hours: 12
-  Start Date: TBD
-  Due Date: TBD
-
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Like Service
-    - Notification Service
-    - MQTT Broker
-    - Redis Cache
-  Current Implementation:
-    - Like system with distributed locking
-    - Event system with type safety
-    - Basic notification infrastructure
-  Integration Points:
-    - Like event handlers
-    - Notification templates
-    - MQTT channels
-    - User preferences
-  Breaking Changes: None
-
-**Quick Start**:
-  Similar Feature: src/social/notifications/comment
-  Example Test: src/notification/tests/like-notification.spec.ts
-  Key Files:
-    - src/social/events/like-events.ts
-    - src/notification/handlers/like-notification.handler.ts
-    - src/notification/templates/like-notification.template.ts
-  Setup Steps:
-    1. Review like event system
-    2. Set up notification templates
-    3. Configure MQTT channels
-
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review like event structure
-    - [ ] Analyze notification templates
-    - [ ] Plan MQTT topics
-    - [ ] Design aggregation logic
-  Design Review:
-    - [ ] Template structure
-    - [ ] Performance impact
-    - [ ] Scaling strategy
-    - [ ] Error handling
-  Integration Planning:
-    - [ ] Event flow mapping
-    - [ ] Template system
-    - [ ] MQTT configuration
-    - [ ] Redis caching
-
-**Technical Design**:
-
-1. **Comment Content Processor**:
-
-```typescript
-@Injectable()
-export class CommentContentProcessor {
-  constructor(
-    private readonly markdownService: MarkdownService,
-    private readonly mentionService: MentionService,
-  ) {}
-
-  async processComment(comment: string): Promise<ProcessedComment> {
-    // Extract mentions
-    const mentions = await this.mentionService.extractMentions(comment);
-    
-    // Process markdown
-    const plainText = await this.markdownService.toPlainText(comment);
-    
-    // Generate preview
-    const preview = this.generatePreview(plainText);
-    
-    return {
-      originalContent: comment,
-      plainText,
-      preview,
-      mentions,
-      hasMore: plainText.length > preview.length
-    };
-  }
-}
-```
-
-2. **Comment Notification Handler**:
-
-```typescript
-@Injectable()
-export class CommentNotificationHandler extends BaseNotificationHandler<CommentCreatedEvent> {
-  constructor(
-    templateEngine: NotificationTemplateEngine,
-    mqttService: MqttService,
-    redis: RedisService,
-    metrics: MetricsService,
-    private readonly contentProcessor: CommentContentProcessor,
-  ) {
-    super(templateEngine, mqttService, redis, metrics);
-  }
-
-  protected get type(): string {
-    return 'comment';
-  }
-
-  protected async generateNotification(event: CommentCreatedEvent): Promise<Notification> {
-    // Process comment content
-    const processedComment = await this.contentProcessor.processComment(event.content);
-
-    // Handle mentions separately
-    if (processedComment.mentions.length > 0) {
-      await this.handleMentions(processedComment.mentions, event);
-    }
-
-    return this.templateEngine.render('comment.notification', {
-      author: event.authorId,
-      comment: processedComment,
-      postId: event.postId,
-      timestamp: event.timestamp
-    });
-  }
-}
-```
-
-**Technical Notes**:
-
-- Use Redis for notification caching
-- Implement proper error handling
-- Add comprehensive monitoring
-- Follow security best practices
-- Consider mobile optimization
-- Plan for high volume
-
-### NOT-003.4: Follower Content Notification Implementation
-
-**Metadata**:
-  Type: Feature
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 5
-  Sprint: 011
-  Change Type: New Feature
-
-**Time Tracking**:
-  Estimated Hours: 12
-  Start Date: TBD
-  Due Date: TBD
-
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Like Service
-    - Notification Service
-    - MQTT Broker
-    - Redis Cache
-  Current Implementation:
-    - Like system with distributed locking
-    - Event system with type safety
-    - Basic notification infrastructure
-  Integration Points:
-    - Like event handlers
-    - Notification templates
-    - MQTT channels
-    - User preferences
-  Breaking Changes: None
-
-**Quick Start**:
-  Similar Feature: src/social/notifications/comment
-  Example Test: src/notification/tests/like-notification.spec.ts
-  Key Files:
-    - src/social/events/like-events.ts
-    - src/notification/handlers/like-notification.handler.ts
-    - src/notification/templates/like-notification.template.ts
-  Setup Steps:
-    1. Review like event system
-    2. Set up notification templates
-    3. Configure MQTT channels
-
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review like event structure
-    - [ ] Analyze notification templates
-    - [ ] Plan MQTT topics
-    - [ ] Design aggregation logic
-  Design Review:
-    - [ ] Template structure
-    - [ ] Performance impact
-    - [ ] Scaling strategy
-    - [ ] Error handling
-  Integration Planning:
-    - [ ] Event flow mapping
-    - [ ] Template system
-    - [ ] MQTT configuration
-    - [ ] Redis caching
-
-**Technical Design**:
-
-1. **Follower Batch Processor**:
-
-```typescript
-@Injectable()
-export class FollowerBatchProcessor {
-  private readonly BATCH_SIZE = 1000;
-  private readonly CONCURRENT_BATCHES = 5;
-
-  constructor(
-    private readonly followerService: FollowerService,
-    private readonly redis: RedisService,
-    private readonly bull: Queue,
-  ) {}
-
-  async processNewContent(content: NewContentEvent): Promise<void> {
-    // Get follower count
-    const followerCount = await this.followerService.getFollowerCount(content.authorId);
-    
-    // If small number of followers, process directly
-    if (followerCount < this.BATCH_SIZE) {
-      await this.processFollowerBatch(content, 0, followerCount);
-      return;
-    }
-
-    // For large follower counts, create batched jobs
-    const batches = Math.ceil(followerCount / this.BATCH_SIZE);
-    
-    for (let i = 0; i < batches; i++) {
-      await this.bull.add('process_follower_batch', {
-        content,
-        batchIndex: i,
-        batchSize: this.BATCH_SIZE
-      }, {
-        priority: i === 0 ? 'high' : 'low',
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 1000
-        }
-      });
-    }
-  }
-}
-```
-
-2. **Follower Notification Worker**:
-
-```typescript
-@Processor('follower_notifications')
-export class FollowerNotificationWorker {
-  constructor(
-    private readonly followerService: FollowerService,
-    private readonly templateEngine: NotificationTemplateEngine,
-    private readonly mqttService: MqttService,
-    private readonly metrics: MetricsService,
-  ) {}
-
-  @Process('process_follower_batch')
-  async processBatch(job: Job<FollowerBatchData>): Promise<void> {
-    const { content, batchIndex, batchSize } = job.data;
-    
-    // Get followers for this batch
-    const followers = await this.followerService.getFollowersBatch(
-      content.authorId,
-      batchIndex * batchSize,
-      batchSize
-    );
-
-    // Process each follower
-    const notifications = await Promise.all(
-      followers.map(async (follower) => {
-        if (!await this.shouldNotifyFollower(follower, content)) {
-          return null;
-        }
-
-        return {
-          topic: `notifications/${follower.id}`,
-          payload: await this.templateEngine.render(
-            'new_content.notification',
-            {
-              content,
-              follower,
-              locale: follower.locale
-            }
-          )
-        };
-      })
-    );
-
-    // Batch publish to MQTT
-    await this.mqttService.batchPublish(
-      notifications.filter(Boolean),
-      { qos: 1 }
-    );
-  }
-}
-```
-
-**Technical Notes**:
-
-- Use Redis for notification caching
-- Implement proper error handling
-- Add comprehensive monitoring
-- Follow security best practices
-- Consider mobile optimization
-- Plan for high volume
-
-### EVT-001.1: Event Type System Enhancement
+### NOT-003.1: Notification Metrics Enhancement
 
 **Metadata**:
   Type: Enhancement
   Component: Backend
   Priority: High
-  Risk Level: Medium
-  Story Points: 5
+  Risk Level: Low
+  Story Points: 2
   Sprint: 011
   Change Type: Enhancement
 
-**Technical Design**:
+**Time Tracking**:
+  Estimated Hours: 6
+  Start Date: TBD
+  Due Date: TBD
 
-1. **Event Type Registry**:
+**Status**:
+  State: In Progress
+  Phase: Development
+  Labels: [Integration-Heavy]
 
-```typescript
-@Injectable()
-export class EventTypeRegistry {
-  private readonly registry = new Map<string, EventSchema>();
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Notification Service
+    - Common Monitoring Module
+    - Prometheus
+  Current Implementation:
+    - Basic metrics stored in Redis
+    - Template rendering time tracking
+    - Delivery success/failure tracking
+  Integration Points:
+    - Common metrics service
+    - Prometheus exporters
+    - Grafana dashboards
+  Breaking Changes: None
 
-  @PostConstruct()
-  initialize() {
-    // Register core event types
-    this.registerEventType('social.like.created', LikeCreatedEventSchema);
-    this.registerEventType('social.comment.created', CommentCreatedEventSchema);
-    this.registerEventType('social.content.created', ContentCreatedEventSchema);
-  }
+**Quick Start**:
+  Similar Feature: src/common/monitoring
+  Example Test: src/common/monitoring/metrics.service.spec.ts
+  Key Files:
+    - src/notification/services/notification-metrics.service.ts: Metrics collection for notifications
+    - src/common/monitoring/metrics.service.ts: Common metrics service
+    - src/notification/notification.module.ts: Module configuration
+  Setup Steps:
+    1. Review common metrics service implementation
+    2. Identify key metrics for notification system
+    3. Plan integration points
 
-  registerEventType(eventName: string, schema: ZodSchema): void {
-    if (this.registry.has(eventName)) {
-      throw new Error(`Event type ${eventName} already registered`);
-    }
-    this.registry.set(eventName, schema);
-  }
+**Pre-Implementation Checklist**:
+  Code Analysis:
+    - [x] Review current metrics implementation
+    - [x] Analyze common monitoring module
+    - [x] Identify integration points
+    - [ ] Review existing metrics tests
+  Design Review:
+    - [x] Architecture alignment
+    - [ ] Performance impact
+    - [ ] Scaling considerations
+  Integration Planning:
+    - [ ] Define metrics schema
+    - [ ] Plan dashboard integration
+    - [ ] Define alerting rules
 
-  validateEvent(eventName: string, payload: unknown): void {
-    const schema = this.registry.get(eventName);
-    if (!schema) {
-      throw new Error(`Unknown event type: ${eventName}`);
-    }
-    schema.parse(payload);
-  }
-}
-```
+**Description**:
+Enhance the notification system's metrics collection by integrating with the common monitoring module to provide standardized metrics for Prometheus. This task involves creating a dedicated NotificationMetricsService that registers and tracks key performance indicators for the notification pipeline stages (producer, consumer, delivery).
 
-2. **Event Validation Decorator**:
+**Context**:
+  Feature Goal: Provide comprehensive monitoring for the notification system
+  Similar Features: Common monitoring module, other service metrics
+  Code Patterns: Metrics registration, timer tracking, counter increments
+  Common Pitfalls: Excessive metrics collection, high cardinality labels
+  Current Limitations: Metrics stored only in Redis, no Prometheus integration
 
-```typescript
-export function ValidateEvent() {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
-    const originalMethod = descriptor.value;
+**Implementation Guide**:
+  Architecture Pattern: Metrics Facade
+  Code Style: Follow common monitoring module patterns
+  Integration Requirements:
+    - Register metrics during module initialization
+    - Track timing for all notification pipeline stages
+    - Count successes and failures
+    - Monitor queue lengths
+  Performance Requirements:
+    - Minimal overhead for metrics collection
+    - Efficient label cardinality
 
-    descriptor.value = async function (...args: any[]) {
-      const event = args[0];
-      const eventRegistry = Container.get(EventTypeRegistry);
+**Tasks**:
 
-      try {
-        eventRegistry.validateEvent(event.type, event.payload);
-      } catch (error) {
-        throw new EventValidationError(error.message);
-      }
+  1. [ ] Create NotificationMetricsService
+     - Implement OnModuleInit for metrics registration
+     - Add timer methods for performance tracking
+     - Add counter methods for event tracking
+     - Add gauge methods for queue monitoring
+  2. [ ] Integrate with common monitoring module
+     - Inject MetricsService from common module
+     - Register notification-specific metrics
+     - Ensure proper metric naming conventions
+  3. [ ] Add unit tests
+     - Test metrics registration
+     - Test timer functionality
+     - Test counter increments
+     - Test gauge updates
+  4. [ ] Create Grafana dashboard
+     - Design notification pipeline visualization
+     - Add performance panels
+     - Add error rate panels
+     - Add queue length panels
 
-      return originalMethod.apply(this, args);
-    };
+**Technical Notes**:
 
-    return descriptor;
-  };
-}
-```
+- Use histogram metrics for timing measurements
+- Use counter metrics for event counts
+- Use gauge metrics for queue lengths
+- Follow the naming convention: `notification_<metric_name>`
+- Use consistent labels across metrics
+- Avoid high cardinality labels
+
+**Quality Checklist**:
+  Code Quality:
+    - [ ] Follows TypeScript guidelines
+    - [ ] Implements proper error handling
+    - [ ] Uses proper dependency injection
+    - [ ] Follows SOLID principles
+  Integration Quality:
+    - [ ] Properly integrates with common module
+    - [ ] Consistent metric naming
+    - [ ] Appropriate metric types
+    - [ ] Efficient label usage
+  Testing Quality:
+    - [ ] Unit tests cover core functionality
+    - [ ] Integration tests verify metrics export
+    - [ ] Performance impact tested
+  Documentation Quality:
+    - [ ] API documentation complete
+    - [ ] Metrics documented
+    - [ ] Dashboard setup documented
+
+**Acceptance Criteria**:
+  Functional Requirements:
+    1. NotificationMetricsService successfully registers metrics with Prometheus
+    2. All notification pipeline stages are timed and tracked
+    3. Success and failure counts are tracked
+    4. Queue lengths are monitored
+  Integration Requirements:
+    1. Proper integration with common monitoring module
+    2. Metrics follow naming conventions
+    3. Grafana dashboard created
+  Performance Requirements:
+    1. Metrics collection adds < 1ms overhead
+    2. No memory leaks from metrics collection
+
+### NOT-003.2: Like Notification Handler Enhancement
+
+**Metadata**:
+  Type: Enhancement
+  Component: Backend
+  Priority: High
+  Risk Level: Low
+  Story Points: 2
+  Sprint: 011
+  Change Type: Enhancement
+
+**Time Tracking**:
+  Estimated Hours: 6
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: In Progress
+  Phase: Development
+  Labels: []
+
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Notification Service
+    - Social Module
+    - Event Bus
+  Current Implementation:
+    - Basic handler forwarding events to producer
+    - Simple error logging
+    - No metrics tracking
+  Integration Points:
+    - Event bus subscription
+    - Notification producer service
+    - Metrics service
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/notification/handlers/comment-notification.handler.ts
+  Example Test: src/notification/test/like-notification.handler.spec.ts
+  Key Files:
+    - src/notification/handlers/like-notification.handler.ts: Handler implementation
+    - src/notification/services/notification-producer.service.ts: Producer service
+    - src/notification/services/notification-metrics.service.ts: Metrics service
+  Setup Steps:
+    1. Review current handler implementation
+    2. Understand producer service interface
+    3. Plan metrics integration
+
+**Pre-Implementation Checklist**:
+  Code Analysis:
+    - [x] Review current handler implementation
+    - [x] Analyze producer service interface
+    - [x] Identify metrics integration points
+    - [ ] Review existing tests
+  Design Review:
+    - [x] Architecture alignment
+    - [ ] Error handling patterns
+    - [ ] Logging standards
+  Integration Planning:
+    - [ ] Define metrics collection points
+    - [ ] Plan error handling improvements
+    - [ ] Design structured logging format
+
+**Description**:
+Enhance the LikeNotificationHandler to improve error handling, add metrics tracking, implement structured logging, and ensure comprehensive test coverage. The handler should efficiently forward like events to the notification producer while providing detailed monitoring and diagnostics.
+
+**Context**:
+  Feature Goal: Improve reliability and observability of like notifications
+  Similar Features: Comment notification handler
+  Code Patterns: Event handler, metrics tracking, structured logging
+  Common Pitfalls: Excessive logging, insufficient error context
+  Current Limitations: Basic error handling, no metrics, minimal logging
+
+**Implementation Guide**:
+  Architecture Pattern: Event Handler
+  Code Style: Follow NestJS event handler patterns
+  Integration Requirements:
+    - Proper event subscription
+    - Metrics tracking for all operations
+    - Structured logging with context
+    - Specific error handling
+  Performance Requirements:
+    - Handler processing < 50ms
+    - Minimal memory footprint
+
+**Tasks**:
+
+  1. [ ] Enhance LikeNotificationHandler
+     - Add metrics service integration
+     - Implement structured logging
+     - Add specific error handling
+     - Ensure proper context in logs
+  2. [ ] Add comprehensive unit tests
+     - Test successful event handling
+     - Test error scenarios
+     - Test metrics tracking
+     - Test logging behavior
+  3. [ ] Add integration test
+     - Test end-to-end flow from event to producer
+     - Verify metrics collection
+     - Validate error handling
+
+**Technical Notes**:
+
+- Use timer metrics to track handler processing time
+- Use counter metrics to track success and failure rates
+- Include event context in all log messages
+- Handle specific error types from producer service
+- Follow existing error handling patterns
+
+**Quality Checklist**:
+  Code Quality:
+    - [ ] Follows TypeScript guidelines
+    - [ ] Implements proper error handling
+    - [ ] Uses proper dependency injection
+    - [ ] Follows SOLID principles
+  Integration Quality:
+    - [ ] Properly integrates with event bus
+    - [ ] Correctly forwards events to producer
+    - [ ] Integrates with metrics service
+    - [ ] Uses structured logging
+  Testing Quality:
+    - [ ] Unit tests cover core functionality
+    - [ ] Tests cover error scenarios
+    - [ ] Tests verify metrics tracking
+    - [ ] Tests validate logging behavior
+  Documentation Quality:
+    - [ ] Code documentation complete
+    - [ ] Error handling documented
+    - [ ] Metrics documented
+
+**Acceptance Criteria**:
+  Functional Requirements:
+    1. Handler successfully forwards events to producer
+    2. All operations are timed and tracked
+    3. Success and failure counts are tracked
+    4. Errors are properly handled and logged
+  Integration Requirements:
+    1. Proper integration with event bus
+    2. Correct forwarding to producer service
+    3. Integration with metrics service
+  Performance Requirements:
+    1. Handler processing < 50ms
+    2. No memory leaks
+
+### NOT-003.3: Comment Notification Handler Enhancement
+
+**Metadata**:
+  Type: Enhancement
+  Component: Backend
+  Priority: High
+  Risk Level: Low
+  Story Points: 2
+  Sprint: 011
+  Change Type: Enhancement
+
+**Time Tracking**:
+  Estimated Hours: 6
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: In Progress
+  Phase: Development
+  Labels: []
+
+**Integration Analysis**:
+  Integration Type: Extends Existing
+  Affected Systems:
+    - Notification Service
+    - Social Module
+    - Event Bus
+  Current Implementation:
+    - Basic handler forwarding events to producer
+    - Simple error logging
+    - No metrics tracking
+  Integration Points:
+    - Event bus subscription
+    - Notification producer service
+    - Metrics service
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/notification/handlers/like-notification.handler.ts
+  Example Test: src/notification/test/comment-notification.handler.spec.ts
+  Key Files:
+    - src/notification/handlers/comment-notification.handler.ts: Handler implementation
+    - src/notification/services/notification-producer.service.ts: Producer service
+    - src/notification/services/notification-metrics.service.ts: Metrics service
+  Setup Steps:
+    1. Review current handler implementation
+    2. Understand producer service interface
+    3. Plan metrics integration
+
+**Pre-Implementation Checklist**:
+  Code Analysis:
+    - [x] Review current handler implementation
+    - [x] Analyze producer service interface
+    - [x] Identify metrics integration points
+    - [ ] Review existing tests
+  Design Review:
+    - [x] Architecture alignment
+    - [ ] Error handling patterns
+    - [ ] Logging standards
+  Integration Planning:
+    - [ ] Define metrics collection points
+    - [ ] Plan error handling improvements
+    - [ ] Design structured logging format
+
+**Description**:
+Enhance the CommentNotificationHandler to improve error handling, add metrics tracking, implement structured logging, and ensure comprehensive test coverage. The handler should efficiently forward comment events to the notification producer while providing detailed monitoring and diagnostics.
+
+**Context**:
+  Feature Goal: Improve reliability and observability of comment notifications
+  Similar Features: Like notification handler
+  Code Patterns: Event handler, metrics tracking, structured logging
+  Common Pitfalls: Excessive logging, insufficient error context
+  Current Limitations: Basic error handling, no metrics, minimal logging
+
+**Implementation Guide**:
+  Architecture Pattern: Event Handler
+  Code Style: Follow NestJS event handler patterns
+  Integration Requirements:
+    - Proper event subscription
+    - Metrics tracking for all operations
+    - Structured logging with context
+    - Specific error handling
+  Performance Requirements:
+    - Handler processing < 50ms
+    - Minimal memory footprint
+
+**Tasks**:
+
+  1. [ ] Enhance CommentNotificationHandler
+     - Add metrics service integration
+     - Implement structured logging
+     - Add specific error handling
+     - Ensure proper context in logs
+  2. [ ] Add comprehensive unit tests
+     - Test successful event handling
+     - Test error scenarios
+     - Test metrics tracking
+     - Test logging behavior
+  3. [ ] Add integration test
+     - Test end-to-end flow from event to producer
+     - Verify metrics collection
+     - Validate error handling
+
+**Technical Notes**:
+
+- Use timer metrics to track handler processing time
+- Use counter metrics to track success and failure rates
+- Include event context in all log messages
+- Handle specific error types from producer service
+- Follow existing error handling patterns
+
+**Quality Checklist**:
+  Code Quality:
+    - [ ] Follows TypeScript guidelines
+    - [ ] Implements proper error handling
+    - [ ] Uses proper dependency injection
+    - [ ] Follows SOLID principles
+  Integration Quality:
+    - [ ] Properly integrates with event bus
+    - [ ] Correctly forwards events to producer
+    - [ ] Integrates with metrics service
+    - [ ] Uses structured logging
+  Testing Quality:
+    - [ ] Unit tests cover core functionality
+    - [ ] Tests cover error scenarios
+    - [ ] Tests verify metrics tracking
+    - [ ] Tests validate logging behavior
+  Documentation Quality:
+    - [ ] Code documentation complete
+    - [ ] Error handling documented
+    - [ ] Metrics documented
+
+**Acceptance Criteria**:
+  Functional Requirements:
+    1. Handler successfully forwards events to producer
+    2. All operations are timed and tracked
+    3. Success and failure counts are tracked
+    4. Errors are properly handled and logged
+  Integration Requirements:
+    1. Proper integration with event bus
+    2. Correct forwarding to producer service
+    3. Integration with metrics service
+  Performance Requirements:
+    1. Handler processing < 50ms
+    2. No memory leaks
+
+### NOT-003.4: Follow Notification Handler Implementation
+
+**Metadata**:
+  Type: Feature
+  Component: Backend
+  Priority: Medium
+  Risk Level: Medium
+  Story Points: 3
+  Sprint: 011
+  Change Type: New Feature
+
+**Time Tracking**:
+  Estimated Hours: 8
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Not Started
+  Phase: Analysis
+  Labels: []
+
+**Integration Analysis**:
+  Integration Type: New Feature
+  Affected Systems:
+    - Notification Service
+    - Social Module
+    - Event Bus
+  Current Implementation:
+    - No existing follow notification handler
+    - Producer service supports notification creation
+    - Event bus supports follow events
+  Integration Points:
+    - Event bus subscription
+    - Notification producer service
+    - Metrics service
+  Breaking Changes: None
+
+**Quick Start**:
+  Similar Feature: src/notification/handlers/like-notification.handler.ts
+  Example Test: src/notification/test/like-notification.handler.spec.ts
+  Key Files:
+    - src/social/events/follow-events.ts: Follow event definitions
+    - src/notification/services/notification-producer.service.ts: Producer service
+    - src/notification/services/notification-metrics.service.ts: Metrics service
+  Setup Steps:
+    1. Review follow event structure
+    2. Understand producer service interface
+    3. Plan handler implementation
+
+**Pre-Implementation Checklist**:
+  Code Analysis:
+    - [ ] Review follow event structure
+    - [ ] Analyze producer service interface
+    - [ ] Identify metrics integration points
+    - [ ] Review similar handler implementations
+  Design Review:
+    - [ ] Architecture alignment
+    - [ ] Error handling patterns
+    - [ ] Logging standards
+  Integration Planning:
+    - [ ] Define event subscription
+    - [ ] Plan producer service integration
+    - [ ] Design metrics collection
+
+**Description**:
+Implement a new FollowNotificationHandler to process user follow events and generate notifications. The handler should subscribe to follow events, forward them to the notification producer, track metrics, implement structured logging, and include comprehensive test coverage.
+
+**Context**:
+  Feature Goal: Notify users when they are followed by other users
+  Similar Features: Like notification handler, Comment notification handler
+  Code Patterns: Event handler, metrics tracking, structured logging
+  Common Pitfalls: Excessive notifications, insufficient error handling
+  Current Limitations: No follow notification support
+
+**Implementation Guide**:
+  Architecture Pattern: Event Handler
+  Code Style: Follow NestJS event handler patterns
+  Integration Requirements:
+    - Subscribe to follow events
+    - Forward events to producer service
+    - Track metrics for all operations
+    - Implement structured logging
+  Performance Requirements:
+    - Handler processing < 50ms
+    - Minimal memory footprint
+
+**Tasks**:
+
+  1. [ ] Create FollowNotificationHandler
+     - Implement event subscription
+     - Add producer service integration
+     - Implement metrics tracking
+     - Add structured logging
+     - Implement error handling
+  2. [ ] Add producer service method
+     - Implement produceFollowNotification method
+     - Add template selection
+     - Implement notification creation
+  3. [ ] Add comprehensive unit tests
+     - Test successful event handling
+     - Test error scenarios
+     - Test metrics tracking
+     - Test logging behavior
+  4. [ ] Add integration test
+     - Test end-to-end flow from event to producer
+     - Verify metrics collection
+     - Validate error handling
+
+**Technical Notes**:
+
+- Subscribe to USER_FOLLOWED event
+- Use timer metrics to track handler processing time
+- Use counter metrics to track success and failure rates
+- Include event context in all log messages
+- Handle specific error types from producer service
+- Follow existing error handling patterns
+
+**Quality Checklist**:
+  Code Quality:
+    - [ ] Follows TypeScript guidelines
+    - [ ] Implements proper error handling
+    - [ ] Uses proper dependency injection
+    - [ ] Follows SOLID principles
+  Integration Quality:
+    - [ ] Properly integrates with event bus
+    - [ ] Correctly forwards events to producer
+    - [ ] Integrates with metrics service
+    - [ ] Uses structured logging
+  Testing Quality:
+    - [ ] Unit tests cover core functionality
+    - [ ] Tests cover error scenarios
+    - [ ] Tests verify metrics tracking
+    - [ ] Tests validate logging behavior
+  Documentation Quality:
+    - [ ] Code documentation complete
+    - [ ] Error handling documented
+    - [ ] Metrics documented
+
+**Acceptance Criteria**:
+  Functional Requirements:
+    1. Handler successfully subscribes to follow events
+    2. Events are correctly forwarded to producer
+    3. All operations are timed and tracked
+    4. Success and failure counts are tracked
+    5. Errors are properly handled and logged
+  Integration Requirements:
+    1. Proper integration with event bus
+    2. Correct forwarding to producer service
+    3. Integration with metrics service
+  Performance Requirements:
+    1. Handler processing < 50ms
+    2. No memory leaks
 
 ## Implementation Strategy
 
