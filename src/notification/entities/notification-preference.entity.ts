@@ -21,6 +21,7 @@ export enum NotificationType {
   COMMENT_LIKE = 'comment_like',
   COMMENT_REPLY = 'comment_reply',
   USER_MENTION = 'user_mention',
+  USER_FOLLOW = 'user_follow',
   SYSTEM_ANNOUNCEMENT = 'system_announcement',
 }
 

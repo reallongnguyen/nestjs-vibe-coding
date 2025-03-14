@@ -55,7 +55,7 @@ async function seedNotificationTemplates() {
     },
     {
       name: 'Follow Template',
-      type: 'follow',
+      type: 'user_follow',
       version: '1.0.0',
       contents: {
         VI: '<d class="font-semibold" type="user">{{ fullName subjects.[0] }}</d>{{#if (gt subjectCount 1) }} và {{ math subjectCount \'-\' 1 }} người khác{{/if}} đã bắt đầu theo dõi bạn',

@@ -2,18 +2,15 @@
  * Re-export UserFollowedEvent from common module with adapter pattern
  * This file exists for backward compatibility
  */
-import { BaseEvent } from 'src/common';
-import { UserFollowedEvent as CommonUserFollowedEvent } from 'src/common/event-bus/core/domain/events/social-interaction.events';
+import { BaseEvent, SocialEventSchemas } from 'src/common/event-manager';
+import { v4 as uuid } from 'uuid';
 
 /**
- * @deprecated Use the common implementation from src/common/event-bus/core/domain/events/social-interaction.events
+ * Event emitted when a user follows another user
  */
-export class UserFollowedEvent extends BaseEvent {
-  static readonly eventName = 'user.followed';
-
-  // Internal reference to the common implementation
-  private readonly commonEvent: CommonUserFollowedEvent;
-
+export class UserFollowedEvent extends BaseEvent<
+  typeof SocialEventSchemas.USER_FOLLOWED.schema
+> {
   constructor(
     public readonly followerId: string,
     public readonly followingId: string,
@@ -21,30 +18,21 @@ export class UserFollowedEvent extends BaseEvent {
     public readonly followerAvatar: string | null,
     public readonly timestamp: Date,
   ) {
-    super();
-    // Create the common implementation internally
-    this.commonEvent = new CommonUserFollowedEvent(
-      followerId,
-      followerName,
-      followingId,
-      followerAvatar || undefined,
-      timestamp.getTime(),
-      {
-        occurredOn: timestamp,
-      },
-    );
+    super(SocialEventSchemas.USER_FOLLOWED, {
+      correlationId: uuid(),
+    });
   }
 
-  eventName(): string {
-    return UserFollowedEvent.eventName;
-  }
-
+  /**
+   * Convert event to JSON payload
+   * @returns Event payload
+   */
   toJSON() {
     return {
       followerId: this.followerId,
-      followingId: this.followingId,
       followerName: this.followerName,
-      followerAvatar: this.followerAvatar,
+      followingId: this.followingId,
+      followerAvatar: this.followerAvatar || undefined,
       timestamp: this.timestamp,
     };
   }

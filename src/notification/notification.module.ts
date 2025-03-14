@@ -76,6 +76,7 @@ import { NotificationProcessor } from './presentation/notification.processor';
 import { NotificationHandler } from './presentation/handlers/notification.handler';
 import { LikeNotificationHandler } from './presentation/handlers/like-notification.handler';
 import { CommentNotificationHandler } from './presentation/handlers/comment-notification.handler';
+import { FollowNotificationHandler } from './presentation/handlers/follow-notification.handler';
 import { NotificationService } from './services/notification.service';
 import { NotificationPreferenceService } from './services/notification-preference.service';
 import { NotificationTemplateService } from './services/notification-template.service';
@@ -147,6 +148,7 @@ import { NotificationMetricsService } from './services/notification-metrics.serv
     NotificationHandler,
     LikeNotificationHandler,
     CommentNotificationHandler,
+    FollowNotificationHandler,
     NotificationProcessor,
   ],
 })

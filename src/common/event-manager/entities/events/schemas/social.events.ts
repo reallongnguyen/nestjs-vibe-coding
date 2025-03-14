@@ -58,6 +58,43 @@ export class CommentEventSchema {
   preview?: string;
 }
 
+/**
+ * Schema for user follow events
+ */
+export class UserFollowedPayload {
+  @IsUUID()
+  followerId: string;
+
+  @IsString()
+  followerName: string;
+
+  @IsUUID()
+  followingId: string;
+
+  @IsOptional()
+  @IsString()
+  followerAvatar?: string;
+
+  @IsOptional()
+  @IsDate()
+  timestamp?: Date;
+}
+
+/**
+ * Schema for user unfollow events
+ */
+export class UserUnfollowedPayload {
+  @IsUUID()
+  followerId: string;
+
+  @IsUUID()
+  followingId: string;
+
+  @IsOptional()
+  @IsDate()
+  timestamp?: Date;
+}
+
 export class BaseViewEventPayload {
   @IsUUID()
   contentId: string;
@@ -113,6 +150,22 @@ export const SocialEventSchemas = {
     module: 'social',
     description: 'Emitted when a user replies to a comment',
   } as EventSchema<CommentEventSchema>,
+
+  USER_FOLLOWED: {
+    eventName: 'user.followed',
+    schema: new UserFollowedPayload(),
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user follows another user',
+  } as EventSchema<UserFollowedPayload>,
+
+  USER_UNFOLLOWED: {
+    eventName: 'user.unfollowed',
+    schema: new UserUnfollowedPayload(),
+    version: '1.0.0',
+    module: 'social',
+    description: 'Emitted when a user unfollows another user',
+  } as EventSchema<UserUnfollowedPayload>,
 
   CONTENT_VIEWED: {
     eventName: 'social.content.viewed',

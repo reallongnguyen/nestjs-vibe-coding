@@ -35,7 +35,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 - Module relationship:
   - Each module has a single responsibility.
-  - Each module does not call other modules directly. Use event bus to communicate between modules. However, each module can use `/src/common` module.
+  - Each module does not call other modules directly. Use event bus to communicate between modules. However, each module can use `src/common` module.
 - Module's code style:
   - Clear separation of entities, repositories, services, and presentation layers
   - Specific error classes for better error handling
@@ -44,7 +44,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - Proper use of decorators for API documentation
   - Consistent error mapping
   - Proper use of dependency injection
-- Module's folder structure follows `/docs/module-structure.md`
+- Module's folder structure follows `docs/module-structure.md`
 
 ### Functions
 
@@ -140,7 +140,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 ### STEP 1: Task Analysis
 
-- Read the file: `/tasks/sprint-current-tasks.md`
+- Read the file: `tasks/sprint-current-tasks.md`
 - Extract and understand:
   - Task requirements
   - Acceptance criteria
@@ -166,7 +166,7 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
   - Understand impact of change
   - Understand scope of change
   - Don't change current code if no need
-- Read the file: `/docs/architecture.mermaid`
+- Read the file: `docs/architecture.mermaid`
   - Extract and understand:
     - Module boundaries and relationships
     - Data flow patterns
@@ -174,14 +174,14 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
     - Component dependencies
   - Validate any changes against architectural constraints
   - Ensure new code maintains defined separation of concerns
-- Read the file: `/prisma/schema.prisma`
+- Read the file: `prisma/schema.prisma`
   - Understand the data model
   - Understand the constraints
-- Read the file: `/docs/technical.md`
+- Read the file: `docs/technical.md`
   - Understand folder structure
   - Understand code conventions
 - Understand the module's style:
-  - Clear separation of entities, repositories, services, and presentation layers follow module structure `/docs/module-structure.md`
+  - Clear separation of entities, repositories, services, and presentation layers follow module structure `docs/module-structure.md`
   - Specific error classes for better error handling
   - Consistent DTO patterns with fromDomain static methods
   - Proper use of decorators for API documentation
@@ -192,8 +192,8 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 
 Required understanding files:
 
-- `/tasks/sprint-current-tasks.md`: Source of task definitions
-- `/docs/technical.md`: Implementation guidelines
+- `tasks/sprint-current-tasks.md`: Source of task definitions
+- `docs/technical.md`: Implementation guidelines
 
 Complex task implementation steps:
 
@@ -252,13 +252,13 @@ Simple task implementation steps:
 
 ### STEP 6: Keep documentation updated
 
-- UPDATE `/tasks/sprint-current-tasks.md` with:
+- UPDATE `tasks/sprint-current-tasks.md` with:
   - Current progress
   - Any new issues encountered
   - Completed items
-- Request Solution Architecture update system architecture in `/docs/architecture.mermaid` if needed
-- Update `/docs/technical.md` if needed
-- Add tech debt notes to `/docs/technical.md` if needed
+- Request Solution Architecture update system architecture in `docs/architecture.mermaid` if needed
+- Update `docs/technical.md` if needed
+- Add tech debt notes to `docs/technical.md` if needed
 
 ## Task Format Specification
 
@@ -314,10 +314,10 @@ Simple task implementation steps:
       2. Set up development environment
       3. Configure test data
     Required Reading:
-      - Architecture: /docs/architecture.mermaid
-      - Module Structure: /docs/module-structure.md
-      - Technical Guidelines: /docs/technical.md
-      - Current Implementation: path/to/relevant/docs
+      - Architecture: `docs/architecture.mermaid`
+      - Module Structure: `docs/module-structure.md`
+      - Technical Guidelines: `docs/technical.md`
+      - Current Implementation
 
   **Pre-Implementation Checklist**:
     Code Analysis:
@@ -500,15 +500,15 @@ task.state_transitions:
 
 1. **Context Analysis**
    - Read current codebase structure:
-     - Data model in `/prisma/schema.prisma`
-     - Business rules in `/docs/business.md`
-     - Architecture in `/docs/architecture.mermaid`
-     - Code style in `/docs/technical.md`
+     - Data model in `prisma/schema.prisma`
+     - Business rules in `docs/business.md`
+     - Architecture in `docs/architecture.mermaid`
+     - Code style in `docs/technical.md`
    - Identify related existing features and modules
    - Review current system constraints and patterns
 
 2. **Feature Specification**
-   - Write feature overview in `/docs/business.md`:
+   - Write feature overview in `docs/business.md`:
      - Business value and goals
      - User stories and use cases
      - Integration points with existing features
@@ -523,7 +523,7 @@ task.state_transitions:
    - Plan for monitoring and metrics
 
 4. **Task Breakdown**
-   Create tasks in `/tasks/backlog.md` using the Developer-Friendly Task Template:
+   Create tasks in `tasks/backlog.md` using the Developer-Friendly Task Template:
 
    ```markdown
    ### {TASK-ID}: {Task Name}
@@ -605,7 +605,7 @@ task.state_transitions:
      - Same as Scenario 1
 
    - **Feature Specification**
-     - Write feature overview in `/docs/business.md`
+     - Write feature overview in `docs/business.md`
      - Focus on business requirements
      - Define success metrics
      - Document user stories

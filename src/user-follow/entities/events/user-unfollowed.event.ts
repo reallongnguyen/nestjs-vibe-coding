@@ -1,20 +1,26 @@
-import { BaseEvent } from 'src/common';
+import { BaseEvent, SocialEventSchemas } from 'src/common/event-manager';
+import { v4 as uuid } from 'uuid';
 
-export class UserUnfollowedEvent extends BaseEvent {
-  static readonly eventName = 'user.unfollowed';
-
+/**
+ * Event emitted when a user unfollows another user
+ */
+export class UserUnfollowedEvent extends BaseEvent<
+  typeof SocialEventSchemas.USER_UNFOLLOWED.schema
+> {
   constructor(
     public readonly followerId: string,
     public readonly followingId: string,
     public readonly timestamp: Date,
   ) {
-    super();
+    super(SocialEventSchemas.USER_UNFOLLOWED, {
+      correlationId: uuid(),
+    });
   }
 
-  eventName(): string {
-    return UserUnfollowedEvent.eventName;
-  }
-
+  /**
+   * Convert event to JSON payload
+   * @returns Event payload
+   */
   toJSON() {
     return {
       followerId: this.followerId,

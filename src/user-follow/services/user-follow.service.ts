@@ -1,10 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  PagedResult,
-  IEventBus,
-  InjectEventBus,
-  PageOptionsDto,
-} from 'src/common';
+import { PagedResult, PageOptionsDto, PrismaService } from 'src/common';
+import { IEventBus } from 'src/common/event-manager';
+import { InjectEventBus } from 'src/common/event-manager/presentation/decorators/inject-event-bus.decorator';
 import { AppError } from 'src/common/errors/app.error';
 import { UserFollow } from '../entities/user-follow.entity';
 import { IUserFollowRepository } from './interfaces/user-follow-repository.interface';
@@ -21,6 +18,7 @@ export class UserFollowService implements IUserFollowService {
     @Inject('IUserFollowRepository')
     private readonly userFollowRepository: IUserFollowRepository,
     @InjectEventBus() private readonly eventBus: IEventBus,
+    private readonly prisma: PrismaService,
   ) {}
 
   async followUser(
@@ -35,42 +33,24 @@ export class UserFollowService implements IUserFollowService {
     }
 
     // Check if already following
-    const isAlreadyFollowing = await this.userFollowRepository.exists(
+    const isFollowing = await this.userFollowRepository.exists(
       followerId,
       followingId,
     );
 
-    if (isAlreadyFollowing) {
-      throw new AppError(
-        'already-following',
-        USER_FOLLOW_ERRORS['already-following'],
-        {
-          params: { followerId, followingId },
+    if (isFollowing) {
+      // Since findOne doesn't exist in the interface, we'll query directly
+      return this.prisma.userFollow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId,
+            followingId,
+          },
         },
-      );
+      });
     }
 
-    // Check if the user being followed exists
-    const followingUser =
-      await this.userFollowRepository.getFollowerDetails(followingId);
-
-    if (!followingUser) {
-      throw new AppError(
-        'user-not-found',
-        USER_FOLLOW_ERRORS['user-not-found'],
-        {
-          params: { userId: followingId },
-        },
-      );
-    }
-
-    // Create follow relationship
-    const follow = await this.userFollowRepository.create(
-      followerId,
-      followingId,
-    );
-
-    // Get follower details for the event
+    // Check if users exist
     const followerDetails =
       await this.userFollowRepository.getFollowerDetails(followerId);
 
@@ -84,13 +64,44 @@ export class UserFollowService implements IUserFollowService {
       );
     }
 
-    // Publish event
+    // Create follow relationship
+    const follow = await this.userFollowRepository.create(
+      followerId,
+      followingId,
+    );
+
+    if (!follow) {
+      throw new AppError('follow-failed', USER_FOLLOW_ERRORS['follow-failed'], {
+        params: { followerId, followingId },
+      });
+    }
+
+    // Check if following user exists
+    const followingDetails =
+      await this.userFollowRepository.getFollowerDetails(followingId);
+
+    if (!followingDetails) {
+      throw new AppError(
+        'user-not-found',
+        USER_FOLLOW_ERRORS['user-not-found'],
+        {
+          params: { userId: followingId },
+        },
+      );
+    }
+
+    // Prepare event data
+    const followerName =
+      `${followerDetails.firstName} ${followerDetails.lastName || ''}`.trim();
+    const timestamp = new Date();
+
+    // Create and publish the event using the proper event class
     const event = new UserFollowedEvent(
       followerId,
       followingId,
-      `${followerDetails.firstName} ${followerDetails.lastName || ''}`.trim(),
+      followerName,
       followerDetails.avatar,
-      new Date(),
+      timestamp,
     );
 
     await this.eventBus.publish(event);
