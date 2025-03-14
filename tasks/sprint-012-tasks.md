@@ -2,10 +2,10 @@
 
 ## Sprint Information
 
-**Goal**: Optimize the notification system, improve the event system, and begin recommendation engine integration to enhance platform performance and user experience.
+**Goal**: Optimize the notification system and continue feed system integration to enhance platform performance and user experience.
 
 **Duration**: 2 weeks
-**Story Points**: 20
+**Story Points**: 6
 **Team Velocity**: 20-25 points per sprint
 
 ## Selected Tasks
@@ -66,125 +66,6 @@
 - Storage usage is optimized
 - Performance metrics are tracked
 
-### REC-001: Gorse Integration Research and POC (5 points)
-
-**Status**: Not Started
-**Priority**: High
-**Risk Level**: Medium
-**Story Points**: 5
-**Sprint**: 012
-**Change Type**: New Feature
-
-**Current Implementation**:
-
-- No recommendation engine currently
-- Basic content sorting by recency
-- No personalization
-
-**Tasks**:
-
-1. [ ] Set up Gorse development environment
-   - Install Gorse server
-   - Configure database connections
-   - Set up API endpoints
-   - Create test environment
-
-2. [ ] Create test dataset for POC
-   - Extract user interaction data
-   - Prepare content metadata
-   - Create test scenarios
-   - Define evaluation metrics
-
-3. [ ] Implement basic integration
-   - Create Gorse client service
-   - Implement data synchronization
-   - Add recommendation fetching
-   - Create fallback mechanisms
-
-4. [ ] Measure performance metrics
-   - Test recommendation quality
-   - Measure latency
-   - Evaluate resource usage
-   - Test scalability
-
-5. [ ] Document findings and recommendations
-   - Create integration guide
-   - Document performance results
-   - Provide scaling recommendations
-   - Outline next steps
-
-**Technical Notes**:
-
-- Use Docker for Gorse deployment
-- Implement proper error handling
-- Add comprehensive monitoring
-- Consider data privacy requirements
-
-**Acceptance Criteria**:
-
-1. Gorse server running in development
-2. Basic recommendation flow working
-3. Performance metrics collected
-4. Integration approach documented
-5. Scaling requirements identified
-
-### EVT-001: Event System Short-term Improvements (9 points)
-
-**Status**: In Progress
-**Priority**: High
-**Risk Level**: Medium
-**Story Points**: 9
-**Sprint**: 012
-**Change Type**: Enhancement
-
-**Current Implementation**:
-
-- Basic event system with limited type safety
-- Simple validation
-- Limited monitoring
-- Inconsistent schema definitions
-
-**Tasks**:
-
-1. [ ] Improve type safety
-   - Implement generic event types
-   - Add payload validation
-   - Create type-safe event bus
-   - Add compile-time checks
-
-2. [ ] Enhance validation
-   - Implement schema-based validation
-   - Add runtime checks
-   - Create validation decorators
-   - Add error reporting
-
-3. [ ] Add comprehensive monitoring
-   - Implement event tracking
-   - Add performance metrics
-   - Create monitoring dashboards
-   - Set up alerting
-
-4. [ ] Standardize schema definitions
-   - Create central schema registry
-   - Implement versioning
-   - Add documentation
-   - Create migration tools
-
-**Technical Notes**:
-
-- Use TypeScript generics for type safety
-- Implement JSON Schema validation
-- Add comprehensive monitoring
-- Follow security best practices
-
-**Acceptance Criteria**:
-
-1. Type-safe event handling implemented
-2. Validation working correctly
-3. Monitoring in place
-4. Schema standardization complete
-5. Documentation updated
-
 ### FED-001.4: Frontend Integration (3 points)
 
 **Status**: Not Started
@@ -244,13 +125,11 @@
 
 ## Implementation Strategy
 
-1. **Phase 1: Research and Planning (Week 1)**
-   - Complete Gorse research and POC
-   - Plan event system improvements
+1. **Phase 1: Planning (Week 1)**
    - Design notification optimization
+   - Plan frontend integration
 
 2. **Phase 2: Core Implementation (Week 1-2)**
-   - Implement event system improvements
    - Begin notification optimization
    - Start frontend integration
 

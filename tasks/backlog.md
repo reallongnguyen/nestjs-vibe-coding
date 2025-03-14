@@ -225,7 +225,7 @@ Research and implement a proof of concept for Gorse integration as our recommend
 **Priority**: High
 **Story Points**: 13
 **Sprint**: Pending REC-001
-**Status**: Blocked by REC-001
+**Status**: Ready to Start
 
 **Description**:
 Implement the first phase of Gorse integration for the content distribution system.
@@ -730,171 +730,6 @@ Implement a systematic rollout of the new error handling module across all backe
 5. Frontend handles all errors
 6. Migration guide available
 
-## Low Priority Tasks
-
-### INF-002: Image Proxy Implementation
-
-**Metadata**:
-  Type: Infrastructure
-  Component: Backend
-  Priority: Low
-  Risk Level: Medium
-  Story Points: 8
-  Sprint: TBD
-
-**Time Tracking**:
-  Estimated Hours: 32
-  Start Date: TBD
-  Due Date: TBD
-
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Frontend image components
-    - Storage service
-    - CDN configuration
-  Current Implementation:
-    - Basic imgproxy setup
-    - Storage service integration
-  Integration Points:
-    - Image URL generation
-    - Storage service
-    - Frontend components
-  Breaking Changes:
-    - New image URL format
-    - Migration of existing image URLs
-
-**Quick Start**:
-  Similar Feature: src/storage/
-  Example Test: src/storage/tests/
-  Key Files:
-    - src/imgproxy/
-    - src/storage/
-  Setup Steps:
-    1. Review imgproxy documentation
-    2. Set up development environment
-    3. Configure test data
-
-**Description**:
-Implement comprehensive image processing and delivery system using imgproxy, including frontend SDK, storage integration, and monitoring.
-
-**Context**:
-  Feature Goal: Enable efficient image processing and delivery
-  Similar Features: Storage service, Feed cache service
-  Code Patterns: Repository pattern, Adapter pattern
-  Common Pitfalls:
-    - Performance under load
-    - Memory management
-    - Browser compatibility
-    - CDN integration
-
-**Implementation Guide**:
-  Architecture Pattern: Service-oriented with adapters
-  Code Style: Follow TypeScript guidelines
-  Performance Requirements:
-    - URL generation < 50ms
-    - Image processing < 200ms
-    - Cache hit rate > 80%
-    - Error rate < 0.1%
-
-**Tasks**:
-
-1. INF-002.1: Image Processing Service (3 points)
-   - Create URL generation service with signing
-   - Implement transformation options
-   - Add input validation
-   - Setup caching layer
-   - Add monitoring
-   - Write comprehensive tests
-
-2. INF-002.2: Storage Integration (2 points)
-   - Create storage adapter interface
-   - Implement file validation
-   - Add upload pipeline
-   - Setup error handling
-   - Add retry mechanism
-   - Write integration tests
-
-3. INF-002.3: Frontend SDK (3 points)
-   - Create TypeScript SDK
-   - Implement responsive image component
-   - Add lazy loading support
-   - Setup browser optimization
-   - Add performance monitoring
-   - Write component tests
-
-**Technical Notes**:
-
-- Use TypeScript for type safety
-- Implement proper error handling
-- Add comprehensive monitoring
-- Follow security best practices
-- Consider browser compatibility
-- Optimize for performance
-
-**Quality Checklist**:
-
-- [ ] Technical Design Review
-- [ ] Implementation Complete
-- [ ] Unit Tests Added
-- [ ] Integration Tests Added
-- [ ] Documentation Updated
-- [ ] Security Review Complete
-- [ ] Performance Requirements Met
-
-**Acceptance Criteria**:
-
-1. Image processing works efficiently
-2. Frontend SDK is easy to use
-3. Storage integration is reliable
-4. Performance meets requirements
-5. Documentation is complete
-
-### ANA-001: Analytics Dashboard
-
-1. Requirements:
-   - Track key metrics:
-     - Post views and engagement
-     - User activity patterns
-     - Content performance
-     - System performance
-   - Support data aggregation
-   - Export capabilities
-
-2. Acceptance Criteria:
-   - Real-time metrics dashboard
-   - Historical data analysis
-   - Custom report generation
-   - Data export in multiple formats
-
-### TECH-001: Performance Optimization
-
-1. Requirements:
-   - Identify and resolve performance bottlenecks
-   - Implement caching strategies
-   - Optimize database queries
-   - Add performance monitoring
-
-2. Acceptance Criteria:
-   - API response times under 200ms for 95% of requests
-   - Database query optimization for high-traffic endpoints
-   - Implement rate limiting for public APIs
-   - Set up performance monitoring dashboards
-
-### TECH-002: Code Quality Improvements
-
-1. Requirements:
-   - Refactor remaining modules to follow DDD principles
-   - Standardize error handling across modules
-   - Improve test coverage
-   - Implement consistent logging
-
-2. Acceptance Criteria:
-   - All modules follow consistent architecture patterns
-   - Test coverage above 80% for core modules
-   - Standardized error handling and response formats
-   - Comprehensive logging for debugging and monitoring
-
 ## Notes
 
 1. Recently Completed Tasks:
@@ -909,15 +744,16 @@ Implement comprehensive image processing and delivery system using imgproxy, inc
    - FED-001.2: Feed Generation Service
    - FED-001.3: Cache Management System
    - FED-001.6: Redis-Based Fallback Strategy
+   - REC-001: Gorse Integration Research and POC
+   - EVT-001: Event System Short-term Improvements
 
 2. Next Priority Tasks:
    - NOT-003.5: Notification Delivery Optimization
-   - REC-001: Gorse Integration Research
-   - EVT-001: Event System Short-term Improvements
+   - REC-002: Gorse Integration Phase 1
    - NOT-004: Notification Module Integration
    - ERR-001: Error Module Rollout
 
 3. Dependencies:
    - NOT-003.5 can proceed (NOT-003.2, NOT-003.3, NOT-003.4 are complete)
-   - REC-002 depends on successful completion of REC-001
+   - REC-002 is ready to start (REC-001 is complete)
    - Remaining FED-001 tasks can proceed in parallel
