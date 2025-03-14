@@ -44,7 +44,7 @@
     "@nestjs/terminus": "^10.3.0",
     "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "^6.2.1",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
     "bull": "^4.16.5",
     "cache-manager": "^6.4.0",
     "class-transformer": "^0.5.1",
