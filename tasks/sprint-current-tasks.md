@@ -5,7 +5,7 @@
 **Goal**: Optimize the notification system and continue feed system integration to enhance platform performance and user experience.
 
 **Duration**: 2 weeks
-**Story Points**: 6
+**Story Points**: 8
 **Team Velocity**: 20-25 points per sprint
 
 ## Selected Tasks
@@ -580,13 +580,15 @@ The notification metrics will be integrated with our existing monitoring infrast
 - [x] Cache cleanup prevents memory leaks
 - [x] Documentation is comprehensive and clear
 
+## Backlog Tasks
+
 ### FED-001.4: Frontend Integration (3 points)
 
-**Status**: Not Started
+**Status**: Backlog
 **Priority**: Medium
 **Risk Level**: Medium
 **Story Points**: 3
-**Sprint**: 012
+**Labels**: [frontend]
 **Change Type**: Enhancement
 
 **Current Implementation**:
@@ -641,11 +643,11 @@ The notification metrics will be integrated with our existing monitoring infrast
 
 1. **Phase 1: Planning (Week 1)**
    - Design notification optimization
-   - Plan frontend integration
+   - Plan backend implementation
 
 2. **Phase 2: Core Implementation (Week 1-2)**
    - Begin notification optimization
-   - Start frontend integration
+   - Complete backend implementation
 
 3. **Phase 3: Integration and Testing (Week 2)**
    - Complete all implementations
@@ -678,7 +680,7 @@ The notification metrics will be integrated with our existing monitoring infrast
 1. **Performance**:
    - API response times < 200ms
    - Event processing < 50ms
-   - Frontend rendering < 100ms
+   - Backend rendering < 100ms
    - Resource usage optimized
 
 2. **Reliability**:
@@ -706,3 +708,313 @@ The notification metrics will be integrated with our existing monitoring infrast
    - Monitoring setup
    - Troubleshooting guides
    - Recovery procedures
+
+### EVT-002: Event Bus Module Deprecation (3 points)
+
+**Metadata**:
+  Type: Technical Debt
+  Component: Backend
+  Priority: Medium
+  Risk Level: Medium
+  Story Points: 3
+  Sprint: 012
+  Change Type: Refactoring
+
+**Time Tracking**:
+  Estimated Hours: 12
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: In Progress
+  Phase: Development
+  Labels: [Technical-Debt, Refactoring, Event-System]
+
+**Integration Analysis**:
+  Integration Type: Modifies Existing
+  Affected Systems:
+    - Social module
+    - Content module
+    - Notification module
+    - User-follow module
+    - Test infrastructure
+  Current Implementation:
+    - Deprecated event-bus module still in use
+    - New event-manager module available
+    - Partial usage of event-manager in some components
+  Integration Points:
+    - Module imports and bootstrapping
+    - Service event publishing
+    - Event handling
+    - Event class inheritance
+  Breaking Changes:
+    - None expected (like-for-like replacement)
+
+**Quick Start**:
+  Similar Feature: src/common/event-manager
+  Example Test: src/common/event-manager/tests/
+  Key Files:
+    - src/common/event-bus/event-bus.module.ts
+    - src/common/event-manager/event-manager.module.ts
+    - src/common/event-manager/index.ts
+    - src/social/social.module.ts
+    - src/content/content.module.ts
+  Setup Steps:
+    1. Review completed task NOT-003.1: Event System Migration
+    2. Compare interfaces between old and new event system
+    3. Set up test environment to verify changes
+
+**Pre-Implementation Checklist**:
+  Code Analysis:
+    - [ ] Map all event-bus usages
+    - [ ] Verify event-manager provides equivalent functionality
+    - [ ] Identify potential edge cases
+    - [ ] Review test coverage
+  Design Review:
+    - [ ] Confirm architecture alignment
+    - [ ] Verify pattern consistency
+    - [ ] Assess performance impact
+    - [ ] Check compatibility with existing events
+  Integration Planning:
+    - [ ] Map module dependencies
+    - [ ] Plan incremental migration approach
+    - [ ] Define verification strategy
+    - [ ] Create rollback procedure
+
+**Dependencies**:
+  Blocks: None
+  Blocked By: None
+  Related: [NOT-003.1]
+  Integration Dependencies:
+    - Event-manager module
+
+**Description**:
+Complete the migration from the deprecated event-bus module to the new event-manager module and safely remove the deprecated module. This includes updating all module imports, service dependencies, event implementations, and tests to ensure seamless operation with the new event system.
+
+**Context**:
+  Feature Goal: Eliminate technical debt by removing deprecated code
+  Similar Features: NOT-003.1: Event System Migration
+  Code Patterns: Dependency Injection, Event-driven patterns
+  Common Pitfalls:
+    - Missed dependencies
+    - Subtle behavior differences between old and new systems
+    - Runtime errors from incomplete migration
+    - Test failures due to event system changes
+  Current Limitations:
+    - Duplicate event system code
+    - Inconsistent event handling patterns
+    - Maintenance overhead from supporting two systems
+  Integration Concerns:
+    - Ensuring all events continue to flow correctly
+    - Maintaining test coverage during migration
+    - Avoiding regression in event-driven features
+
+**Implementation Guide**:
+  Architecture Pattern: Event-driven with NestJS
+  Code Style: Follow event-manager patterns
+  Integration Requirements:
+    - One-to-one replacement of event-bus with event-manager
+    - No functional changes to event behavior
+    - Consistent event handling across modules
+  Performance Requirements:
+    - No degradation in event publishing or handling performance
+
+**Tasks**:
+
+1. #### EVT-002.1: Dependency Analysis and Planning (0.5 points)
+
+   - [x] Create comprehensive inventory of event-bus usages
+   - [x] Map all EVENT_BUS_TOKEN injection points
+   - [x] Document all event class inheritance hierarchies
+   - [x] Create test cases for verifying event behavior
+   - [x] Define migration strategy with verification steps
+
+2. #### EVT-002.2: User-Follow Module Migration (0.5 points)
+
+   - [x] Update user-follow.module.ts to import EventManagerModule
+   - [x] Migrate UserFollowService to use new InjectEventBus
+   - [x] Update any event definitions to use new BaseEvent
+   - [x] Run unit and integration tests to verify functionality
+   - [x] Document any issues or workarounds needed
+
+3. #### EVT-002.3: Content Module Migration (0.5 points)
+
+   - [x] Update content.module.ts to import EventManagerModule
+   - [x] Migrate draft-post.service.ts and published-post.service.ts
+   - [x] Update DeleteImageCommand to work with new event system
+   - [x] Migrate PostDeletedEvent to use new BaseEvent
+   - [x] Run content module tests to verify functionality
+
+4. #### EVT-002.4: Social Module Migration (0.5 points)
+
+   - [ ] Update social.module.ts to import EventManagerModule
+   - [ ] Migrate content-ranking-for-feed.service.ts
+   - [ ] Update all social event classes to use new BaseEvent
+   - [ ] Run social module tests to verify functionality
+   - [ ] Test social event integration with other modules
+
+5. #### EVT-002.5: Notification Module Migration (0.5 points)
+
+   - [ ] Update notification.module.ts to import EventManagerModule
+   - [ ] Migrate any notification services using event-bus
+   - [ ] Verify notification event handling with new system
+   - [ ] Run notification module tests to verify functionality
+
+6. #### EVT-002.6: Final Cleanup and Removal (0.5 points)
+
+   - [ ] Update test infrastructure to use EventManagerModule
+   - [ ] Run full integration test suite
+   - [ ] Remove event-bus module after all tests pass
+   - [ ] Update documentation to reflect the change
+   - [ ] Verify system behavior in development environment
+
+**Technical Notes**:
+
+- The event-manager module should be a drop-in replacement for event-bus
+- Use git grep to find all occurrences of event-bus imports
+- Test each module migration separately before proceeding
+- Watch for subtle differences in event handling behavior
+- Consider adding temporary compatibility layer if needed
+- Run the full test suite after each major component migration
+
+**Quality Checklist**:
+  Code Quality:
+    - [ ] No references to deprecated event-bus remain
+    - [ ] All event publishing uses consistent patterns
+    - [ ] Error handling is maintained or improved
+    - [ ] Clean code with no unnecessary complexity
+  Integration Quality:
+    - [ ] All events flow correctly between modules
+    - [ ] No regression in event-driven features
+    - [ ] Consistent event handling patterns
+    - [ ] No duplicate event processing
+  Testing Quality:
+    - [ ] All existing tests pass with new implementation
+    - [ ] Test coverage maintained or improved
+    - [ ] Edge cases and error scenarios tested
+    - [ ] Performance tests verify no degradation
+  Documentation Quality:
+    - [ ] Code comments updated to reflect new patterns
+    - [ ] Architecture documentation updated
+    - [ ] Migration notes documented for future reference
+    - [ ] Any API changes documented
+
+**Acceptance Criteria**:
+  Functional Requirements:
+    1. All functionality continues to work with event-manager
+    2. No event handling regressions introduced
+    3. All modules successfully migrated from event-bus
+    4. Deprecated event-bus module completely removed
+  Integration Requirements:
+    1. Event flow between modules works consistently
+    2. Event handling patterns standardized across codebase
+    3. No duplicate event handling or processing
+    4. Test infrastructure uses new event system
+  Performance Requirements:
+    1. No degradation in event publishing performance
+    2. No degradation in event handling performance
+    3. No new memory leaks introduced
+
+**Notes**:
+
+- This task completes the work started in NOT-003.1: Event System Migration
+- Take an incremental approach with thorough testing after each step
+- Consider pair programming for complex migrations
+- Document any patterns or lessons learned for future refactoring
+
+## Implementation Guide: EVT-002.1 Dependency Analysis and Planning
+
+### Objective
+
+Create a comprehensive plan for migrating from the deprecated event-bus module to the new event-manager module.
+
+### Detailed Implementation Steps
+
+#### 1. Event-Bus Usage Analysis
+
+Run the following commands to identify all event-bus usages:
+
+```bash
+# Find all imports of event-bus
+grep -r "import.*from.*event-bus" src/
+
+# Find all uses of the token
+grep -r "EVENT_BUS_TOKEN" src/
+
+# Find all BaseEvent usages
+grep -r "extends BaseEvent" src/
+```
+
+Create a spreadsheet or document with the following columns:
+
+- File path
+- Import type (Module, Interface, Token, BaseEvent)
+- Usage pattern (Injection, Extension, etc.)
+- Replacement from event-manager
+- Migration complexity (Low, Medium, High)
+- Verification strategy
+
+#### 2. Interface Comparison
+
+Create detailed documentation comparing the interfaces between event-bus and event-manager:
+
+```typescript
+// Compare event-bus BaseEvent
+// src/common/event-bus/core/domain/events/base.event.ts
+// with
+// src/common/event-manager/entities/events/base.event.ts
+
+// Compare event-bus EventBusPort
+// src/common/event-bus/core/ports/event-bus.port.ts
+// with
+// src/common/event-manager/entities/ports/event-bus.port.ts
+
+// Compare InjectEventBus decorator
+// src/common/event-bus/adapters/decorators/inject-event-bus.decorator.ts
+// with
+// src/common/event-manager/presentation/decorators/inject-event-bus.decorator.ts
+```
+
+Document any differences in behavior, parameters, or return types.
+
+#### 3. Test Strategy
+
+For each affected module, create a test case that verifies:
+
+- Event publishing works correctly
+- Event handling/subscription works correctly
+- Event data is preserved
+- Errors are properly propagated
+
+Example test strategy for user-follow module:
+
+```typescript
+// Create a UserFollowTest that:
+// 1. Publishes a user follow event
+// 2. Verifies it's received by subscribers
+// 3. Checks that all data is correctly transmitted
+// 4. Runs before and after migration to confirm identical behavior
+```
+
+#### 4. Migration Strategy Document
+
+Create a detailed migration strategy document that includes:
+
+- Sequencing of module migrations
+- Required code changes per module
+- Testing approach for each migration step
+- Verification checklist for each module
+- Rollback procedures in case of issues
+- Completion criteria for the overall migration
+
+### Deliverables
+
+1. Comprehensive inventory spreadsheet of all event-bus usages
+2. Interface comparison document highlighting differences
+3. Test strategy for each affected module
+4. Detailed migration strategy document
+5. Pull request with initial test cases for verification
+
+### Estimated Time
+
+Approximately 4 hours to complete this analysis and planning phase.

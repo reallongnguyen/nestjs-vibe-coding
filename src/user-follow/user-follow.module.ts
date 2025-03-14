@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { EventBusModule } from 'src/common/event-bus/event-bus.module';
+import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { PrismaService } from 'src/common';
 import { UserFollowController } from './presentation/user-follow.controller';
 import { UserFollowService } from './services/user-follow.service';
@@ -10,7 +10,7 @@ import { GetFollowingIdsHandler } from './presentation/handlers/get-following-id
 const CommandHandlers = [GetFollowingIdsHandler];
 
 @Module({
-  imports: [EventBusModule, CqrsModule],
+  imports: [EventManagerModule, CqrsModule],
   controllers: [UserFollowController],
   providers: [
     UserFollowService,

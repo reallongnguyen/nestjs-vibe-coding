@@ -39,6 +39,17 @@ class PostUpdatedEventPayload extends BasePostEventPayload {
 }
 
 /**
+ * Payload for post deleted event
+ */
+class PostDeletedEventPayload {
+  @IsUUID()
+  postId: string;
+
+  @IsUUID()
+  userId: string;
+}
+
+/**
  * All content related event schemas
  */
 export const ContentEventSchemas = {
@@ -57,4 +68,28 @@ export const ContentEventSchemas = {
     module: 'content',
     description: 'Emitted when a post is updated',
   } as EventSchema<PostUpdatedEventPayload>,
+
+  DRAFT_POST_DELETED: {
+    eventName: 'content.draft-post.deleted',
+    schema: new PostDeletedEventPayload(),
+    version: '1.0.0',
+    module: 'content',
+    description: 'Emitted when a draft post is deleted',
+  } as EventSchema<PostDeletedEventPayload>,
+
+  PUBLISHED_POST_DELETED: {
+    eventName: 'content.published-post.deleted',
+    schema: new PostDeletedEventPayload(),
+    version: '1.0.0',
+    module: 'content',
+    description: 'Emitted when a published post is deleted',
+  } as EventSchema<PostDeletedEventPayload>,
+
+  DELETE_IMAGE: {
+    eventName: 'content.image.delete',
+    schema: { imageUrl: '' },
+    version: '1.0.0',
+    module: 'content',
+    description: 'Command to delete an image',
+  } as EventSchema<{ imageUrl: string }>,
 } as const;

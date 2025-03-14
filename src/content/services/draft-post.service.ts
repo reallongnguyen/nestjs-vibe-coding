@@ -1,7 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
-import { IEventBus, InjectEventBus } from 'src/common/event-bus';
+import { DeleteImageCommand } from 'src/common/event-manager/entities/events/commands/delete-image.command';
+import { IEventBus } from 'src/common/event-manager';
+import { InjectEventBus } from 'src/common/event-manager/presentation/decorators/inject-event-bus.decorator';
 import { PagedResult } from 'src/common/models';
 
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
@@ -36,13 +37,13 @@ export class DraftPostService {
   constructor(
     @Inject('IDraftPostRepository')
     private readonly draftPostRepository: IDraftPostRepository,
-    @Inject('IPublishedPostRepository')
-    private readonly publishedPostRepository: IPublishedPostRepository,
     @Inject('ITopicRepository')
     private readonly topicRepository: ITopicRepository,
+    @Inject('IPublishedPostRepository')
+    private readonly publishedPostRepository: IPublishedPostRepository,
+    @InjectEventBus() private readonly eventBus: IEventBus,
     private readonly prisma: PrismaService,
     private readonly events: ContentEvents,
-    @InjectEventBus() private readonly eventBus: IEventBus,
   ) {}
 
   async createDraft(

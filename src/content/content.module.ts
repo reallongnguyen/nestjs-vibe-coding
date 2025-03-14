@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { EventBusModule } from 'src/common/event-bus/event-bus.module';
+import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { DraftPostController } from './presentation/draft-post.controller';
 import { PublishedPostController } from './presentation/published-post.controller';
 import { DraftPostService } from './services/draft-post.service';
@@ -16,7 +16,7 @@ import { GetContentsHandler } from './presentation/handlers/get-contents.handler
 const CommandHandlers = [GetContentsHandler];
 
 @Module({
-  imports: [EventBusModule, CqrsModule],
+  imports: [EventManagerModule, CqrsModule],
   controllers: [DraftPostController, PublishedPostController],
   providers: [
     DraftPostService,

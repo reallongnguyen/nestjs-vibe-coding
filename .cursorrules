@@ -195,6 +195,8 @@ Required understanding files:
 - `tasks/sprint-current-tasks.md`: Source of task definitions
 - `docs/technical.md`: Implementation guidelines
 
+If this task is complex or high risk or integration-heavy, consider to perform Dependency Analysis and Planning first. You can create sub folder in `tasks/` to store analysis files. Reminder add this folder to `.gitignore`.
+
 Complex task implementation steps:
 
 1. Create skeleton:
@@ -514,6 +516,7 @@ task.state_transitions:
      - Integration points with existing features
      - Performance and scalability requirements
      - Security considerations
+   - If this feature is complex or high risk or integration-heavy, consider add first subtask to perform Dependency Analysis and Planning. Developer can create sub folder in `tasks/` to store analysis files. Reminder add this folder to `.gitignore`.
 
 3. **Technical Design**
    - Update data model if needed

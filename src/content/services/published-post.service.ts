@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { IEventBus, InjectEventBus } from 'src/common/event-bus';
-import { DeleteImageCommand } from 'src/common/event-bus/core/domain/commands/delete-image.command';
+import { IEventBus } from 'src/common/event-manager';
+import { InjectEventBus } from 'src/common/event-manager/presentation/decorators/inject-event-bus.decorator';
+import { DeleteImageCommand } from 'src/common/event-manager/entities/events/commands/delete-image.command';
 import { PagedResult } from 'src/common/models';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 
