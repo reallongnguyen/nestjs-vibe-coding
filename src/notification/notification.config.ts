@@ -36,5 +36,14 @@ export default registerAs('notification', () => {
       cleanupInterval:
         parseInt(process.env.NOTIFICATION_CACHE_CLEANUP_INTERVAL, 10) || 3600, // 1 hour
     },
+    // Rate limit configuration
+    rateLimit: {
+      perMinute:
+        parseInt(process.env.NOTIFICATION_RATE_LIMIT_PER_MINUTE, 10) || 16,
+      perHour: parseInt(process.env.NOTIFICATION_RATE_LIMIT_PER_HOUR, 10) || 64,
+      perDay: parseInt(process.env.NOTIFICATION_RATE_LIMIT_PER_DAY, 10) || 256,
+      overrideEnabled:
+        process.env.NOTIFICATION_RATE_LIMIT_OVERRIDE_ENABLED === 'true',
+    },
   };
 });

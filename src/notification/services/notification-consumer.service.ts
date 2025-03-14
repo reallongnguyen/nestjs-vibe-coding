@@ -20,6 +20,8 @@ import {
 import { NotificationTemplateService } from './notification-template.service';
 import { TemplateLanguage } from '../entities/notification-template.domain';
 import { NotificationMetricsService } from './notification-metrics.service';
+import { NotificationRateLimitService } from './notification-rate-limit.service';
+import { NotificationService } from './notification.service';
 
 @Injectable()
 export class NotificationConsumerService {
@@ -39,6 +41,8 @@ export class NotificationConsumerService {
     private readonly preferenceService: NotificationPreferenceService,
     private readonly templateService: NotificationTemplateService,
     private readonly metricsService: NotificationMetricsService,
+    private readonly rateLimitService: NotificationRateLimitService,
+    private readonly notificationService: NotificationService,
   ) {
     this.mergeNotificationThreshold = this.configService.get<number>(
       'notification.mergeNotificationThreshold',
@@ -115,6 +119,22 @@ export class NotificationConsumerService {
     const inputClone = cloneDeep(input);
 
     try {
+      // Check rate limits using the new method in NotificationService
+      const isRateLimited = await this.notificationService.isRateLimitExceeded(
+        inputClone.userId,
+        inputClone.type as NotificationType,
+      );
+
+      if (isRateLimited) {
+        this.logger.verbose(
+          `notification: notification-consumer.service: upsertNotification: skipped - user ${inputClone.userId} is rate limited for ${inputClone.type} notifications`,
+        );
+
+        this.metricsService.incrementCounter(inputClone.type, 'rate_limited');
+
+        return;
+      }
+
       // TODO: cache this information
       // Check user preferences before proceeding
       const preference = await this.preferenceService.getPreferenceByType(
@@ -261,6 +281,12 @@ export class NotificationConsumerService {
 
         this.eventEmitter.emit('notification.created', notification);
       }
+
+      // Increment rate limit counters after successful notification creation
+      await this.rateLimitService.incrementRateLimitCounters(
+        inputClone.userId,
+        inputClone.type,
+      );
     });
   }
 }

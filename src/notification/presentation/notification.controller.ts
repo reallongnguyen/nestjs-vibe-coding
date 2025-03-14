@@ -20,17 +20,18 @@ import {
   PaginatedResponse,
   RestExceptionFilter,
 } from 'src/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { NotificationMonitoringService } from '../services/notification-monitoring.service';
+import { ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
 
 import {
   NotificationListQuery,
   NotificationOutput,
   NotificationPatchQuery,
 } from './dtos/notification.dto';
+import { RateLimitStatusDto } from './dtos/rate-limit.dto';
 import { NotificationService } from '../services/notification.service';
 import { notificationErrorMap } from '../entities/notification-error.map';
-import { NotificationMetricsDto } from './dtos/metrics.dto';
+import { NotificationRateLimitService } from '../services/notification-rate-limit.service';
+import { RateLimitQuery } from '../entities/notification-preference.entity';
 
 @Controller({
   path: 'notifications',
@@ -43,7 +44,7 @@ import { NotificationMetricsDto } from './dtos/metrics.dto';
 export class NotificationController {
   constructor(
     private readonly notificationService: NotificationService,
-    private readonly monitoringService: NotificationMonitoringService,
+    private readonly rateLimitService: NotificationRateLimitService,
   ) {}
 
   @Get()
@@ -89,34 +90,49 @@ export class NotificationController {
   }
 
   /**
-   * Get notification delivery metrics
-   *
-   * @returns Notification delivery metrics
+   * Get rate limit status for the current user
+   * @param user Authenticated user
+   * @param type Notification type
+   * @returns Rate limit status
    */
-  @Get('metrics')
-  @ApiOperation({
-    summary: 'Get notification delivery metrics',
-    description: 'Returns metrics about notification delivery performance',
+  @Get('rate-limits')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({ summary: 'Get rate limit status for the current user' })
+  @ApiQuery({
+    name: 'type',
+    required: true,
+    description: 'Notification type to check rate limits for',
   })
-  @OkResponse(NotificationMetricsDto)
-  @RequireAnyRoles(Role.ADMIN)
-  async getDeliveryMetrics(): Promise<NotificationMetricsDto> {
-    return this.monitoringService.getMetrics();
+  @OkResponse(RateLimitStatusDto)
+  @ErrorResponse('notification.getRateLimit', notificationErrorMap)
+  async getRateLimits(
+    @AuthContextUser() user: User,
+    @Query() query: RateLimitQuery,
+  ): Promise<RateLimitStatusDto> {
+    const status = await this.rateLimitService.getRateLimitStatus(
+      user.id,
+      query.type,
+    );
+
+    return RateLimitStatusDto.fromDomain(status);
   }
 
   /**
-   * Reset notification delivery metrics
-   *
-   * @returns Success message
+   * Override rate limits for the current user
+   * Only works if overrides are enabled in configuration
+   * @param user Authenticated user
+   * @param type Notification type
+   * @returns Success status
    */
-  @Post('metrics/reset')
-  @ApiOperation({
-    summary: 'Reset notification delivery metrics',
-    description: 'Resets all notification delivery metrics',
-  })
+  @Post('rate-limits/override')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({ summary: 'Override rate limits for the current user' })
   @OkResponse(null)
-  @RequireAnyRoles(Role.ADMIN)
-  async resetDeliveryMetrics(): Promise<void> {
-    return this.monitoringService.resetMetrics();
+  @ErrorResponse('notification.setRateLimit', notificationErrorMap)
+  async overrideRateLimits(
+    @AuthContextUser() user: User,
+    @Query() query: RateLimitQuery,
+  ): Promise<void> {
+    await this.rateLimitService.overrideRateLimit(user.id, query.type);
   }
 }

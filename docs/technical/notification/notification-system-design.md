@@ -127,7 +127,7 @@ model Notification {
 
 ### 3.1 Notification Preferences API
 
-\`\`\`typescript
+```typescript
 // DTOs
 interface UpdateNotificationPreferenceDto {
   type: string;
@@ -155,11 +155,11 @@ class NotificationPreferenceController {
     @Body() dto: UpdateNotificationPreferenceDto
   ): Promise<NotificationPreferenceResponseDto>
 }
-\`\`\`
+```
 
 ### 3.2 Notification Delivery API
 
-\`\`\`typescript
+```typescript
 // DTOs
 interface NotificationResponseDto {
   id: string;
@@ -179,7 +179,7 @@ class NotificationController {
   getNotifications(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Query('viewed') viewed?: boolean
+    @Query('includeViewed') includeViewed?: boolean
   ): Promise<PaginatedResponse<NotificationResponseDto>>
 
   @Post(':id/view')
@@ -188,47 +188,135 @@ class NotificationController {
   @Post('view-all')
   markAllAsViewed(): Promise<void>
 }
-\`\`\`
+```
 
-## 4. Event Processing Flow
+## 4. Enhanced Architecture
+
+### 4.1 Optimized Processing Flow
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant API
     participant EventBus
-    participant EventProcessor
-    participant NotificationService
+    participant RateLimit
+    participant BatchProcessor
+    participant Cache
+    participant Database
     participant MQTT
 
     Client->>API: Perform action (like/comment)
     API->>EventBus: Publish event
-    EventBus->>EventProcessor: Process event
-    EventProcessor->>NotificationService: Create notification
-    NotificationService->>MQTT: Publish notification
+    EventBus->>RateLimit: Check rate limits
+    RateLimit-->>EventBus: Allow/Deny
+    EventBus->>BatchProcessor: Queue notification
+    BatchProcessor->>Database: Process in batches
+    Database-->>Cache: Update cache
+    BatchProcessor->>MQTT: Publish notification
     MQTT->>Client: Real-time notification
+    Client->>API: Request notifications
+    API->>Cache: Check cache
+    Cache-->>API: Return cached data
+    API->>Client: Return notifications
 ```
 
-## 5. Monitoring and Metrics
+### 4.2 Redis-Based Caching
+
+```typescript
+interface NotificationCacheService {
+  // Get notifications for a user with TTL-based caching
+  getNotifications(userId: string, options: NotificationQueryOptions): Promise<Notification[]>;
+  
+  // Set notifications in cache with configurable TTL
+  setNotifications(userId: string, notifications: Notification[], options: NotificationQueryOptions): Promise<void>;
+  
+  // Get notification count with TTL-based caching
+  getCount(userId: string, options: NotificationCountOptions): Promise<number>;
+  
+  // Set notification count in cache
+  setCount(userId: string, count: number, options: NotificationCountOptions): Promise<void>;
+  
+  // Invalidate all cache entries for a user
+  invalidateUserCache(userId: string): Promise<void>;
+  
+  // Cleanup expired cache entries
+  cleanupExpiredEntries(): Promise<void>;
+}
+```
+
+### 4.3 Batch Processing
+
+```typescript
+interface NotificationBatchService {
+  // Process notifications in batches
+  processBatch(notifications: NotificationCreateInput[]): Promise<ProcessBatchResult>;
+  
+  // Add notification to batch queue
+  addToBatch(notification: NotificationCreateInput): Promise<void>;
+  
+  // Get batch processing metrics
+  getBatchMetrics(): BatchMetrics;
+}
+```
+
+### 4.4 Rate Limiting
+
+```typescript
+interface NotificationRateLimitService {
+  // Check if notification exceeds rate limits
+  checkRateLimit(userId: string, type: string): Promise<RateLimitResult>;
+  
+  // Increment rate limit counters
+  incrementRateLimitCounters(userId: string, type: string): Promise<void>;
+  
+  // Get user-specific rate limit configuration
+  getUserRateLimits(userId: string): Promise<UserRateLimits>;
+}
+```
+
+## 5. Enhanced Monitoring and Metrics
 
 ### 5.1 Key Metrics
 
 1. Event Processing:
-   - Event processing latency
+   - Event processing latency (p50, p95, p99)
    - Event processing success rate
    - Event backlog size
+   - Batch processing duration
+   - Batch size distribution
 
 2. Notification Delivery:
    - Delivery latency
    - Success rate
    - Queue size
+   - Rate limited notifications count
+   - Notification throughput
 
-3. MQTT Metrics:
-   - Connection count
-   - Message throughput
-   - Delivery success rate
+3. Database Performance:
+   - Query duration (p50, p95, p99)
+   - Cache hit/miss ratio
+   - Database load
+   - Notification retries
 
-### 5.2 Alert Thresholds
+4. User Experience:
+   - Time to first notification
+   - Notification delivery time
+   - API response time
+
+### 5.2 Grafana Dashboard
+
+The notification system includes a comprehensive Grafana dashboard with panels for:
+
+1. Notification Processing Rate
+2. Queue Length
+3. Processing Duration (p95)
+4. Rate Limited Notifications
+5. Batch Size (p95)
+6. Batch Processing Duration (p95)
+7. Database Query Duration (p95)
+8. Notification Retries
+
+### 5.3 Alert Thresholds
 
 1. Processing Latency:
    - Warning: > 500ms
@@ -242,6 +330,10 @@ sequenceDiagram
    - Warning: > 1%
    - Critical: > 5%
 
+4. Cache Hit Ratio:
+   - Warning: < 80%
+   - Critical: < 50%
+
 ## 6. Implementation Guidelines
 
 ### 6.1 Event Processing
@@ -250,19 +342,22 @@ sequenceDiagram
 2. Implement idempotent processing
 3. Add retry mechanism with exponential backoff
 4. Implement dead letter queue for failed events
+5. Use batch processing for high-volume notifications
 
 ### 6.2 Notification Grouping
 
 1. Group similar notifications within 5-minute window
 2. Update existing notifications instead of creating new ones
 3. Implement smart text generation for grouped notifications
+4. Use Redis for temporary storage of grouping data
 
 ### 6.3 Performance Optimization
 
-1. Use Redis for temporary event storage
+1. Use Redis for notification caching with configurable TTL
 2. Implement batch processing for high-volume events
-3. Use materialized views for notification queries
-4. Implement proper database indexing
+3. Use optimized database queries with proper indexing
+4. Implement rate limiting to prevent notification flooding
+5. Use concurrency control for batch processing
 
 ### 6.4 Error Handling
 
@@ -270,6 +365,7 @@ sequenceDiagram
 2. Implement proper error logging
 3. Add monitoring for error patterns
 4. Create error recovery procedures
+5. Implement retry mechanisms with backoff
 
 ## 7. Security Considerations
 
@@ -277,3 +373,5 @@ sequenceDiagram
 2. User permission checking
 3. Rate limiting
 4. MQTT authentication and authorization
+5. Redis security configuration
+6. Data encryption for sensitive notification content

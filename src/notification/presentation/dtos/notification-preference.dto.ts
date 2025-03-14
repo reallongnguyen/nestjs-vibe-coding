@@ -1,10 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  Min,
+} from 'class-validator';
 import { PageOptionsDto } from 'src/common';
 import {
   NotificationChannel,
   NotificationPreference,
   NotificationType,
+  RateLimitConfig,
 } from '../../entities/notification-preference.entity';
 
 /**
@@ -74,6 +82,47 @@ export class UpdateNotificationPreferenceDto {
 }
 
 /**
+ * DTO for updating rate limit configuration
+ */
+export class UpdateRateLimitConfigDto {
+  @ApiPropertyOptional({
+    description: 'Maximum number of notifications per minute',
+    type: 'integer',
+    example: 10,
+    minimum: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  perMinute?: number;
+
+  @ApiPropertyOptional({
+    description: 'Maximum number of notifications per hour',
+    type: 'integer',
+    example: 50,
+    minimum: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  perHour?: number;
+
+  @ApiPropertyOptional({
+    description: 'Maximum number of notifications per day',
+    type: 'integer',
+    example: 200,
+    minimum: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  perDay?: number;
+}
+
+/**
  * DTO for notification preference output
  */
 export class NotificationPreferenceOutput {
@@ -120,6 +169,26 @@ export class NotificationPreferenceOutput {
   enabled: boolean;
 
   @ApiProperty({
+    description: 'Rate limit configuration',
+    type: 'object',
+    properties: {
+      perMinute: {
+        type: 'integer',
+        example: 16,
+      },
+      perHour: {
+        type: 'integer',
+        example: 64,
+      },
+      perDay: {
+        type: 'integer',
+        example: 256,
+      },
+    },
+  })
+  rateLimits?: RateLimitConfig;
+
+  @ApiProperty({
     description: 'When the preference was created',
     type: 'string',
     format: 'date-time',
@@ -152,6 +221,7 @@ export class NotificationPreferenceOutput {
     output.type = preference.type;
     output.channels = preference.channels;
     output.enabled = preference.enabled;
+    output.rateLimits = preference.metadata?.rateLimits;
     output.createdAt = preference.createdAt;
     output.updatedAt = preference.updatedAt;
     return output;

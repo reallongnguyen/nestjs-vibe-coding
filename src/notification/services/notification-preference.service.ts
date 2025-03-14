@@ -140,6 +140,7 @@ export class NotificationPreferenceService {
     data: {
       channels?: NotificationChannel[];
       enabled?: boolean;
+      metadata?: Record<string, any>;
     },
   ): Promise<NotificationPreference> {
     try {
@@ -206,6 +207,46 @@ export class NotificationPreferenceService {
     } catch (err) {
       this.logger.error(
         `notification: notification-preference.service: createDefaultPreference: ${err.message}`,
+      );
+      throw new AppError('common.serverError');
+    }
+  }
+
+  /**
+   * Update rate limit configuration for a notification preference
+   *
+   * @param userId User ID
+   * @param type Notification type
+   * @param rateLimits Rate limit configuration
+   * @returns Updated notification preference
+   */
+  async updateRateLimitConfig(
+    userId: string,
+    type: NotificationType,
+    rateLimits: {
+      perMinute?: number;
+      perHour?: number;
+      perDay?: number;
+    },
+  ): Promise<NotificationPreference> {
+    try {
+      // Get existing preference
+      const preference = await this.getPreferenceByType(userId, type);
+
+      // Create or update metadata with rate limits
+      const metadata = {
+        ...(preference.metadata || {}),
+        rateLimits: {
+          ...(preference.metadata?.rateLimits || {}),
+          ...rateLimits,
+        },
+      };
+
+      // Update preference with new metadata
+      return this.updatePreference(userId, type, { metadata });
+    } catch (err) {
+      this.logger.error(
+        `notification: notification-preference.service: updateRateLimitConfig: ${err.message}`,
       );
       throw new AppError('common.serverError');
     }

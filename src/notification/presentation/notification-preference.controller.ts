@@ -32,6 +32,7 @@ import {
   NotificationPreferenceListQuery,
   NotificationPreferenceOutput,
   UpdateNotificationPreferenceDto,
+  UpdateRateLimitConfigDto,
 } from './dtos/notification-preference.dto';
 
 @Controller({
@@ -146,6 +147,34 @@ export class NotificationPreferenceController {
         channels: dto.channels,
         enabled: dto.enabled,
       },
+    );
+
+    return NotificationPreferenceOutput.fromDomain(preference);
+  }
+
+  @Put(':type/rate-limits')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({
+    summary: 'Update rate limit configuration',
+    description:
+      'Update rate limit configuration for a notification preference',
+  })
+  @ApiParam({
+    name: 'type',
+    enum: NotificationType,
+    description: 'Notification type',
+  })
+  @OkResponse(NotificationPreferenceOutput)
+  @ErrorResponse('notification.rateLimit.update', notificationErrorMap)
+  async updateRateLimits(
+    @AuthContextUser() user: User,
+    @Param('type') type: NotificationType,
+    @Body() dto: UpdateRateLimitConfigDto,
+  ): Promise<NotificationPreferenceOutput> {
+    const preference = await this.preferenceService.updateRateLimitConfig(
+      user.id,
+      type,
+      dto,
     );
 
     return NotificationPreferenceOutput.fromDomain(preference);

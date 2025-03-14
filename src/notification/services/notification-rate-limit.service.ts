@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
+import { AppError } from 'src/common/models';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationPreferenceService } from './notification-preference.service';
 import { NotificationType } from '../entities/notification-preference.entity';
+import { NotificationService } from './notification.service';
 
 /**
  * Configuration for notification rate limiting
@@ -74,6 +76,7 @@ export class NotificationRateLimitService {
     private readonly redisService: RedisService,
     private readonly metricsService: NotificationMetricsService,
     private readonly preferenceService: NotificationPreferenceService,
+    private readonly notificationService: NotificationService,
   ) {
     // Initialize Redis client
     this.redis = this.redisService.getOrThrow();
@@ -319,7 +322,7 @@ export class NotificationRateLimitService {
   }
 
   /**
-   * Get current rate limit status for a user and notification type
+   * Get rate limit status for a user and notification type
    * @param userId User ID
    * @param notificationType Type of notification
    * @returns Rate limit status
@@ -334,7 +337,7 @@ export class NotificationRateLimitService {
     );
 
     try {
-      // Get user preferences for custom rate limits
+      // Check user preferences for custom rate limits
       let minuteLimit = this.config.maxNotificationsPerMinute;
       let hourLimit = this.config.maxNotificationsPerHour;
       let dayLimit = this.config.maxNotificationsPerDay;
@@ -375,44 +378,13 @@ export class NotificationRateLimitService {
       const hourRemaining = Math.max(0, hourLimit - hourCount);
       const dayRemaining = Math.max(0, dayLimit - dayCount);
 
-      // Update rate limit metrics
-      this.metricsService.updateRateLimitRemaining(
+      // Check if rate limited using the NotificationService
+      const isRateLimited = await this.notificationService.isRateLimitExceeded(
         userId,
-        notificationType,
-        'minute',
-        minuteRemaining,
-      );
-      this.metricsService.updateRateLimitRemaining(
-        userId,
-        notificationType,
-        'hour',
-        hourRemaining,
-      );
-      this.metricsService.updateRateLimitRemaining(
-        userId,
-        notificationType,
-        'day',
-        dayRemaining,
+        notificationType as NotificationType,
       );
 
-      // Check if any limit is exceeded
-      const isRateLimited =
-        minuteCount >= minuteLimit ||
-        hourCount >= hourLimit ||
-        dayCount >= dayLimit;
-
-      // Record metrics for API call
-      this.metricsService.incrementCounter(
-        notificationType,
-        'rate_limit_check',
-      );
-
-      // Record if rate limited
-      if (isRateLimited) {
-        this.metricsService.recordRateLimited(notificationType, userId);
-      }
-
-      const status: RateLimitStatus = {
+      return {
         limits: {
           perMinute: minuteLimit,
           perHour: hourLimit,
@@ -430,15 +402,13 @@ export class NotificationRateLimitService {
         },
         isRateLimited,
       };
-
-      return status;
     } catch (error: any) {
       this.logger.error(
         `Error getting rate limit status for user ${userId}: ${error.message}`,
         error.stack,
       );
 
-      // Return default status if there's an error
+      // Return default values in case of error
       return {
         limits: {
           perMinute: this.config.maxNotificationsPerMinute,
@@ -472,7 +442,7 @@ export class NotificationRateLimitService {
   async overrideRateLimit(
     userId: string,
     notificationType: string,
-  ): Promise<boolean> {
+  ): Promise<void> {
     const timer = this.metricsService.startTimer(
       notificationType,
       'rate_limit_override',
@@ -483,7 +453,8 @@ export class NotificationRateLimitService {
         this.logger.warn(
           `Rate limit override attempted for user ${userId} but overrides are disabled`,
         );
-        return false;
+
+        throw new AppError('notification.setRateLimit.overrideDisabled');
       }
 
       const minuteKey = `${this.redisKeyPrefix}:${userId}:${notificationType}:minute`;
@@ -526,14 +497,13 @@ export class NotificationRateLimitService {
         notificationType,
         'rate_limit_override',
       );
-
-      return true;
     } catch (error: any) {
       this.logger.error(
         `Error overriding rate limit for user ${userId}: ${error.message}`,
         error.stack,
       );
-      return false;
+
+      throw new AppError('notification.setRateLimit.overrideFailed');
     } finally {
       timer.end();
     }

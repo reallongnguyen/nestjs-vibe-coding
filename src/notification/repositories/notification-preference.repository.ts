@@ -62,6 +62,7 @@ export class NotificationPreferenceRepository
     type: NotificationType;
     channels: string[];
     enabled: boolean;
+    metadata?: Record<string, any>;
   }): Promise<NotificationPreference> {
     const preference = await this.prisma.notificationPreference.create({
       data: {
@@ -69,6 +70,7 @@ export class NotificationPreferenceRepository
         type: data.type,
         channels: data.channels,
         enabled: data.enabled,
+        metadata: data.metadata || {},
       },
     });
 
@@ -80,6 +82,7 @@ export class NotificationPreferenceRepository
     data: {
       channels?: string[];
       enabled?: boolean;
+      metadata?: Record<string, any>;
     },
   ): Promise<NotificationPreference> {
     const updateData: any = {};
@@ -90,6 +93,10 @@ export class NotificationPreferenceRepository
 
     if (data.enabled !== undefined) {
       updateData.enabled = data.enabled;
+    }
+
+    if (data.metadata !== undefined) {
+      updateData.metadata = data.metadata;
     }
 
     const preference = await this.prisma.notificationPreference.update({
@@ -144,6 +151,7 @@ export class NotificationPreferenceRepository
       (channel: string) => channel as NotificationChannel,
     );
     preference.enabled = dbPreference.enabled;
+    preference.metadata = dbPreference.metadata || {};
     preference.createdAt = dbPreference.createdAt;
     preference.updatedAt = dbPreference.updatedAt;
     return preference;

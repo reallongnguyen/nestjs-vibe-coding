@@ -889,7 +889,7 @@ export class RedisBatchProcessor<T> {
 
 ### Overview
 
-The notification system follows a three-stage pipeline architecture: Producer → Consumer → Delivery. This design ensures reliable notification processing, proper grouping, and efficient delivery across multiple channels.
+The notification system follows an optimized pipeline architecture with enhanced performance features: Producer → Rate Limiting → Batch Processing → Delivery. This design ensures reliable notification processing, proper grouping, efficient delivery across multiple channels, and optimal performance under high load.
 
 ### Components Flow
 
@@ -905,19 +905,43 @@ The notification system follows a three-stage pipeline architecture: Producer �
   - Assigns unique key for grouping
 - **Output**: Queued notification request (via Bull Queue)
 
-#### 2. Consumer Stage (NotificationConsumerService)
+#### 2. Rate Limiting Stage (NotificationRateLimitService)
 
-**Responsibility**: Processes notification requests with grouping and rendering
+**Responsibility**: Prevents notification flooding for users
 
-- **Input**: NotificationCreateInput from queue
+- **Input**: Notification request
 - **Processing**:
-  - Validates user notification preferences
-  - Applies notification grouping strategies using key field
-  - Renders notification text using templates
-  - Manages concurrent updates with RedLock
-- **Output**: Persisted Notification entity
+  - Checks user-specific rate limits
+  - Applies global rate limiting rules
+  - Respects user preferences
+  - Records rate limiting metrics
+- **Output**: Allowed or rejected notification
 
-#### 3. Delivery Stage (NotificationDeliveryService)
+#### 3. Batch Processing Stage (NotificationBatchProcessor)
+
+**Responsibility**: Processes notifications in efficient batches
+
+- **Input**: Validated notification requests from queue
+- **Processing**:
+  - Groups notifications into optimal batch sizes
+  - Processes batches with configurable concurrency
+  - Implements retry logic for failed notifications
+  - Records batch processing metrics
+- **Output**: Processed notification batches
+
+#### 4. Persistence Stage (NotificationRepository)
+
+**Responsibility**: Stores notifications with optimized database operations
+
+- **Input**: Processed notification batches
+- **Processing**:
+  - Performs optimized bulk database operations
+  - Updates Redis cache for fast retrieval
+  - Manages notification grouping
+  - Records database performance metrics
+- **Output**: Persisted Notification entities
+
+#### 5. Delivery Stage (NotificationDeliveryService)
 
 **Responsibility**: Delivers notifications through configured channels
 
@@ -928,6 +952,44 @@ The notification system follows a three-stage pipeline architecture: Producer �
   - Implements retry logic
   - Records delivery metrics
 - **Output**: Channel-specific deliveries (MQTT, etc.)
+
+### Performance Optimizations
+
+#### 1. Redis-Based Caching (NotificationCacheService)
+
+**Features**:
+
+- TTL-based caching for notifications and counts
+- Automatic cache invalidation on updates
+- Configurable cache settings
+- Metrics for cache hit/miss ratio
+
+#### 2. Batch Processing (NotificationBatchService)
+
+**Features**:
+
+- Configurable batch sizes and concurrency
+- Optimized database operations
+- Retry mechanism for failed notifications
+- Detailed batch processing metrics
+
+#### 3. Rate Limiting (NotificationRateLimitService)
+
+**Features**:
+
+- User-specific rate limits
+- Type-based limits
+- Integration with user preferences
+- Redis-based counter implementation
+
+#### 4. Performance Monitoring (NotificationMetricsService)
+
+**Features**:
+
+- Comprehensive Grafana dashboard
+- Detailed metrics for all processing stages
+- Latency tracking (p50, p95, p99)
+- Error rate monitoring
 
 ### Implementing New Notification Types
 
@@ -976,12 +1038,26 @@ When adding a new notification type:
    - Backoff strategies
    - Concurrency limits
 
-2. **Consumer**:
-   - Grouping window size
-   - Lock timeouts
-   - Database optimization
+2. **Batch Processing**:
+   - Optimal batch size (50-100 items)
+   - Concurrency limits (5-10 parallel batches)
+   - Memory usage monitoring
+   - Error handling with retries
 
-3. **Delivery**:
+3. **Caching Strategy**:
+   - TTL configuration (5-15 minutes)
+   - Cache invalidation triggers
+   - Memory usage monitoring
+   - Fallback mechanisms
+
+4. **Rate Limiting**:
+   - User-specific thresholds
+   - Type-based limits
+   - Time window configuration
+   - Graceful degradation
+
+5. **Delivery**:
    - Channel timeouts
    - Retry policies
    - Resource limits
+   - Circuit breakers for external services

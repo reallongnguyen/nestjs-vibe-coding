@@ -7,6 +7,24 @@ export const notificationErrorMap: ErrorMap = {
   notification: {
     list: {},
     view: {},
+    rateLimit: {
+      exceeded: {
+        status: HttpStatus.TOO_MANY_REQUESTS,
+        message: 'Rate limit exceeded for this notification type',
+      },
+      check: {
+        failed: {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Failed to check rate limit status',
+        },
+      },
+      update: {
+        failed: {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Failed to update rate limit configuration',
+        },
+      },
+    },
     preference: {
       list: {},
       get: {
@@ -83,6 +101,17 @@ export const notificationErrorMap: ErrorMap = {
           message:
             'Failed to render template {{type}} for language {{language}}',
         },
+      },
+    },
+    getRateLimit: {},
+    setRateLimit: {
+      overrideDisabled: {
+        status: HttpStatus.FORBIDDEN,
+        message: 'Rate limit override is disabled',
+      },
+      overrideFailed: {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to override rate limit',
       },
     },
   },

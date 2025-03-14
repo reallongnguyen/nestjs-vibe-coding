@@ -6,6 +6,8 @@ import { cloneDeep } from 'lodash';
 import { NotificationOutput } from '../presentation/dtos/notification.dto';
 import { NotificationRepository } from '../repositories/notification.repository';
 import { NotificationMetricsService } from './notification-metrics.service';
+import { NotificationPreferenceService } from './notification-preference.service';
+import { NotificationType } from '../entities/notification-preference.entity';
 
 /**
  * Service for managing notifications with optimized queries and caching
@@ -16,6 +18,7 @@ export class NotificationService {
     private readonly logger: Logger,
     private readonly notificationRepository: NotificationRepository,
     private readonly metricsService: NotificationMetricsService,
+    private readonly preferenceService: NotificationPreferenceService,
   ) {}
 
   /**
@@ -185,6 +188,112 @@ export class NotificationService {
 
       this.metricsService.incrementCounter('service', 'error');
       throw new AppError('common.serverError');
+    } finally {
+      timer.end();
+    }
+  }
+
+  /**
+   * Check if a notification exceeds rate limits
+   * @param userId User ID
+   * @param type Notification type
+   * @returns True if rate limit is exceeded, false otherwise
+   */
+  async isRateLimitExceeded(
+    userId: string,
+    type: NotificationType,
+  ): Promise<boolean> {
+    const timer = this.metricsService.startTimer('service', 'check_rate_limit');
+
+    try {
+      // Get user's notification preference
+      const preference = await this.preferenceService.getPreferenceByType(
+        userId,
+        type,
+      );
+
+      // If no preference or no rate limits defined, rate limit is not exceeded
+      if (!preference || !preference.metadata?.rateLimits) {
+        return false;
+      }
+
+      const { rateLimits } = preference.metadata;
+      const now = new Date();
+
+      // Check per minute limit
+      if (rateLimits.perMinute) {
+        const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
+        const countLastMinute = await this.notificationRepository.count({
+          where: {
+            userId,
+            type,
+            notificationTime: {
+              gte: oneMinuteAgo,
+            },
+          },
+        });
+
+        if (countLastMinute >= rateLimits.perMinute) {
+          this.logger.debug(
+            `Rate limit exceeded for user ${userId}, type ${type}: ${countLastMinute} notifications in the last minute (limit: ${rateLimits.perMinute})`,
+          );
+          return true;
+        }
+      }
+
+      // Check per hour limit
+      if (rateLimits.perHour) {
+        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+        const countLastHour = await this.notificationRepository.count({
+          where: {
+            userId,
+            type,
+            notificationTime: {
+              gte: oneHourAgo,
+            },
+          },
+        });
+
+        if (countLastHour >= rateLimits.perHour) {
+          this.logger.debug(
+            `Rate limit exceeded for user ${userId}, type ${type}: ${countLastHour} notifications in the last hour (limit: ${rateLimits.perHour})`,
+          );
+          return true;
+        }
+      }
+
+      // Check per day limit
+      if (rateLimits.perDay) {
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const countLastDay = await this.notificationRepository.count({
+          where: {
+            userId,
+            type,
+            notificationTime: {
+              gte: oneDayAgo,
+            },
+          },
+        });
+
+        if (countLastDay >= rateLimits.perDay) {
+          this.logger.debug(
+            `Rate limit exceeded for user ${userId}, type ${type}: ${countLastDay} notifications in the last day (limit: ${rateLimits.perDay})`,
+          );
+          return true;
+        }
+      }
+
+      // No rate limits exceeded
+      return false;
+    } catch (err) {
+      this.logger.error(
+        `notification: notification.service: isRateLimitExceeded: ${err.message}`,
+        err.stack,
+      );
+
+      this.metricsService.incrementCounter('service', 'error');
+      // Default to not rate limited in case of error
+      return false;
     } finally {
       timer.end();
     }

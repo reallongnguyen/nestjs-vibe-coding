@@ -72,7 +72,6 @@ import { EventBusModule } from 'src/common/event-bus/event-bus.module';
 import { NotificationController } from './presentation/notification.controller';
 import { NotificationPreferenceController } from './presentation/notification-preference.controller';
 import { NotificationTemplateController } from './presentation/notification-template.controller';
-import { NotificationProcessor } from './presentation/notification.processor';
 import { NotificationHandler } from './presentation/handlers/notification.handler';
 import { LikeNotificationHandler } from './presentation/handlers/like-notification.handler';
 import { CommentNotificationHandler } from './presentation/handlers/comment-notification.handler';
@@ -83,17 +82,16 @@ import { NotificationTemplateService } from './services/notification-template.se
 import { NotificationConsumerService } from './services/notification-consumer.service';
 import { NotificationProducerService } from './services/notification-producer.service';
 import { NotificationDeliveryService } from './services/notification-delivery.service';
-import { NotificationMonitoringService } from './services/notification-monitoring.service';
 import { NotificationRepository } from './repositories/notification.repository';
 import { NotificationPreferenceRepository } from './repositories/notification-preference.repository';
 import { NotificationTemplateRepository } from './repositories/notification-template.repository';
 import { RedlockMutex } from './repositories/redlock.mutex';
 import moduleConfig from './notification.config';
-import { NotificationCounterService } from './services/notification-counter.service';
 import { NotificationMetricsService } from './services/notification-metrics.service';
 import { NotificationBatchService } from './services/notification-batch.service';
 import { NotificationBatchProcessor } from './presentation/notification-batch.processor';
 import { NotificationCacheService } from './services/notification-cache.service';
+import { NotificationRateLimitService } from './services/notification-rate-limit.service';
 
 @Module({
   imports: [
@@ -128,11 +126,10 @@ import { NotificationCacheService } from './services/notification-cache.service'
     NotificationConsumerService,
     NotificationProducerService,
     NotificationDeliveryService,
-    NotificationMonitoringService,
-    NotificationCounterService,
     NotificationMetricsService,
     NotificationBatchService,
     NotificationCacheService,
+    NotificationRateLimitService,
 
     // Repositories
     {
@@ -157,7 +154,6 @@ import { NotificationCacheService } from './services/notification-cache.service'
     LikeNotificationHandler,
     CommentNotificationHandler,
     FollowNotificationHandler,
-    NotificationProcessor,
     NotificationBatchProcessor,
   ],
 })

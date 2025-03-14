@@ -6,6 +6,9 @@
  * and through which channels.
  */
 
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsEnum } from 'class-validator';
+
 export enum NotificationChannel {
   IN_APP = 'in_app',
   EMAIL = 'email',
@@ -23,6 +26,26 @@ export enum NotificationType {
   USER_MENTION = 'user_mention',
   USER_FOLLOW = 'user_follow',
   SYSTEM_ANNOUNCEMENT = 'system_announcement',
+}
+
+export class RateLimitQuery {
+  @ApiProperty({
+    description: 'Notification type to override rate limits for',
+    example: NotificationType.PROFILE_UPDATE,
+    required: true,
+  })
+  @IsEnum(NotificationType)
+  @IsNotEmpty()
+  type: NotificationType;
+}
+
+/**
+ * Rate limit configuration for notification preferences
+ */
+export interface RateLimitConfig {
+  perMinute?: number;
+  perHour?: number;
+  perDay?: number;
 }
 
 /**
@@ -57,6 +80,12 @@ export class NotificationPreference {
   enabled: boolean;
 
   /**
+   * Additional metadata for the preference
+   * Can include rate limit configuration and other settings
+   */
+  metadata?: Record<string, any>;
+
+  /**
    * When the preference was created
    */
   createdAt: Date;
@@ -78,6 +107,7 @@ export class NotificationPreference {
     preference.type = type;
     preference.channels = [NotificationChannel.IN_APP];
     preference.enabled = true;
+    preference.metadata = {};
     preference.createdAt = new Date();
     preference.updatedAt = new Date();
     return preference;

@@ -215,12 +215,13 @@ model NotificationPreference {
   type      String
   channels  String[] // Store as array of strings representing channels (in_app, email, push, mqtt)
   enabled   Boolean  @default(true)
+  metadata  Json?    @default("{}") // Store additional preference data like rate limits
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   user User @relation(fields: [userId], references: [id])
 
-  @@unique([userId, type])
+  @@unique([userId, type], name: "userId_type")
   @@index([userId])
   @@index([type], type: Hash)
   @@map("notification_preferences")

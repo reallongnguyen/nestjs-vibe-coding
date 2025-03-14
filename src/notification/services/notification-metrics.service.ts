@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { MetricsService } from 'src/common/monitoring/metrics.service';
+import { MetricsService } from 'src/common/monitoring';
 
 /**
  * Timer interface for tracking metric durations
