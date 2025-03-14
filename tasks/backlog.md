@@ -69,6 +69,7 @@ Implement a comprehensive notification system for social interactions, including
 Status: Completed in Sprint 007 ✅
 
 #### NOT-003.2: Like Notification Implementation (3 points)
+Status: Completed in Sprint 011 ✅
 
 **Priority**: High
 **Dependencies**: NOT-003.1
@@ -100,6 +101,7 @@ Implement notifications for post and emotion likes.
 - User preferences are respected
 
 #### NOT-003.3: Comment Notification Implementation (3 points)
+Status: Completed in Sprint 011 ✅
 
 **Priority**: High
 **Dependencies**: NOT-003.1
@@ -130,7 +132,9 @@ Implement notifications for post comments and comment replies.
 - Notifications include comment previews
 - Deep links take users to the specific comment
 
-#### NOT-003.4: Follower Content Notification Implementation (5 points)
+#### NOT-003.4: Follow Notification Handler Implementation (5 points)
+
+Status: Completed in Sprint 011 ✅
 
 **Priority**: High
 **Dependencies**: NOT-003.1
@@ -898,17 +902,22 @@ Implement comprehensive image processing and delivery system using imgproxy, inc
    - SOC-001.2: View System Enhancement
    - SOC-001.3: Monitoring and Metrics
    - NOT-003.1: Event System Migration
+   - NOT-003.2: Like Notification Implementation
+   - NOT-003.3: Comment Notification Implementation
+   - NOT-003.4: Follow Notification Handler Implementation
    - FED-001.1: Gorse Integration
    - FED-001.2: Feed Generation Service
    - FED-001.3: Cache Management System
    - FED-001.6: Redis-Based Fallback Strategy
 
 2. Next Priority Tasks:
-   - NOT-003.2-5: Social Notification System Implementation
+   - NOT-003.5: Notification Delivery Optimization
    - REC-001: Gorse Integration Research
-   - EVT-001: Remaining Event System Improvements
+   - EVT-001: Event System Short-term Improvements
+   - NOT-004: Notification Module Integration
+   - ERR-001: Error Module Rollout
 
 3. Dependencies:
-   - NOT-003.2-5 can proceed (NOT-003.1 is complete)
+   - NOT-003.5 can proceed (NOT-003.2, NOT-003.3, NOT-003.4 are complete)
    - REC-002 depends on successful completion of REC-001
    - Remaining FED-001 tasks can proceed in parallel
