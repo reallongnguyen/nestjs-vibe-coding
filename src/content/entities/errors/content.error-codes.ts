@@ -1,0 +1,29 @@
+/**
+ * Standardized error codes for the Content module
+ * These codes are used by the error factory to create specific error instances
+ */
+export enum ContentErrorCode {
+  // Draft post errors
+  DRAFT_CREATE_FAILED = 'DRAFT_CREATE_FAILED',
+  DRAFT_UPDATE_FAILED = 'DRAFT_UPDATE_FAILED',
+  DRAFT_NOT_FOUND = 'DRAFT_NOT_FOUND',
+  DRAFT_NOT_OWNER = 'DRAFT_NOT_OWNER',
+  DRAFT_DELETE_FAILED = 'DRAFT_DELETE_FAILED',
+  DRAFT_PUBLISH_FAILED = 'DRAFT_PUBLISH_FAILED',
+  DRAFT_NOT_LINKED_TO_PUBLISHED = 'DRAFT_NOT_LINKED_TO_PUBLISHED',
+
+  // Published post errors
+  PUBLISHED_POST_NOT_FOUND = 'PUBLISHED_POST_NOT_FOUND',
+  PUBLISHED_POST_NOT_OWNER = 'PUBLISHED_POST_NOT_OWNER',
+  PUBLISHED_POST_DELETE_FAILED = 'PUBLISHED_POST_DELETE_FAILED',
+  POST_UPDATE_FAILED = 'POST_UPDATE_FAILED',
+
+  // Topic errors
+  TOPIC_NOT_FOUND = 'TOPIC_NOT_FOUND',
+
+  // Slug errors
+  SLUG_EXISTS = 'SLUG_EXISTS',
+
+  // General errors
+  CONTENT_GET_FAILED = 'CONTENT_GET_FAILED',
+}

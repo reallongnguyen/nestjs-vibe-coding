@@ -5,16 +5,18 @@ import {
   ApiResponse,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { commonErrorMap, RestExceptionFilter, ErrorResponse } from 'src/common';
+import { GlobalErrorFilter } from 'src/common/errors/error.filter';
+import { ErrorResponse } from 'src/common/errors/decorators/error-response.decorator';
+import { COMMON_ERRORS } from 'src/common/errors/common.errors';
 import { ApiKeyGuard } from 'src/common/auth';
 import { MetricsService } from './metrics.service';
 
 @ApiTags('Monitoring')
 @ApiSecurity('api_key')
-@ErrorResponse('common', commonErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 @Controller('metrics')
 @UseGuards(ApiKeyGuard)
-@UseFilters(new RestExceptionFilter(commonErrorMap))
+@UseFilters(GlobalErrorFilter)
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 

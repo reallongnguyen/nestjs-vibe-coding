@@ -13,8 +13,8 @@ import { Retry } from 'src/common';
 import { NotificationCreateInput } from '../presentation/dtos/notification.dto';
 import { NotificationType } from '../entities/notification-preference.entity';
 import { NotificationMetricsService } from './notification-metrics.service';
-import { NotificationProducerError } from '../entities/notification.error';
 import { NotificationBatchService } from './notification-batch.service';
+import { NotificationErrorFactory } from '../entities/errors';
 
 @Injectable()
 export class NotificationProducerService {
@@ -193,7 +193,7 @@ export class NotificationProducerService {
         stack: err.stack,
       });
 
-      throw new NotificationProducerError(errorMessage, errorCode, err);
+      throw NotificationErrorFactory.producerFailed(errorMessage, errorCode);
     } finally {
       timer.end();
     }
@@ -348,7 +348,7 @@ export class NotificationProducerService {
         stack: err.stack,
       });
 
-      throw new NotificationProducerError(errorMessage, errorCode, err);
+      throw NotificationErrorFactory.producerFailed(errorMessage, errorCode);
     } finally {
       timer.end();
     }
@@ -525,7 +525,7 @@ export class NotificationProducerService {
         stack: err.stack,
       });
 
-      throw new NotificationProducerError(errorMessage, errorCode, err);
+      throw NotificationErrorFactory.producerFailed(errorMessage, errorCode);
     } finally {
       timer.end();
     }
@@ -620,7 +620,7 @@ export class NotificationProducerService {
         stack: err.stack,
       });
 
-      throw new NotificationProducerError(errorMessage, errorCode, err);
+      throw NotificationErrorFactory.producerFailed(errorMessage, errorCode);
     } finally {
       timer.end();
     }

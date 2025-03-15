@@ -7,23 +7,25 @@ import {
   Role,
   User,
   AuthContextUser,
-  RestExceptionFilter,
-  ErrorResponse,
   OkResponse,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';
-import { fileErrorMap } from './models/file-error.map';
 
 @Controller({
   path: 'files',
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseFilters(new RestExceptionFilter(fileErrorMap))
+@UseFilters(GlobalErrorFilter)
 @ApiTags('files')
-@ErrorResponse('common', fileErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 export class FileController {
   constructor(private readonly assetService: FileService) {}
 
@@ -34,7 +36,7 @@ export class FileController {
     summary: 'Get the upload avatar url',
   })
   @OkResponse(UploadUrlDto)
-  @ErrorResponse('file.getUploadAvatarUrl', fileErrorMap)
+  @ErrorResponse({})
   async getUploadAvatarUrl(
     @Query() query: GetImageUploadUrlDto,
     @AuthContextUser() user: User,

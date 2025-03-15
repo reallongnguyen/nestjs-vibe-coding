@@ -1,10 +1,11 @@
 import { Controller, Get, UseFilters } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RestExceptionFilter, OkResponse } from 'src/common';
+import { OkResponse } from 'src/common';
+import { GlobalErrorFilter } from 'src/common/errors/error.filter';
 
 @Controller()
-@UseFilters(new RestExceptionFilter({}))
+@UseFilters(GlobalErrorFilter)
 @ApiTags('app')
 export class AppController {
   constructor(private readonly configService: ConfigService) {}

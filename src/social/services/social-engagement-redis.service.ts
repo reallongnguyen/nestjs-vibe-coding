@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { ContentType } from '../entities/events/social.events';
-import { RedisOperationError } from '../entities/social.error';
+import { SocialErrorFactory } from '../entities/errors';
 
 const LIKE_SET_TTL = 7 * 24 * 60 * 60; // 7 days in seconds
 const VIEW_SET_TTL = 30 * 24 * 60 * 60; // 30 days in seconds
@@ -98,7 +98,7 @@ export class SocialEngagementRedisService {
       const result = await this.redis.sismember(key, userId);
       return result === 1;
     } catch (error) {
-      throw new RedisOperationError('isContentLiked', error);
+      throw SocialErrorFactory.redisOperationError('isContentLiked', error);
     }
   }
 
@@ -120,7 +120,7 @@ export class SocialEngagementRedisService {
       pipeline.expire(key, LIKE_SET_TTL);
       await pipeline.exec();
     } catch (error) {
-      throw new RedisOperationError('addLike', error);
+      throw SocialErrorFactory.redisOperationError('addLike', error);
     }
   }
 
@@ -139,7 +139,7 @@ export class SocialEngagementRedisService {
       const key = this.getLikeSetKey(type, contentId);
       await this.redis.srem(key, userId);
     } catch (error) {
-      throw new RedisOperationError('removeLike', error);
+      throw SocialErrorFactory.redisOperationError('removeLike', error);
     }
   }
 
@@ -205,7 +205,7 @@ export class SocialEngagementRedisService {
 
       return isNewView;
     } catch (error) {
-      throw new RedisOperationError('trackView', error);
+      throw SocialErrorFactory.redisOperationError('trackView', error);
     }
   }
 
@@ -219,7 +219,7 @@ export class SocialEngagementRedisService {
       const hllKey = this.getViewHLLKey(type, contentId);
       return await this.redis.pfcount(hllKey);
     } catch (error) {
-      throw new RedisOperationError('getViewCount', error);
+      throw SocialErrorFactory.redisOperationError('getViewCount', error);
     }
   }
 
@@ -255,7 +255,7 @@ export class SocialEngagementRedisService {
       // Return items for processing
       return items.map((item) => JSON.parse(item));
     } catch (error) {
-      throw new RedisOperationError('processBatch', error);
+      throw SocialErrorFactory.redisOperationError('processBatch', error);
     }
   }
 
@@ -278,7 +278,7 @@ export class SocialEngagementRedisService {
       // Set TTL on archive
       await this.redis.expire(archiveKey, VIEW_SET_TTL);
     } catch (error) {
-      throw new RedisOperationError('cleanupOldViews', error);
+      throw SocialErrorFactory.redisOperationError('cleanupOldViews', error);
     }
   }
 
@@ -292,7 +292,7 @@ export class SocialEngagementRedisService {
       const key = this.getLikeSetKey(type, contentId);
       return await this.redis.scard(key);
     } catch (error) {
-      throw new RedisOperationError('getLikeCount', error);
+      throw SocialErrorFactory.redisOperationError('getLikeCount', error);
     }
   }
 
@@ -312,7 +312,7 @@ export class SocialEngagementRedisService {
       const result = await this.redis.set(key, '1', 'EX', LOCK_TTL, 'NX');
       return result === 'OK';
     } catch (error) {
-      throw new RedisOperationError('acquireLikeLock', error);
+      throw SocialErrorFactory.redisOperationError('acquireLikeLock', error);
     }
   }
 
@@ -331,7 +331,7 @@ export class SocialEngagementRedisService {
       const key = this.getLikeLockKey(type, contentId, userId);
       await this.redis.del(key);
     } catch (error) {
-      throw new RedisOperationError('releaseLikeLock', error);
+      throw SocialErrorFactory.redisOperationError('releaseLikeLock', error);
     }
   }
 }

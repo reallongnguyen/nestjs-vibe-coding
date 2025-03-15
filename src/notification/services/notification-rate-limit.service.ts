@@ -503,7 +503,7 @@ export class NotificationRateLimitService {
         error.stack,
       );
 
-      throw new AppError('notification.setRateLimit.overrideFailed');
+      throw error;
     } finally {
       timer.end();
     }

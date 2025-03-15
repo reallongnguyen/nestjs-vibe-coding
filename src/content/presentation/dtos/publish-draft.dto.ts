@@ -1,6 +1,16 @@
 import { IsString, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class PublishDraftDto {
+  @ApiProperty({
+    description: 'Custom URL slug for the post',
+    required: false,
+    example: 'my-awesome-post',
+  })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
   @IsOptional()
   @IsString()
   title?: string;
@@ -15,9 +25,7 @@ export class PublishDraftDto {
 
   toData() {
     return {
-      ...(this.title && { title: this.title }),
-      ...(this.subtitle !== undefined && { subtitle: this.subtitle }),
-      ...(this.excerpt && { excerpt: this.excerpt }),
+      ...(this.slug && { slug: this.slug }),
     };
   }
 }

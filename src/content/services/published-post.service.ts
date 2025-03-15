@@ -7,11 +7,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 
 import { IPublishedPostRepository } from './interfaces/published-post.repository.interface';
 import { IDraftPostRepository } from './interfaces/draft-post.repository.interface';
-import {
-  PublishedPostNotFoundError,
-  NotPublishedPostOwnerError,
-  PostUpdateError,
-} from '../entities/content.error';
+import { ContentErrorFactory } from '../entities/errors';
 import { PublishedPostDeletedEvent } from '../entities/events/post-deleted.event';
 import { DraftPostService } from './draft-post.service';
 import { ListPostsQueryDto } from '../presentation/dtos/list-posts.dto';
@@ -36,11 +32,11 @@ export class PublishedPostService {
     const published = await this.publishedPostRepository.findById(id);
 
     if (!published) {
-      throw new PublishedPostNotFoundError(id);
+      throw ContentErrorFactory.publishedPostNotFound(id);
     }
 
     if (published.userId !== userId) {
-      throw new NotPublishedPostOwnerError(userId, id);
+      throw ContentErrorFactory.notPublishedPostOwner(userId, id);
     }
 
     // Find and delete associated draft post
@@ -79,11 +75,11 @@ export class PublishedPostService {
     const published = await this.publishedPostRepository.findById(publishedId);
 
     if (!published) {
-      throw new PublishedPostNotFoundError(publishedId);
+      throw ContentErrorFactory.publishedPostNotFound(publishedId);
     }
 
     if (published.userId !== userId) {
-      throw new NotPublishedPostOwnerError(userId, publishedId);
+      throw ContentErrorFactory.notPublishedPostOwner(userId, publishedId);
     }
 
     // Check if a draft already exists for this published post
@@ -136,7 +132,7 @@ export class PublishedPostService {
         `Failed to update engagement metadata for post ${id}`,
         error,
       );
-      throw new PostUpdateError(error);
+      throw ContentErrorFactory.postUpdateFailed(error);
     }
   }
 }

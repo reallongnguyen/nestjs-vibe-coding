@@ -3,7 +3,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis, ChainableCommander } from 'ioredis';
 import { ContentType } from 'src/common/event-manager';
 
-import { ContentViewError } from '../../entities/social.error';
+import { ContentViewError } from '../../entities/errors';
 import { SocialEngagementRedisService } from '../social-engagement-redis.service';
 
 describe('SocialEngagementRedisService', () => {

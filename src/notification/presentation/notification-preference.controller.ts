@@ -17,14 +17,16 @@ import {
   RolesGuard,
   User,
   PagedResult,
-  ErrorResponse,
   OkResponse,
   PaginatedResponse,
-  RestExceptionFilter,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
-import { notificationErrorMap } from '../entities/notification-error.map';
 import { NotificationPreferenceService } from '../services/notification-preference.service';
 import { NotificationType } from '../entities/notification-preference.entity';
 import {
@@ -40,9 +42,9 @@ import {
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseFilters(new RestExceptionFilter(notificationErrorMap))
+@UseFilters(GlobalErrorFilter)
 @ApiTags('notification-preferences')
-@ErrorResponse('common', notificationErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 export class NotificationPreferenceController {
   constructor(
     private readonly preferenceService: NotificationPreferenceService,
@@ -53,10 +55,10 @@ export class NotificationPreferenceController {
   @ApiOperation({
     summary: 'List notification preferences',
     description:
-      'Return paginated notification preferences for the authenticated user',
+      'Get a list of notification preferences for the authenticated user',
   })
   @PaginatedResponse(NotificationPreferenceOutput)
-  @ErrorResponse('notification.preference.list', notificationErrorMap)
+  @ErrorResponse({})
   async list(
     @AuthContextUser() user: User,
     @Query() query: NotificationPreferenceListQuery,
@@ -77,15 +79,15 @@ export class NotificationPreferenceController {
   @ApiOperation({
     summary: 'Get notification preference by type',
     description:
-      'Return a specific notification preference by type for the authenticated user',
+      'Get a notification preference by type for the authenticated user',
   })
   @ApiParam({
     name: 'type',
-    enum: NotificationType,
     description: 'Notification type',
+    enum: NotificationType,
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse('notification.preference.get', notificationErrorMap)
+  @ErrorResponse({})
   async getByType(
     @AuthContextUser() user: User,
     @Param('type') type: NotificationType,
@@ -102,11 +104,10 @@ export class NotificationPreferenceController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({
     summary: 'Create notification preference',
-    description:
-      'Create a new notification preference for the authenticated user',
+    description: 'Create a notification preference for the authenticated user',
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse('notification.preference.create', notificationErrorMap)
+  @ErrorResponse({})
   async create(
     @AuthContextUser() user: User,
     @Body() dto: CreateNotificationPreferenceDto,
@@ -125,16 +126,15 @@ export class NotificationPreferenceController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({
     summary: 'Update notification preference',
-    description:
-      'Update an existing notification preference for the authenticated user',
+    description: 'Update a notification preference for the authenticated user',
   })
   @ApiParam({
     name: 'type',
-    enum: NotificationType,
     description: 'Notification type',
+    enum: NotificationType,
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse('notification.preference.update', notificationErrorMap)
+  @ErrorResponse({})
   async update(
     @AuthContextUser() user: User,
     @Param('type') type: NotificationType,
@@ -153,19 +153,18 @@ export class NotificationPreferenceController {
   }
 
   @Put(':type/rate-limits')
-  @RequireAnyRoles(Role.USER)
+  @RequireAnyRoles(Role.ADMIN)
   @ApiOperation({
     summary: 'Update rate limit configuration',
-    description:
-      'Update rate limit configuration for a notification preference',
+    description: 'Update rate limit configuration for a notification type',
   })
   @ApiParam({
     name: 'type',
-    enum: NotificationType,
     description: 'Notification type',
+    enum: NotificationType,
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse('notification.rateLimit.update', notificationErrorMap)
+  @ErrorResponse({})
   async updateRateLimits(
     @AuthContextUser() user: User,
     @Param('type') type: NotificationType,

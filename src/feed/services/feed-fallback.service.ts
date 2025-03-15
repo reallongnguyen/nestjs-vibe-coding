@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
-import { AppError, PageOptionsDto } from 'src/common';
+import { PageOptionsDto } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
+import { FeedErrorFactory } from '../errors';
 
 /**
  * Redis-based fallback service for feed generation
@@ -43,7 +44,9 @@ export class FeedFallbackService {
         case FeedType.LATEST:
           return this.getLatestFallback(pageOptions);
         default:
-          throw new AppError('feed.type.invalid');
+          throw FeedErrorFactory.feedGenerationFailed(
+            new Error(`Invalid feed type: ${feedType}`),
+          );
       }
     } catch (error) {
       this.logger.error('Failed to get fallback feed', {
@@ -51,10 +54,10 @@ export class FeedFallbackService {
         userId,
         feedType,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedGenerationFailed(error);
       }
-      throw new AppError('feed.fallback.failed');
+      throw FeedErrorFactory.feedGenerationFailed();
     }
   }
 
@@ -90,7 +93,9 @@ export class FeedFallbackService {
         error,
         contentId,
       });
-      throw new AppError('feed.fallback.add.failed');
+      throw FeedErrorFactory.feedGenerationFailed(
+        error instanceof Error ? error : new Error('Unknown error'),
+      );
     }
   }
 

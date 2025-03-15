@@ -7,16 +7,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CqrsModule } from '@nestjs/cqrs';
 
 import moduleConfig from './social.config';
-import { FeedController } from './presentation/feed.controller';
-import { FeedService } from './services/feed.service';
-import { ContentProcessorService } from './services/content-processor.service';
-import { ContentProcessor } from './presentation/processors/content.processor';
-import { ContentHandler } from './presentation/handlers/content.handler';
-import { FeedDistributionService } from './services/feed-distribution.service';
-import { FeedCacheService } from './services/feed-cache.service';
-import { FeedDatabaseProvider } from './services/providers/feed-database.provider';
-import { FeedCacheProvider } from './services/providers/feed-cache.provider';
-import { ContentRankingForFeedService } from './services/content-ranking-for-feed.service';
 import { CommentService } from './services/comment.service';
 import { CommentRepository } from './repositories/comment.repository';
 import { SocialEngagementService } from './services/social-engagement.service';
@@ -28,9 +18,6 @@ import { UpdateLikeCountHandler } from './presentation/handlers/update-like-coun
 import { LikeRepository } from './repositories/like.repository';
 import { UpdateViewCountHandler } from './presentation/handlers/update-view-count.handler';
 import { ViewRepository } from './repositories/view.repository';
-import { SocialRepository } from './repositories/social.repository';
-import { FollowingFeedService } from './services/following-feed.service';
-import { FollowingFeedController } from './presentation/following-feed.controller';
 import { SocialEngagementRedisService } from './services/social-engagement-redis.service';
 import { SocialEngagementMetricsService } from './services/social-engagement-metrics.service';
 
@@ -50,22 +37,8 @@ import { SocialEngagementMetricsService } from './services/social-engagement-met
     ScheduleModule.forRoot(),
     CqrsModule,
   ],
-  controllers: [
-    FeedController,
-    ContentCommentController,
-    SocialEngagementController,
-    FollowingFeedController,
-  ],
+  controllers: [ContentCommentController, SocialEngagementController],
   providers: [
-    FeedService,
-    ContentProcessorService,
-    ContentRankingForFeedService,
-    ContentProcessor,
-    ContentHandler,
-    FeedDistributionService,
-    FeedCacheService,
-    FeedDatabaseProvider,
-    FeedCacheProvider,
     {
       provide: 'ICommentRepository',
       useClass: CommentRepository,
@@ -84,11 +57,6 @@ import { SocialEngagementMetricsService } from './services/social-engagement-met
       provide: 'IViewRepository',
       useClass: ViewRepository,
     },
-    {
-      provide: 'ISocialRepository',
-      useClass: SocialRepository,
-    },
-    FollowingFeedService,
     SocialEngagementRedisService,
     SocialEngagementMetricsService,
   ],

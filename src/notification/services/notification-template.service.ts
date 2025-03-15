@@ -9,13 +9,13 @@ import { IEventBus, InjectEventBus } from '../../common/event-manager';
 import {
   CreateNotificationTemplateCommand,
   UpdateNotificationTemplateCommand,
-  AppError,
 } from '../../common';
 import {
   NotificationTemplateDomain,
   TemplateLanguage,
 } from '../entities/notification-template.domain';
 import { INotificationTemplateRepository } from './interfaces/notification-template-repository.interface';
+import { NotificationErrorFactory } from '../entities/errors';
 
 /**
  * Service for managing notification templates
@@ -42,21 +42,29 @@ export class NotificationTemplateService {
    * @returns Array of notification templates
    */
   async getAllTemplates(): Promise<NotificationTemplateDomain[]> {
-    return this.templateRepository.findAll();
+    try {
+      return await this.templateRepository.findAll();
+    } catch (err) {
+      this.logger.error(
+        `Failed to get all templates: ${err.message}`,
+        err.stack,
+      );
+      throw NotificationErrorFactory.notificationCreateFailed(
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    }
   }
 
   /**
    * Get a notification template by ID
    * @param id Template ID
    * @returns Notification template
-   * @throws NotFoundException if template not found
+   * @throws TemplateNotFoundError if template not found
    */
   async getTemplateById(id: string): Promise<NotificationTemplateDomain> {
     const template = await this.templateRepository.findById(id);
     if (!template) {
-      throw new AppError('notification.template.get.notFound', {
-        id,
-      });
+      throw NotificationErrorFactory.templateNotFound();
     }
     return template;
   }
@@ -65,16 +73,27 @@ export class NotificationTemplateService {
    * Get a notification template by type
    * @param type Template type
    * @returns Notification template
-   * @throws NotFoundException if template not found
+   * @throws TemplateNotFoundError if template not found
    */
   async getTemplateByType(type: string): Promise<NotificationTemplateDomain> {
-    const template = await this.templateRepository.findByType(type);
-    if (!template) {
-      throw new AppError('notification.template.get.notFound', {
-        type,
-      });
+    try {
+      const template = await this.templateRepository.findByType(type);
+      if (!template) {
+        throw NotificationErrorFactory.templateNotFound();
+      }
+      return template;
+    } catch (err) {
+      if (err.code === 'NOTIFICATION_TEMPLATE_NOT_FOUND') {
+        throw err;
+      }
+      this.logger.error(
+        `Failed to get template by type ${type}: ${err.message}`,
+        err.stack,
+      );
+      throw NotificationErrorFactory.notificationCreateFailed(
+        err instanceof Error ? err : new Error(String(err)),
+      );
     }
-    return template;
   }
 
   /**
@@ -120,7 +139,7 @@ export class NotificationTemplateService {
 
     // Validate template syntax
     if (!template.validate()) {
-      throw new AppError('notification.template.create.invalidSyntax');
+      throw NotificationErrorFactory.templateInvalidSyntax();
     }
 
     const createdTemplate = await this.templateRepository.create(template);
@@ -188,7 +207,7 @@ export class NotificationTemplateService {
     const tempTemplate = new NotificationTemplateDomain();
     tempTemplate.content = templateUpdate.content || existingTemplate.content;
     if (!tempTemplate.validate()) {
-      throw new AppError('notification.template.update.invalidSyntax');
+      throw NotificationErrorFactory.templateInvalidSyntax();
     }
 
     // Update the existing template
@@ -258,9 +277,7 @@ export class NotificationTemplateService {
       const templateDomain = await this.templateRepository.findByType(type);
       if (!templateDomain) {
         this.logger.error(`Template not found: ${type}`);
-        throw new AppError('notification.template.render.notFound', {
-          type,
-        });
+        throw NotificationErrorFactory.templateNotFound();
       }
 
       const templateContent = templateDomain.getContent(language);
@@ -284,19 +301,23 @@ export class NotificationTemplateService {
               this.logger.error(
                 `Error compiling fallback template: ${compileError.message}`,
               );
-              throw new AppError('notification.template.render.compileError', {
+              throw NotificationErrorFactory.templateRenderError(
                 type,
-                language: fallbackLanguage,
-              });
+                fallbackLanguage,
+                compileError instanceof Error
+                  ? compileError
+                  : new Error(String(compileError)),
+              );
             }
           }
         }
 
         if (!template) {
-          throw new AppError('notification.template.render.languageNotFound', {
+          throw NotificationErrorFactory.templateRenderError(
             type,
             language,
-          });
+            new Error('Template content not found'),
+          );
         }
       } else {
         try {
@@ -306,10 +327,13 @@ export class NotificationTemplateService {
           this.logger.error(
             `Error compiling template: ${compileError.message}`,
           );
-          throw new AppError('notification.template.render.compileError', {
+          throw NotificationErrorFactory.templateRenderError(
             type,
             language,
-          });
+            compileError instanceof Error
+              ? compileError
+              : new Error(String(compileError)),
+          );
         }
       }
     }
@@ -323,11 +347,13 @@ export class NotificationTemplateService {
       // Clear cache in case the template is invalid
       this.templateCache.delete(cacheKey);
 
-      throw new AppError('notification.template.render.renderError', {
+      throw NotificationErrorFactory.templateRenderError(
         type,
         language,
-        error: renderError.message,
-      });
+        renderError instanceof Error
+          ? renderError
+          : new Error(String(renderError)),
+      );
     }
   }
 

@@ -9,11 +9,7 @@ import {
 import { ContentViewedEvent } from '../entities/events/content-viewed.event';
 
 import { EngagementStatsDto } from '../presentation/dtos/engagement-stats.dto';
-import {
-  EngageableNotFoundError,
-  ContentAlreadyLikedError,
-  ContentNotLikedError,
-} from '../entities/social.error';
+import { SocialErrorFactory } from '../entities/errors';
 import { SocialEngagementRedisService } from './social-engagement-redis.service';
 import { SocialEngagementMetricsService } from './social-engagement-metrics.service';
 
@@ -127,7 +123,11 @@ export class SocialEngagementService {
       );
 
       if (!hasLock) {
-        throw new ContentAlreadyLikedError(userId, contentId, upperType);
+        throw SocialErrorFactory.contentAlreadyLiked(
+          userId,
+          contentId,
+          upperType,
+        );
       }
 
       try {
@@ -139,7 +139,11 @@ export class SocialEngagementService {
         );
 
         if (isLiked) {
-          throw new ContentAlreadyLikedError(userId, contentId, upperType);
+          throw SocialErrorFactory.contentAlreadyLiked(
+            userId,
+            contentId,
+            upperType,
+          );
         }
 
         // Add to Redis set
@@ -219,7 +223,7 @@ export class SocialEngagementService {
       );
 
       if (!hasLock) {
-        throw new ContentNotLikedError(userId, contentId, upperType);
+        throw SocialErrorFactory.contentNotLiked(userId, contentId, upperType);
       }
 
       try {
@@ -231,7 +235,11 @@ export class SocialEngagementService {
         );
 
         if (!isLiked) {
-          throw new ContentNotLikedError(userId, contentId, upperType);
+          throw SocialErrorFactory.contentNotLiked(
+            userId,
+            contentId,
+            upperType,
+          );
         }
 
         // Remove from Redis set
@@ -388,7 +396,7 @@ export class SocialEngagementService {
     }
 
     if (!exists) {
-      throw new EngageableNotFoundError(id, type);
+      throw SocialErrorFactory.engageableNotFound(id, type);
     }
   }
 }

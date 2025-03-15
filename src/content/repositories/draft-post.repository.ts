@@ -7,7 +7,6 @@ import { DraftPost } from '../entities/draft-post.entity';
 import { PublishedPost } from '../entities/published-post.entity';
 import { IDraftPostRepository } from '../services/interfaces/draft-post.repository.interface';
 import { CreateDraftPostData } from '../services/dtos/create-daft-post.dto';
-import { DraftCreateError } from '../entities/content.error';
 import {
   ListDraftPostsQueryDto,
   DraftPostSortField,
@@ -25,26 +24,18 @@ export class DraftPostRepository
   }
 
   async create(data: CreateDraftPostData): Promise<DraftPost> {
-    try {
-      const result = await this.prisma.draftPost.create({
-        data: {
-          title: data.title,
-          subtitle: data.subtitle,
-          content: data.content,
-          cover: data.cover,
-          topics: data.topics,
-          userId: data.userId,
-        },
-      });
+    const result = await this.prisma.draftPost.create({
+      data: {
+        title: data.title,
+        subtitle: data.subtitle,
+        content: data.content,
+        cover: data.cover,
+        topics: data.topics,
+        userId: data.userId,
+      },
+    });
 
-      return result as DraftPost;
-    } catch (error) {
-      this.logger.error(
-        `Failed to create draft post for user ${data.userId}`,
-        error,
-      );
-      throw new DraftCreateError(error);
-    }
+    return result as DraftPost;
   }
 
   async findById(id: string): Promise<DraftPost | null> {
@@ -57,17 +48,12 @@ export class DraftPostRepository
     id: string,
     data: Partial<CreateDraftPostData>,
   ): Promise<DraftPost> {
-    try {
-      const result = await this.prisma.draftPost.update({
-        where: { id },
-        data,
-      });
+    const result = await this.prisma.draftPost.update({
+      where: { id },
+      data,
+    });
 
-      return result as DraftPost;
-    } catch (error) {
-      this.logger.error(`Failed to update draft post ${id}`, error.message);
-      throw new DraftCreateError(error.message);
-    }
+    return result as DraftPost;
   }
 
   async publish(

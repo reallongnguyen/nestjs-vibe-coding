@@ -12,22 +12,25 @@ import {
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   CreatedResponse,
-  ErrorResponse,
   OkResponse,
   PaginatedResponse,
-  RestExceptionFilter,
   PagedResult,
   AuthContextUser,
   AuthGuard,
   User,
   RolesGuard,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
-import { contentErrorMap } from '../entities/content-error.map';
 import { PublishedPostService } from '../services/published-post.service';
 import { ListPostsQueryDto } from './dtos/list-posts.dto';
 import { DraftPostResponseDto } from './dtos/post-response.dto';
 import { PublishedPostDto } from './dtos/published-post.dto';
+import { CONTENT_ERRORS } from '../entities/errors';
 
 @ApiTags('Posts')
 @Controller({
@@ -35,8 +38,8 @@ import { PublishedPostDto } from './dtos/published-post.dto';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseFilters(new RestExceptionFilter(contentErrorMap))
-@ErrorResponse('common', contentErrorMap)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class PublishedPostController {
   constructor(private readonly publishedPostService: PublishedPostService) {}
 
@@ -44,7 +47,11 @@ export class PublishedPostController {
   @ApiOperation({ summary: 'Delete a published post' })
   @ApiParam({ name: 'id', type: 'string', description: 'Published post ID' })
   @OkResponse(null)
-  @ErrorResponse('post.published.delete', contentErrorMap)
+  @ErrorResponse({
+    PUBLISHED_POST_DELETE_FAILED: CONTENT_ERRORS.PUBLISHED_POST_DELETE_FAILED,
+    PUBLISHED_POST_NOT_FOUND: CONTENT_ERRORS.PUBLISHED_POST_NOT_FOUND,
+    PUBLISHED_POST_NOT_OWNER: CONTENT_ERRORS.PUBLISHED_POST_NOT_OWNER,
+  })
   async deletePublished(
     @Param('id') id: string,
     @AuthContextUser() user: User,
@@ -71,7 +78,10 @@ export class PublishedPostController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Create a draft from a published post' })
   @CreatedResponse(DraftPostResponseDto)
-  @ErrorResponse('post.createDraftFromPublished', contentErrorMap)
+  @ErrorResponse({
+    PUBLISHED_POST_NOT_FOUND: CONTENT_ERRORS.PUBLISHED_POST_NOT_FOUND,
+    PUBLISHED_POST_NOT_OWNER: CONTENT_ERRORS.PUBLISHED_POST_NOT_OWNER,
+  })
   async createDraftFromPublished(
     @Param('id') id: string,
     @AuthContextUser() user: User,

@@ -10,16 +10,7 @@ import { ITopicRepository } from './interfaces/topic.repository.interface';
 import { DraftPost } from '../entities/draft-post.entity';
 import { PublishedPost } from '../entities/published-post.entity';
 import { CreateDraftPostData } from './dtos/create-daft-post.dto';
-import {
-  TopicNotFoundError,
-  DraftCreateError,
-  DraftNotFoundError,
-  DraftUpdateError,
-  NotDraftOwnerError,
-  SlugExistsError,
-  DraftPublishError,
-  DraftNotLinkedToPublishedError,
-} from '../entities/content.error';
+import { ContentErrorFactory } from '../entities/errors';
 import {
   generateSlug,
   calculateReadingTime,
@@ -74,7 +65,7 @@ export class DraftPostService {
             `Topics not found: ${missingTopicIds.join(',')} for user ${userId}`,
           );
 
-          throw new TopicNotFoundError(missingTopicIds);
+          throw ContentErrorFactory.topicNotFound(missingTopicIds);
         }
 
         const draft = await draftRepo.create({
@@ -87,8 +78,8 @@ export class DraftPostService {
         return draft;
       });
     } catch (error) {
-      // If it's our custom error, rethrow it
-      if (error instanceof TopicNotFoundError) {
+      // Check if it's from our factory
+      if (error.code && error.code.startsWith('content.')) {
         throw error;
       }
 
@@ -97,7 +88,7 @@ export class DraftPostService {
         error,
       );
 
-      throw new DraftCreateError(error);
+      throw ContentErrorFactory.draftCreateFailed(error);
     }
   }
 
@@ -116,10 +107,10 @@ export class DraftPostService {
         // Check draft exists and ownership
         const draft = await draftRepo.findById(draftId);
         if (!draft) {
-          throw new DraftNotFoundError(draftId);
+          throw ContentErrorFactory.draftNotFound(draftId);
         }
         if (draft.userId !== userId) {
-          throw new NotDraftOwnerError(userId, draftId);
+          throw ContentErrorFactory.notDraftOwner(userId, draftId);
         }
 
         // Validate topics if provided
@@ -130,7 +121,7 @@ export class DraftPostService {
             const missingTopicIds = data.topics.filter(
               (id) => !foundTopicIds.includes(id),
             );
-            throw new TopicNotFoundError(missingTopicIds);
+            throw ContentErrorFactory.topicNotFound(missingTopicIds);
           }
         }
 
@@ -141,28 +132,20 @@ export class DraftPostService {
         return updated;
       });
     } catch (error) {
-      // If it's our custom error, rethrow it
-      if (
-        error instanceof TopicNotFoundError ||
-        error instanceof DraftNotFoundError ||
-        error instanceof NotDraftOwnerError
-      ) {
+      // Check if it's from our factory
+      if (error.code && error.code.startsWith('content.')) {
         throw error;
       }
 
       this.logger.error(`Failed to update draft post ${draftId}`, error);
-      throw new DraftUpdateError(error);
+      throw ContentErrorFactory.draftUpdateFailed(error);
     }
   }
 
   async publishDraft(
     userId: string,
     draftId: string,
-    data: {
-      title?: string;
-      subtitle?: string;
-      excerpt?: string;
-    },
+    data: { slug?: string },
   ): Promise<PublishedPost> {
     this.logger.debug(`Publishing draft post ${draftId} for user ${userId}`);
 
@@ -173,34 +156,31 @@ export class DraftPostService {
         // Check draft exists and ownership
         const draft = await draftRepo.findById(draftId);
         if (!draft) {
-          throw new DraftNotFoundError(draftId);
+          throw ContentErrorFactory.draftNotFound(draftId);
         }
         if (draft.userId !== userId) {
-          throw new NotDraftOwnerError(userId, draftId);
+          throw ContentErrorFactory.notDraftOwner(userId, draftId);
         }
 
-        // Generate slug from title
-        const title = data.title || draft.title;
-        const slug = `${generateSlug(title)}-${draftId}`;
+        // Generate slug if not provided
+        const slug = data.slug || generateSlug(draft.title);
 
-        // Check if slug exists
+        // Check if slug already exists
         const existingPost = await this.prisma.publishedPost.findUnique({
           where: { slug },
         });
         if (existingPost) {
-          throw new SlugExistsError(slug);
+          throw ContentErrorFactory.slugExists(slug);
         }
 
-        // Calculate reading time
+        // Calculate reading time and excerpt
         const readingTime = calculateReadingTime(draft.content);
-
-        // Generate excerpt if not provided
-        const excerpt = data.excerpt || generateExcerpt(draft.content);
+        const excerpt = generateExcerpt(draft.content);
 
         // Publish the draft
         const { published } = await draftRepo.publish(draftId, {
-          title,
-          subtitle: data.subtitle ?? draft.subtitle,
+          title: draft.title,
+          subtitle: draft.subtitle,
           excerpt,
           slug,
           readingTime,
@@ -210,7 +190,9 @@ export class DraftPostService {
           topicIds: draft.topics,
         });
 
-        // Emit post published event
+        this.logger.debug(`Published draft post ${draftId} as ${published.id}`);
+
+        // Emit event
         this.events.emitPostPublished(
           published.id,
           draftId,
@@ -220,23 +202,17 @@ export class DraftPostService {
           draft.topics,
         );
 
-        this.logger.debug(`Published draft post ${draftId} as ${published.id}`);
-
         return published;
       });
     } catch (error) {
-      // If it's our custom error, rethrow it
-      if (
-        error instanceof DraftNotFoundError ||
-        error instanceof NotDraftOwnerError ||
-        error instanceof SlugExistsError
-      ) {
+      // Check if it's from our factory
+      if (error.code && error.code.startsWith('content.')) {
         this.logger.warn('error is instance of AppError');
         throw error;
       }
 
       this.logger.error(`Failed to publish draft post ${draftId}`, error);
-      throw new DraftPublishError(error);
+      throw ContentErrorFactory.draftPublishFailed(error);
     }
   }
 
@@ -244,11 +220,11 @@ export class DraftPostService {
     const draft = await this.draftPostRepository.findById(id);
 
     if (!draft) {
-      throw new DraftNotFoundError(id);
+      throw ContentErrorFactory.draftNotFound(id);
     }
 
     if (draft.userId !== userId) {
-      throw new NotDraftOwnerError(userId, id);
+      throw ContentErrorFactory.notDraftOwner(userId, id);
     }
 
     await this.draftPostRepository.delete(id);
@@ -258,7 +234,7 @@ export class DraftPostService {
       await this.eventBus.publish(new DeleteImageCommand(draft.cover));
     }
 
-    // Emit event for tracking/analytics
+    // Emit draft deleted event
     await this.eventBus.publish(
       new DraftPostDeletedEvent({
         postId: id,
@@ -290,15 +266,15 @@ export class DraftPostService {
         // Check draft exists and ownership
         const draft = await draftRepo.findById(draftId);
         if (!draft) {
-          throw new DraftNotFoundError(draftId);
+          throw ContentErrorFactory.draftNotFound(draftId);
         }
         if (draft.userId !== userId) {
-          throw new NotDraftOwnerError(userId, draftId);
+          throw ContentErrorFactory.notDraftOwner(userId, draftId);
         }
 
         // Check if draft is linked to a published post
         if (!draft.publishedId) {
-          throw new DraftNotLinkedToPublishedError(draftId);
+          throw ContentErrorFactory.draftNotLinkedToPublished(draftId);
         }
 
         // Calculate reading time
@@ -340,18 +316,14 @@ export class DraftPostService {
         return published;
       });
     } catch (error) {
-      // If it's our custom error, rethrow it
-      if (
-        error instanceof DraftNotFoundError ||
-        error instanceof NotDraftOwnerError ||
-        error instanceof DraftNotLinkedToPublishedError
-      ) {
+      // Check if it's from our factory
+      if (error.code && error.code.startsWith('content.')) {
         this.logger.warn('error is instance of AppError');
         throw error;
       }
 
       this.logger.error(`Failed to apply draft post ${draftId}`, error);
-      throw new DraftPublishError(error);
+      throw ContentErrorFactory.draftPublishFailed(error);
     }
   }
 }

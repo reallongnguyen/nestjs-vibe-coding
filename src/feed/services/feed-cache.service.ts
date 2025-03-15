@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { PageOptionsDto, AppError } from 'src/common';
+import { PageOptionsDto } from 'src/common';
 import { CacheService } from 'src/common/cache';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
+import { FeedErrorFactory } from '../errors';
 
 @Injectable()
 export class FeedCacheService {
@@ -27,10 +28,10 @@ export class FeedCacheService {
         userId,
         feedType,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedCacheFailed(error);
       }
-      throw new AppError('feed.cache.failed');
+      throw FeedErrorFactory.feedCacheFailed();
     }
   }
 
@@ -45,10 +46,10 @@ export class FeedCacheService {
       await this.cache.set(key, items);
     } catch (error) {
       this.logger.error('Failed to cache feed', { error, userId, feedType });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedCacheFailed(error);
       }
-      throw new AppError('feed.cache.failed');
+      throw FeedErrorFactory.feedCacheFailed();
     }
   }
 
@@ -65,10 +66,10 @@ export class FeedCacheService {
         userId,
         feedType,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedCacheFailed(error);
       }
-      throw new AppError('feed.cache.failed');
+      throw FeedErrorFactory.feedCacheFailed();
     }
   }
 

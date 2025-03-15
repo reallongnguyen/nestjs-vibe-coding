@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PagedResult, AppError, PrismaService } from 'src/common';
+import { PagedResult, PrismaService } from 'src/common';
+import { createCommonError } from 'src/common/errors/common.errors';
 import { IEventBus, InjectEventBus } from 'src/common/event-manager';
 import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';
 import {
@@ -10,12 +11,7 @@ import { ICommentRepository } from './interfaces/comment-repository.interface';
 import { UpdateCommentInput } from './dtos/comment.input';
 import { CommentOutput } from './dtos/comment.output';
 import { CommentCreatedEvent } from '../entities/events/comment-created.event';
-import {
-  CommentNotFoundError,
-  NotCommentOwnerError,
-  CommentUpdateError,
-} from '../entities/comment.error';
-import { EngageableNotFoundError } from '../entities/social.error';
+import { SocialErrorFactory } from '../entities/errors';
 import { EmotionPrivacyService } from './emotion-privacy.service';
 
 @Injectable()
@@ -30,11 +26,9 @@ export class CommentService {
 
   async findById(id: string): Promise<CommentOutput> {
     const comment = await this.commentRepository.findById(id);
-
     if (!comment) {
-      throw new CommentNotFoundError(id);
+      throw SocialErrorFactory.commentNotFound(id);
     }
-
     return comment;
   }
 
@@ -56,32 +50,25 @@ export class CommentService {
     userId: string,
   ): Promise<CommentOutput> {
     const comment = await this.commentRepository.findById(id);
-
     if (!comment) {
-      throw new CommentNotFoundError(id);
+      throw SocialErrorFactory.commentNotFound(id);
     }
 
     if (comment.userId !== userId) {
-      throw new NotCommentOwnerError(userId, id);
+      throw SocialErrorFactory.notCommentOwner(userId, id);
     }
 
-    try {
-      const updated = await this.commentRepository.update(id, data);
-      return updated as CommentOutput;
-    } catch (error) {
-      throw new CommentUpdateError(error);
-    }
+    return this.commentRepository.update(id, data);
   }
 
   async delete(id: string, userId: string): Promise<void> {
     const comment = await this.commentRepository.findById(id);
-
     if (!comment) {
-      throw new CommentNotFoundError(id);
+      throw SocialErrorFactory.commentNotFound(id);
     }
 
     if (comment.userId !== userId) {
-      throw new NotCommentOwnerError(userId, id);
+      throw SocialErrorFactory.notCommentOwner(userId, id);
     }
 
     await this.commentRepository.delete(id);
@@ -108,7 +95,7 @@ export class CommentService {
       });
 
       if (!parentExists) {
-        throw new CommentNotFoundError(parentId);
+        throw SocialErrorFactory.commentNotFound(parentId);
       }
     }
 
@@ -251,7 +238,7 @@ export class CommentService {
       });
 
       if (!post) {
-        throw new EngageableNotFoundError(contentId, 'POST');
+        throw SocialErrorFactory.engageableNotFound(contentId, 'POST');
       }
 
       return {
@@ -267,7 +254,7 @@ export class CommentService {
       );
 
       if (!canComment) {
-        throw new AppError('common.forbidden', {
+        throw createCommonError('auth.forbidden', {
           cause: 'Cannot comment on this emotion due to privacy settings',
         });
       }
@@ -277,7 +264,7 @@ export class CommentService {
       });
 
       if (!emotion) {
-        throw new EngageableNotFoundError(contentId, 'EMOTION');
+        throw SocialErrorFactory.engageableNotFound(contentId, 'EMOTION');
       }
 
       return {
@@ -286,7 +273,7 @@ export class CommentService {
       };
     }
 
-    throw new AppError('common.serverError', {
+    throw createCommonError('server.error', {
       cause: `Unsupported content type: ${type}`,
     });
   }

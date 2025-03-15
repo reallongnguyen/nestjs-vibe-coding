@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppError, PagedResult } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import { Prisma } from '@prisma/client';
 import { Logger } from 'nestjs-pino';
 import { cloneDeep } from 'lodash';
@@ -8,6 +8,7 @@ import { NotificationRepository } from '../repositories/notification.repository'
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationPreferenceService } from './notification-preference.service';
 import { NotificationType } from '../entities/notification-preference.entity';
+import { NotificationErrorFactory } from '../entities/errors';
 
 /**
  * Service for managing notifications with optimized queries and caching
@@ -67,7 +68,9 @@ export class NotificationService {
       );
 
       this.metricsService.incrementCounter('service', 'error');
-      throw new AppError('common.serverError');
+      throw NotificationErrorFactory.notificationCreateFailed(
+        err instanceof Error ? err : new Error(String(err)),
+      );
     } finally {
       timer.end();
     }
@@ -123,7 +126,9 @@ export class NotificationService {
       );
 
       this.metricsService.incrementCounter('service', 'error');
-      throw new AppError('common.serverError');
+      throw NotificationErrorFactory.notificationCreateFailed(
+        err instanceof Error ? err : new Error(String(err)),
+      );
     } finally {
       timer.end();
     }
@@ -163,7 +168,9 @@ export class NotificationService {
       );
 
       this.metricsService.incrementCounter('service', 'error');
-      throw new AppError('common.serverError');
+      throw NotificationErrorFactory.notificationUpdateFailed(
+        err instanceof Error ? err : new Error(String(err)),
+      );
     } finally {
       timer.end();
     }
@@ -187,7 +194,7 @@ export class NotificationService {
       );
 
       this.metricsService.incrementCounter('service', 'error');
-      throw new AppError('common.serverError');
+      throw err;
     } finally {
       timer.end();
     }
@@ -213,7 +220,7 @@ export class NotificationService {
       );
 
       // If no preference or no rate limits defined, rate limit is not exceeded
-      if (!preference || !preference.metadata?.rateLimits) {
+      if (!preference?.metadata?.rateLimits) {
         return false;
       }
 
@@ -292,6 +299,12 @@ export class NotificationService {
       );
 
       this.metricsService.incrementCounter('service', 'error');
+      // Since this is checking a condition, we want to handle errors gracefully
+      // but use the error factory for logging
+      const error = NotificationErrorFactory.rateLimitCheckFailed(
+        err instanceof Error ? err : new Error(String(err)),
+      );
+      this.logger.error(`Rate limit check failed: ${error.message}`);
       // Default to not rate limited in case of error
       return false;
     } finally {

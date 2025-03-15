@@ -15,10 +15,13 @@ import {
   Role,
   AuthContextUser,
   User,
-  ErrorResponse,
   OkResponse,
-  RestExceptionFilter,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import {
   ImageSize,
   ImageUrlService,
@@ -28,25 +31,19 @@ import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin'
 
 import { UserService } from '../services/user.service';
 import { PatchProfileDto } from './dtos/profile.input';
-import { userErrorMap } from '../entities/user-error.map';
 import { ProfileDto } from './dtos/profile.output';
 import { UserRepository } from '../repositories/user.repository';
 import { UserActivityRepository } from '../repositories/user-activity.repository';
-
-// Common decorator configurations for all endpoints
-const REST_CONFIG = {
-  guards: [AuthGuard, RolesGuard],
-  filters: [new RestExceptionFilter(userErrorMap)],
-};
+import { IDENTITY_ERRORS } from '../entities/errors';
 
 @Controller({
   path: 'users/profile',
   version: '1',
 })
-@UseGuards(...REST_CONFIG.guards)
-@UseFilters(...REST_CONFIG.filters)
+@UseGuards(AuthGuard, RolesGuard)
+@UseFilters(GlobalErrorFilter)
 @ApiTags('users-profile')
-@ErrorResponse('common', userErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 export class UserProfileController {
   private readonly userService: UserService;
 
@@ -70,7 +67,9 @@ export class UserProfileController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Get user profile' })
   @OkResponse(ProfileDto)
-  @ErrorResponse('user.profile.get', userErrorMap)
+  @ErrorResponse({
+    USER_PROFILE_NOT_FOUND: IDENTITY_ERRORS.USER_PROFILE_NOT_FOUND,
+  })
   async get(@AuthContextUser() user: User): Promise<ProfileDto> {
     const profile = await this.userService.getProfile(user.id);
 
@@ -90,9 +89,7 @@ export class UserProfileController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Update user profile' })
   @OkResponse(ProfileDto)
-  @ErrorResponse('user.profile.update', userErrorMap, {
-    hasValidationErr: true,
-  })
+  @ErrorResponse({})
   async update(
     @Body() profileData: PatchProfileDto,
     @AuthContextUser() user: User,

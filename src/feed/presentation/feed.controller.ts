@@ -13,21 +13,25 @@ import {
   PagedResult,
   AuthContextUser,
   PaginatedResponse,
-  ErrorResponse,
   RolesGuard,
-  RestExceptionFilter,
   RequireAnyRoles,
   Role,
   PageOptionsDto,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import { FeedService } from '../services/feed.service';
-import { FeedType, feedErrorMap } from '../entities';
+import { FeedType } from '../entities';
 import { FeedItemDto } from './dtos/feed-item.dto';
+import { FEED_ERRORS } from '../errors';
 
 // Common decorator configurations for all endpoints
 const REST_CONFIG = {
   guards: [AuthGuard, RolesGuard],
-  filters: [new RestExceptionFilter(feedErrorMap)],
+  filters: [GlobalErrorFilter],
 };
 
 @ApiTags('Feeds')
@@ -37,7 +41,7 @@ const REST_CONFIG = {
 })
 @UseGuards(...REST_CONFIG.guards)
 @UseFilters(...REST_CONFIG.filters)
-@ErrorResponse('common', feedErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 export class FeedController {
   constructor(private readonly feedService: FeedService) {}
 
@@ -51,7 +55,7 @@ export class FeedController {
       'Returns a personalized feed based on user preferences and behavior. Combines recommended, popular, and latest content.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.personalized', feedErrorMap)
+  @ErrorResponse({})
   async getPersonalizedFeed(
     @AuthContextUser('id') userId: string,
     @Query() pageOptions: PageOptionsDto,
@@ -71,11 +75,10 @@ export class FeedController {
   @CacheTTL(5000)
   @ApiOperation({
     summary: 'Get following feed',
-    description:
-      'Returns a feed of content from users that the authenticated user follows.',
+    description: 'Returns posts from users the current user is following.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.following', feedErrorMap)
+  @ErrorResponse({})
   async getFollowingFeed(
     @AuthContextUser('id') userId: string,
     @Query() pageOptions: PageOptionsDto,
@@ -90,19 +93,18 @@ export class FeedController {
   }
 
   @Get('trending')
-  @RequireAnyRoles(Role.USER)
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(5000)
+  @CacheTTL(10000)
   @ApiOperation({
     summary: 'Get trending feed',
     description:
-      'Returns a feed of currently trending content. Available for both authenticated and guest users.',
+      'Returns trending posts based on engagement metrics like views, likes, and comments.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.trending', feedErrorMap)
+  @ErrorResponse(FEED_ERRORS)
   async getTrendingFeed(
-    @AuthContextUser('id') userId: string,
     @Query() pageOptions: PageOptionsDto,
+    @AuthContextUser('id') userId: string,
   ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       userId,
@@ -114,19 +116,17 @@ export class FeedController {
   }
 
   @Get('latest')
-  @RequireAnyRoles(Role.USER)
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(5000)
   @ApiOperation({
     summary: 'Get latest feed',
-    description:
-      'Returns a feed of the most recent content in chronological order.',
+    description: 'Returns the most recently published posts.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.latest', feedErrorMap)
+  @ErrorResponse({})
   async getLatestFeed(
-    @AuthContextUser('id') userId: string,
     @Query() pageOptions: PageOptionsDto,
+    @AuthContextUser('id') userId?: string,
   ): Promise<PagedResult<FeedItemDto>> {
     const feed = await this.feedService.getFeed(
       userId,

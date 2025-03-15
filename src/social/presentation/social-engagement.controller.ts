@@ -21,22 +21,25 @@ import {
   User,
   OptionalAuthContext,
   AuthCtx,
-  ErrorResponse,
   OkResponse,
-  RestExceptionFilter,
 } from 'src/common';
+import {
+  ErrorResponse,
+  GlobalErrorFilter,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 
 import { SocialEngagementService } from '../services/social-engagement.service';
-import { socialErrorMap } from '../entities/social-error.map';
 import { EngagementStatsDto } from './dtos/engagement-stats.dto';
+import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
 
 @ApiTags('Social Engagement')
 @Controller({
   path: 'social',
   version: '1',
 })
-@UseFilters(new RestExceptionFilter(socialErrorMap))
-@ErrorResponse('common', socialErrorMap)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class SocialEngagementController {
   constructor(
     private readonly socialEngagementService: SocialEngagementService,
@@ -51,7 +54,7 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(EngagementStatsDto)
-  @ErrorResponse('social.engagement.get', socialErrorMap)
+  @ErrorResponse({})
   async getEngagementStats(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -70,7 +73,12 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(null)
-  @ErrorResponse('social.like', socialErrorMap)
+  @ErrorResponse({
+    [SocialErrorCode.ENGAGEABLE_NOT_FOUND]:
+      SOCIAL_ERRORS[SocialErrorCode.ENGAGEABLE_NOT_FOUND],
+    [SocialErrorCode.LIKE_ALREADY_EXISTS]:
+      SOCIAL_ERRORS[SocialErrorCode.LIKE_ALREADY_EXISTS],
+  })
   async likeContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -90,7 +98,12 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(null)
-  @ErrorResponse('social.unlike', socialErrorMap)
+  @ErrorResponse({
+    [SocialErrorCode.ENGAGEABLE_NOT_FOUND]:
+      SOCIAL_ERRORS[SocialErrorCode.ENGAGEABLE_NOT_FOUND],
+    [SocialErrorCode.UNLIKE_NOT_FOUND]:
+      SOCIAL_ERRORS[SocialErrorCode.UNLIKE_NOT_FOUND],
+  })
   async unlikeContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -109,7 +122,7 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(null)
-  @ErrorResponse('social.view', socialErrorMap)
+  @ErrorResponse({})
   async recordView(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,

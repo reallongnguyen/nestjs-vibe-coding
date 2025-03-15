@@ -283,7 +283,7 @@ Implement short-term improvements to enhance event system type safety, validatio
   - Technical: Update event-system.md
   - Examples: Add code samples
 
-**Status**: In Progress (Part of NOT-003.1 completed)
+**Status**: Completed
 
 ## Medium Priority Tasks
 
@@ -1323,3 +1323,57 @@ Implement a daily content challenge system that encourages users to create speci
 - Plan for seasonal or themed challenge campaigns
 - Consider community challenges in future iterations
 - Plan integration with content discovery to feature challenge content
+
+### EVT-002: Event Bus Module Deprecation
+
+**Metadata**:
+  Type: Technical Debt
+  Component: Backend
+  Priority: Medium
+  Risk Level: Medium
+  Story Points: 3
+  Sprint: 012
+  Change Type: Refactoring
+
+**Time Tracking**:
+  Estimated Hours: 12
+  Start Date: 2024-05-01
+  Due Date: 2024-05-14
+
+**Status**:
+  State: Completed
+  Phase: Done
+  Labels: [Technical-Debt, Refactoring, Event-System]
+
+**Integration Analysis**:
+  Integration Type: Modifies Existing
+  Affected Systems:
+    - Social module
+    - Content module
+    - Notification module
+    - User-follow module
+    - Test infrastructure
+  Current Implementation:
+    - Migrated from deprecated event-bus module to new event-manager module
+    - All modules successfully updated
+    - Test infrastructure using new event system
+    - Removed event-bus module completely
+  Integration Points:
+    - Module imports and bootstrapping
+    - Service event publishing
+    - Event handling
+    - Event class inheritance
+  Breaking Changes:
+    - None (like-for-like replacement successful)
+
+**Description**:
+Completed the migration from the deprecated event-bus module to the new event-manager module and safely removed the deprecated module. This included updating all module imports, service dependencies, event implementations, and tests to ensure seamless operation with the new event system.
+
+**Tasks Completed**:
+
+1. Dependency Analysis and Planning
+2. User-Follow Module Migration
+3. Content Module Migration
+4. Social Module Migration
+5. Notification Module Migration
+6. Final Cleanup and Removal

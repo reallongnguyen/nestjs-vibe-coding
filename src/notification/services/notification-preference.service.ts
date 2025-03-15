@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AppError, PagedResult } from '../../common/models';
+import { PagedResult } from '../../common/models';
 import {
   NotificationPreference,
   NotificationType,
@@ -8,6 +8,7 @@ import {
 } from '../entities/notification-preference.entity';
 import { INotificationPreferenceRepository } from './interfaces/notification-preference-repository.interface';
 import { NotificationPreferenceListQuery } from '../presentation/dtos/notification-preference.dto';
+import { NotificationErrorFactory } from '../entities/errors';
 
 /**
  * Service for managing notification preferences
@@ -31,25 +32,18 @@ export class NotificationPreferenceService {
     userId: string,
     options: NotificationPreferenceListQuery,
   ): Promise<PagedResult<NotificationPreference>> {
-    try {
-      const { skip, take } = options.toDatabaseQuery();
+    const { skip, take } = options.toDatabaseQuery();
 
-      const preferences = await this.preferenceRepository.findMany({
-        where: { userId },
-        skip,
-        take,
-        orderBy: { updatedAt: 'desc' },
-      });
+    const preferences = await this.preferenceRepository.findMany({
+      where: { userId },
+      skip,
+      take,
+      orderBy: { updatedAt: 'desc' },
+    });
 
-      const total = await this.preferenceRepository.count({ userId });
+    const total = await this.preferenceRepository.count({ userId });
 
-      return new PagedResult(preferences, options.toResponseMeta(total));
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-preference.service: getPreferences: ${err.message}`,
-      );
-      throw new AppError('common.serverError');
-    }
+    return new PagedResult(preferences, options.toResponseMeta(total));
   }
 
   /**
@@ -63,24 +57,17 @@ export class NotificationPreferenceService {
     userId: string,
     type: NotificationType,
   ): Promise<NotificationPreference> {
-    try {
-      const preference = await this.preferenceRepository.findByUserIdAndType(
-        userId,
-        type,
-      );
+    const preference = await this.preferenceRepository.findByUserIdAndType(
+      userId,
+      type,
+    );
 
-      if (!preference) {
-        // Create default preference if not found
-        return this.createDefaultPreference(userId, type);
-      }
-
-      return preference;
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-preference.service: getPreferenceByType: ${err.message}`,
-      );
-      throw new AppError('common.serverError');
+    if (!preference) {
+      // Create default preference if not found
+      return this.createDefaultPreference(userId, type);
     }
+
+    return preference;
   }
 
   /**
@@ -98,32 +85,21 @@ export class NotificationPreferenceService {
     channels: NotificationChannel[],
     enabled: boolean,
   ): Promise<NotificationPreference> {
-    try {
-      // Check if preference already exists
-      const existingPreference =
-        await this.preferenceRepository.findByUserIdAndType(userId, type);
+    // Check if preference already exists
+    const existingPreference =
+      await this.preferenceRepository.findByUserIdAndType(userId, type);
 
-      if (existingPreference) {
-        throw new AppError('notification.preference.alreadyExists');
-      }
-
-      // Create new preference
-      return this.preferenceRepository.create({
-        userId,
-        type,
-        channels: channels.map((c) => c.toString()),
-        enabled,
-      });
-    } catch (err) {
-      if (err instanceof AppError) {
-        throw err;
-      }
-
-      this.logger.error(
-        `notification: notification-preference.service: createPreference: ${err.message}`,
-      );
-      throw new AppError('common.serverError');
+    if (existingPreference) {
+      throw NotificationErrorFactory.preferenceAlreadyExists();
     }
+
+    // Create new preference
+    return this.preferenceRepository.create({
+      userId,
+      type,
+      channels: channels.map((c) => c.toString()),
+      enabled,
+    });
   }
 
   /**
@@ -143,42 +119,44 @@ export class NotificationPreferenceService {
       metadata?: Record<string, any>;
     },
   ): Promise<NotificationPreference> {
-    try {
-      // Get existing preference
-      const preference = await this.preferenceRepository.findByUserIdAndType(
+    // Get existing preference
+    const preference = await this.preferenceRepository.findByUserIdAndType(
+      userId,
+      type,
+    );
+
+    if (!preference) {
+      // Create default preference if not found
+      const defaultPreference = await this.createDefaultPreference(
         userId,
         type,
       );
 
-      if (!preference) {
-        // Create default preference if not found
-        const defaultPreference = await this.createDefaultPreference(
-          userId,
-          type,
-        );
-
-        // Apply updates
-        if (data.channels !== undefined) {
-          defaultPreference.channels = data.channels;
-        }
-        if (data.enabled !== undefined) {
-          defaultPreference.enabled = data.enabled;
-        }
-
-        return defaultPreference;
+      // Apply updates
+      if (data.channels !== undefined) {
+        defaultPreference.channels = data.channels;
+      }
+      if (data.enabled !== undefined) {
+        defaultPreference.enabled = data.enabled;
       }
 
-      // Update existing preference
-      return this.preferenceRepository.update(preference.id, {
-        channels: data.channels?.map((c) => c.toString()),
-        enabled: data.enabled,
-      });
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-preference.service: updatePreference: ${err.message}`,
-      );
-      throw new AppError('common.serverError');
+      return defaultPreference;
     }
+
+    // Update existing preference with appropriate data
+    const updateData: any = {};
+    if (data.channels !== undefined) {
+      updateData.channels = data.channels.map((c) => c.toString());
+    }
+    if (data.enabled !== undefined) {
+      updateData.enabled = data.enabled;
+    }
+    if (data.metadata !== undefined) {
+      updateData.metadata = data.metadata;
+    }
+
+    // Update existing preference
+    return this.preferenceRepository.update(preference.id, updateData);
   }
 
   /**
@@ -192,24 +170,17 @@ export class NotificationPreferenceService {
     userId: string,
     type: NotificationType,
   ): Promise<NotificationPreference> {
-    try {
-      const defaultPreference = NotificationPreference.createDefault(
-        userId,
-        type,
-      );
+    const defaultPreference = NotificationPreference.createDefault(
+      userId,
+      type,
+    );
 
-      return this.preferenceRepository.create({
-        userId,
-        type,
-        channels: defaultPreference.channels.map((c) => c.toString()),
-        enabled: defaultPreference.enabled,
-      });
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-preference.service: createDefaultPreference: ${err.message}`,
-      );
-      throw new AppError('common.serverError');
-    }
+    return this.preferenceRepository.create({
+      userId,
+      type,
+      channels: defaultPreference.channels.map((c) => c.toString()),
+      enabled: defaultPreference.enabled,
+    });
   }
 
   /**
@@ -229,26 +200,19 @@ export class NotificationPreferenceService {
       perDay?: number;
     },
   ): Promise<NotificationPreference> {
-    try {
-      // Get existing preference
-      const preference = await this.getPreferenceByType(userId, type);
+    // Get existing preference
+    const preference = await this.getPreferenceByType(userId, type);
 
-      // Create or update metadata with rate limits
-      const metadata = {
-        ...(preference.metadata || {}),
-        rateLimits: {
-          ...(preference.metadata?.rateLimits || {}),
-          ...rateLimits,
-        },
-      };
+    // Create or update metadata with rate limits
+    const metadata = {
+      ...(preference.metadata || {}),
+      rateLimits: {
+        ...(preference.metadata?.rateLimits || {}),
+        ...rateLimits,
+      },
+    };
 
-      // Update preference with new metadata
-      return this.updatePreference(userId, type, { metadata });
-    } catch (err) {
-      this.logger.error(
-        `notification: notification-preference.service: updateRateLimitConfig: ${err.message}`,
-      );
-      throw new AppError('common.serverError');
-    }
+    // Update preference with new metadata
+    return this.updatePreference(userId, type, { metadata });
   }
 }

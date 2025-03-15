@@ -20,13 +20,16 @@ import {
   RolesGuard,
   User,
   CreatedResponse,
-  ErrorResponse,
   OkResponse,
   PaginatedResponse,
-  RestExceptionFilter,
   PagedResult,
   PageOptionsDto,
 } from 'src/common';
+import {
+  COMMON_ERRORS,
+  ErrorResponse,
+  GlobalErrorFilter,
+} from 'src/common/errors';
 import { ContentType } from '../entities/events/social.events';
 
 import { CommentService } from '../services/comment.service';
@@ -35,7 +38,7 @@ import {
   CreateCommentDto,
   UpdateCommentDto,
 } from './dtos/comment.dto';
-import { commentErrorMap } from '../entities/comment-error.map';
+import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
 
 @ApiTags('Content Comments')
 @Controller({
@@ -43,8 +46,8 @@ import { commentErrorMap } from '../entities/comment-error.map';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseFilters(new RestExceptionFilter(commentErrorMap))
-@ErrorResponse('common', commentErrorMap)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class ContentCommentController {
   constructor(private readonly commentService: CommentService) {}
 
@@ -58,7 +61,10 @@ export class ContentCommentController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @CreatedResponse(CommentDto)
-  @ErrorResponse('comment.create', commentErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    [SocialErrorCode.COMMENT_NOT_FOUND]:
+      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
+  })
   async createComment(
     @Param('type') type: ContentType.POST | ContentType.EMOTION,
     @Param('id', ParseUUIDPipe) id: string,
@@ -85,7 +91,7 @@ export class ContentCommentController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @PaginatedResponse(CommentDto)
-  @ErrorResponse('comment.list', commentErrorMap)
+  @ErrorResponse({})
   async getCommentsByContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -106,7 +112,12 @@ export class ContentCommentController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Update comment' })
   @OkResponse(CommentDto)
-  @ErrorResponse('comment.update', commentErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    [SocialErrorCode.COMMENT_NOT_FOUND]:
+      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
+    [SocialErrorCode.COMMENT_NOT_OWNER]:
+      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_OWNER],
+  })
   async updateComment(
     @Param('id') id: string,
     @Body() data: UpdateCommentDto,
@@ -120,7 +131,12 @@ export class ContentCommentController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Delete comment' })
   @OkResponse(null)
-  @ErrorResponse('comment.delete', commentErrorMap)
+  @ErrorResponse({
+    [SocialErrorCode.COMMENT_NOT_FOUND]:
+      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
+    [SocialErrorCode.COMMENT_NOT_OWNER]:
+      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_OWNER],
+  })
   async deleteComment(
     @Param('id') id: string,
     @AuthContextUser() user: User,

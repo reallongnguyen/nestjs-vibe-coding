@@ -1,8 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';
 import {
   NotificationTemplateDomain,
   TemplateLanguage,
 } from '../../entities/notification-template.domain';
+
+/**
+ * Template type enum
+ */
+export enum NotificationTemplateType {
+  LIKE_POST = 'likePost',
+  COMMENT_POST = 'commentPost',
+  FOLLOW_USER = 'followUser',
+  MENTION_USER = 'mentionUser',
+  WELCOME = 'welcome',
+  // Add other template types as needed
+}
 
 /**
  * DTO for notification template output
@@ -69,7 +83,7 @@ export class NotificationTemplateDto {
   ): NotificationTemplateDto {
     const dto = new NotificationTemplateDto();
     dto.id = domain.id;
-    dto.name = domain.name;
+    dto.name = domain.type;
     dto.type = domain.type;
     dto.content = domain.content;
     dto.version = domain.version;
@@ -78,4 +92,160 @@ export class NotificationTemplateDto {
     dto.updatedAt = domain.updatedAt;
     return dto;
   }
+}
+
+/**
+ * Alias for NotificationTemplateDto for Swagger documentation
+ */
+export class NotificationTemplateOutput extends NotificationTemplateDto {}
+
+/**
+ * DTO for creating a notification template
+ */
+export class CreateTemplateDto {
+  @ApiProperty({
+    description: 'Type of notification this template is for',
+    example: 'likePost',
+    enum: NotificationTemplateType,
+  })
+  @IsNotEmpty()
+  @IsEnum(NotificationTemplateType)
+  type: NotificationTemplateType;
+
+  @ApiProperty({
+    description: 'Language of the template',
+    example: 'en',
+    enum: TemplateLanguage,
+  })
+  @IsNotEmpty()
+  @IsEnum(TemplateLanguage)
+  language: TemplateLanguage;
+
+  @ApiProperty({
+    description: 'Template title',
+    example: 'New like on your post',
+  })
+  @IsNotEmpty()
+  @IsString()
+  title: string;
+
+  @ApiProperty({
+    description: 'Template body content with Handlebars syntax',
+    example:
+      '<d class="font-semibold" type="user">{{ subjects.0.name }}</d> liked your post',
+  })
+  @IsNotEmpty()
+  @IsString()
+  body: string;
+
+  @ApiPropertyOptional({
+    description: 'Description of the template for administrative purposes',
+    example: "Template shown when a user likes another user's post",
+  })
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
+
+/**
+ * DTO for updating a notification template
+ */
+export class UpdateTemplateDto {
+  @ApiPropertyOptional({
+    description: 'Template title',
+    example: 'New like on your post',
+  })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @ApiPropertyOptional({
+    description: 'Template body content with Handlebars syntax',
+    example:
+      '<d class="font-semibold" type="user">{{ subjects.0.name }}</d> liked your post',
+  })
+  @IsOptional()
+  @IsString()
+  body?: string;
+
+  @ApiPropertyOptional({
+    description: 'Description of the template for administrative purposes',
+    example: "Template shown when a user likes another user's post",
+  })
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
+
+/**
+ * DTO for query parameters when listing notification templates
+ */
+export class NotificationTemplateListQuery extends PageOptionsDto {
+  @ApiPropertyOptional({
+    description: 'Filter templates by language',
+    example: 'en',
+    enum: TemplateLanguage,
+  })
+  @IsOptional()
+  @IsEnum(TemplateLanguage)
+  language?: TemplateLanguage;
+}
+
+/**
+ * DTO for paginated template results
+ */
+export class PagedTemplateResult {
+  @ApiProperty({
+    description: 'List of notification templates',
+    type: [NotificationTemplateOutput],
+  })
+  items: NotificationTemplateOutput[];
+
+  @ApiProperty({
+    description: 'Total number of templates',
+    example: 42,
+  })
+  total: number;
+
+  @ApiProperty({
+    description: 'Current page',
+    example: 1,
+  })
+  page: number;
+
+  @ApiProperty({
+    description: 'Number of items per page',
+    example: 10,
+  })
+  pageSize: number;
+}
+
+/**
+ * DTO for validating a template with test data
+ */
+export class ValidateTemplateDto {
+  @ApiProperty({
+    description: 'Test data for template validation',
+    example: {
+      subjects: [{ id: '123', name: 'John Doe' }],
+      target: { id: '456', title: 'My First Post' },
+    },
+  })
+  @IsNotEmpty()
+  data: Record<string, unknown>;
+}
+
+/**
+ * DTO for rendering a template with test data
+ */
+export class RenderTemplateDto {
+  @ApiProperty({
+    description: 'Test data for template rendering',
+    example: {
+      subjects: [{ id: '123', name: 'John Doe' }],
+      target: { id: '456', title: 'My First Post' },
+    },
+  })
+  @IsNotEmpty()
+  data: Record<string, unknown>;
 }

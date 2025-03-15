@@ -12,31 +12,27 @@ import {
   AuthContextUser,
   RolesGuard,
   RequireAnyRoles,
-  ErrorResponse,
   CreatedResponse,
-  RestExceptionFilter,
   PaginatedResponse,
   PagedResult,
 } from 'src/common';
+import { GlobalErrorFilter, COMMON_ERRORS } from 'src/common/errors';
+import { ErrorResponse } from 'src/common/errors/decorators/error-response.decorator';
 
 import { CreateEmotionService } from '../services/create-emotion.service';
-import { emotionErrorMap } from '../entities/emotion-error.map';
 import { CreateEmotionDto, EmotionResponseDto } from './dtos/emotion.dto';
 import { GetEmotionHistoryService } from '../services/get-emotion-history.service';
 import { DailyEmotionDto } from './dtos/emotion-history.dto';
-
-const REST_CONFIG = {
-  guards: [AuthGuard, RolesGuard],
-  filters: [new RestExceptionFilter(emotionErrorMap)],
-};
+import { GAMIFICATION_ERRORS } from '../entities/errors/gamification.errors';
 
 @ApiTags('emotions')
 @Controller({
   path: 'emotions',
   version: '1',
 })
-@UseGuards(...REST_CONFIG.guards)
-@UseFilters(...REST_CONFIG.filters)
+@UseGuards(AuthGuard, RolesGuard)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class EmotionController {
   constructor(
     private readonly createEmotionService: CreateEmotionService,
@@ -47,7 +43,9 @@ export class EmotionController {
   @RequireAnyRoles('USER')
   @ApiOperation({ summary: 'Create an emotion log' })
   @CreatedResponse(EmotionResponseDto)
-  @ErrorResponse('emotion.create', emotionErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    EMOTION_INVALID_TYPE: GAMIFICATION_ERRORS.EMOTION_INVALID_TYPE,
+  })
   async createEmotion(
     @AuthContextUser() user: { id: string },
     @Body() dto: CreateEmotionDto,
@@ -65,7 +63,7 @@ export class EmotionController {
   @RequireAnyRoles('USER')
   @ApiOperation({ summary: 'Get emotions for the last 7 days' })
   @PaginatedResponse(DailyEmotionDto)
-  @ErrorResponse('emotion.history', emotionErrorMap)
+  @ErrorResponse({})
   async getEmotionHistory(
     @AuthContextUser() user: { id: string },
   ): Promise<PagedResult<DailyEmotionDto>> {

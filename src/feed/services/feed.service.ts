@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Logger } from 'nestjs-pino';
-import { PagedResult, AppError, PageOptionsDto } from 'src/common';
+import { PagedResult, PageOptionsDto } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
 import { GetRecommendationsCommand } from '../entities/commands/get-recommendations.command';
 import { FeedCacheManagerService } from './feed-cache-manager.service';
 import { FeedFallbackService } from './feed-fallback.service';
+import { FeedErrorFactory } from '../errors';
 
 // Service interfaces
 interface IFeedCacheService {
@@ -130,10 +131,10 @@ export class FeedService {
       }
     } catch (error) {
       this.logger.error('Failed to generate feed', { error, userId, feedType });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedGenerationFailed(error);
       }
-      throw new AppError('feed.generation.failed');
+      throw FeedErrorFactory.feedGenerationFailed();
     }
   }
 

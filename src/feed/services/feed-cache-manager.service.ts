@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
-import { AppError, PageOptionsDto } from 'src/common';
+import { PageOptionsDto } from 'src/common';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
+import { FeedErrorFactory } from '../errors';
 
 /**
  * Advanced feed cache management service
@@ -61,10 +62,10 @@ export class FeedCacheManagerService {
         userId,
         feedType,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedCacheFailed(error);
       }
-      throw new AppError('feed.cache.failed');
+      throw FeedErrorFactory.feedCacheFailed();
     }
   }
 
@@ -85,10 +86,10 @@ export class FeedCacheManagerService {
       await this.updateCacheWriteStats(userId, feedType);
     } catch (error) {
       this.logger.error('Failed to cache feed', { error, userId, feedType });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedCacheFailed(error);
       }
-      throw new AppError('feed.cache.failed');
+      throw FeedErrorFactory.feedCacheFailed();
     }
   }
 
@@ -117,10 +118,10 @@ export class FeedCacheManagerService {
         userId,
         feedType,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedCacheFailed(error);
       }
-      throw new AppError('feed.cache.failed');
+      throw FeedErrorFactory.feedCacheFailed();
     }
   }
 

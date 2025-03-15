@@ -3,9 +3,9 @@ import { PrismaService } from '../../../common/prisma/prisma.service';
 import { IEventBus } from '../../../common/event-manager';
 import { SocialEngagementService } from '../social-engagement.service';
 import { IViewRepository } from '../interfaces/view-repository.interface';
-import { EngageableNotFoundError } from '../../entities/social.error';
 import { ContentType } from '../../entities/events/social.events';
 import { ContentViewedEvent } from '../../entities/events/content-viewed.event';
+import { EngageableNotFoundError } from '../../entities/errors';
 
 describe('SocialEngagementService', () => {
   let service: SocialEngagementService;

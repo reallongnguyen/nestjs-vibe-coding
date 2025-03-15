@@ -5,27 +5,25 @@ import {
   AuthContextUser,
   RolesGuard,
   RequireAnyRoles,
-  ErrorResponse,
-  RestExceptionFilter,
   OkResponse,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 
-import { emotionErrorMap } from '../entities/emotion-error.map';
 import { GetStreakService } from '../services/get-streak.service';
 import { StreakResponseDto } from './dtos/streak.dto';
-
-const REST_CONFIG = {
-  guards: [AuthGuard, RolesGuard],
-  filters: [new RestExceptionFilter(emotionErrorMap)],
-};
 
 @ApiTags('streaks')
 @Controller({
   path: 'streaks',
   version: '1',
 })
-@UseGuards(...REST_CONFIG.guards)
-@UseFilters(...REST_CONFIG.filters)
+@UseGuards(AuthGuard, RolesGuard)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class StreakController {
   constructor(private readonly getStreakService: GetStreakService) {}
 
@@ -33,7 +31,7 @@ export class StreakController {
   @RequireAnyRoles('USER')
   @ApiOperation({ summary: 'Get user streak' })
   @OkResponse(StreakResponseDto)
-  @ErrorResponse('streak.get', emotionErrorMap)
+  @ErrorResponse({})
   async getStreak(
     @AuthContextUser() user: { id: string },
   ): Promise<StreakResponseDto> {

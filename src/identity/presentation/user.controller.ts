@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AppError, PagedResult } from 'src/common/models';
+import { PagedResult } from 'src/common/models';
 import {
   AuthCtx,
   RequireAnyRoles,
@@ -20,12 +20,15 @@ import {
   Role,
   AuthContextUser,
   User,
-  ErrorResponse,
   CreatedResponse,
   OkResponse,
   PaginatedResponse,
-  RestExceptionFilter,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import {
   ImageSize,
   ImageUrlService,
@@ -35,7 +38,6 @@ import { withImageUrlMap } from 'src/common/img-proxy/dto/with-image-urls.mixin'
 
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from './dtos/user.input';
-import { userErrorMap } from '../entities/user-error.map';
 import { UserDto } from './dtos/user.output';
 import { UserSearchFiltersDto } from './dtos/user-search-filters.input';
 import { BulkUserOperationDto } from './dtos/bulk-user-operation.input';
@@ -45,21 +47,16 @@ import { ActivityFiltersDto } from './dtos/activity-filters.input';
 import { PasswordResetResultDto } from './dtos/password-reset-result.output';
 import { UserActivityRepository } from '../repositories/user-activity.repository';
 import { UserRepository } from '../repositories/user.repository';
-
-// Common decorator configurations for all endpoints
-const REST_CONFIG = {
-  guards: [AuthGuard, RolesGuard],
-  filters: [new RestExceptionFilter(userErrorMap)],
-};
+import { IDENTITY_ERRORS, IdentityErrorFactory } from '../entities/errors';
 
 @Controller({
   path: 'users',
   version: '1',
 })
-@UseGuards(...REST_CONFIG.guards)
-@UseFilters(...REST_CONFIG.filters)
+@UseGuards(AuthGuard, RolesGuard)
+@UseFilters(GlobalErrorFilter)
 @ApiTags('users')
-@ErrorResponse('common', userErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 export class UserController {
   private readonly userService: UserService;
 
@@ -82,7 +79,9 @@ export class UserController {
   @Post()
   @ApiOperation({ summary: 'Create user' })
   @CreatedResponse(UserDto)
-  @ErrorResponse('user.create', userErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    REQUIRE_PERSON: IDENTITY_ERRORS.REQUIRE_PERSON,
+  })
   async create(
     @Body() userData: CreateUserDto,
     @AuthContext() authCtx: AuthCtx,
@@ -104,10 +103,10 @@ export class UserController {
   }
 
   @Get()
-  @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'Get many users' })
+  @ApiOperation({ summary: 'List users' })
   @PaginatedResponse(UserDto)
-  @ErrorResponse('user.list', userErrorMap, { hasValidationErr: true })
+  @ErrorResponse({})
+  @RequireAnyRoles(Role.ADMIN)
   async list(
     @Query() filters: UserSearchFiltersDto,
   ): Promise<PagedResult<UserDto>> {
@@ -130,13 +129,13 @@ export class UserController {
     return collectionWithUrls;
   }
 
-  @Post('/bulk')
-  @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({
-    summary: 'Bulk user operations (update/delete/deactivate/activate)',
-  })
+  @Post('bulk')
+  @ApiOperation({ summary: 'Bulk operations on users' })
   @OkResponse(BulkOperationResultDto)
-  @ErrorResponse('user.bulk', userErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    INVALID_BULK_OPERATION: IDENTITY_ERRORS.INVALID_BULK_OPERATION,
+  })
+  @RequireAnyRoles(Role.ADMIN)
   async bulkOperation(
     @Body() operation: BulkUserOperationDto,
     @AuthContextUser() user: User,
@@ -144,11 +143,12 @@ export class UserController {
     return this.userService.processBulkOperation(operation, user.id);
   }
 
-  @Get('/:id')
-  @RequireAnyRoles(Role.ADMIN)
+  @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @OkResponse(UserDto)
-  @ErrorResponse('user.get', userErrorMap)
+  @ErrorResponse({
+    USER_NOT_FOUND: IDENTITY_ERRORS.USER_NOT_FOUND,
+  })
   async getUser(@Param('id') userId: string): Promise<UserDto> {
     const user = await this.userService.getUserById(userId);
 
@@ -162,10 +162,11 @@ export class UserController {
     );
   }
 
-  @Get('/:id/activity')
-  @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'Get user activity log' })
+  @Get(':id/activity')
+  @ApiOperation({ summary: 'Get user activity' })
   @PaginatedResponse(UserActivityDto)
+  @ErrorResponse({})
+  @RequireAnyRoles(Role.ADMIN)
   async getUserActivity(
     @Param('id') userId: string,
     @Query() filters: ActivityFiltersDto,
@@ -175,11 +176,14 @@ export class UserController {
     return PagedResult.transform(activities, UserActivityDto.fromApplication);
   }
 
-  @Post('/:id/reset-password')
-  @RequireAnyRoles(Role.ADMIN)
-  @ApiOperation({ summary: 'Admin-initiated password reset' })
+  @Post(':id/reset-password')
+  @ApiOperation({ summary: 'Reset user password' })
   @OkResponse(PasswordResetResultDto)
-  @ErrorResponse('user.password.reset', userErrorMap)
+  @ErrorResponse({
+    USER_NOT_FOUND: IDENTITY_ERRORS.USER_NOT_FOUND,
+    USER_UPDATE_FAILED: IDENTITY_ERRORS.USER_UPDATE_FAILED,
+  })
+  @RequireAnyRoles(Role.ADMIN)
   async initiatePasswordReset(
     @Param('id') userId: string,
   ): Promise<PasswordResetResultDto> {
@@ -188,7 +192,7 @@ export class UserController {
 
   private validatePerson(authCtx: AuthCtx): void {
     if (!authCtx.isPerson()) {
-      throw new AppError('common.requirePerson');
+      throw IdentityErrorFactory.requirePerson();
     }
   }
 }

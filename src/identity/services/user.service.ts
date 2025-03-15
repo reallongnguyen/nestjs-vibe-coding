@@ -1,10 +1,10 @@
 import { Logger } from 'nestjs-pino';
-import { PagedResult, AppError } from 'src/common';
+import { PagedResult } from 'src/common';
 import { IEventBus } from 'src/common/event-manager';
 
 import { UpsertUserInput } from './dto/user.input';
 import { ProfileOutput } from './dto/profile.output';
-import { Role } from '../entities/role.enum';
+import { Role } from '../entities';
 import { PatchProfileInput } from './dto/profile.input';
 import { User } from '../entities/user.entity';
 import { IUserRepository } from './interfaces/user.repository.interface';
@@ -26,6 +26,7 @@ import {
   UserDeletedEvent,
 } from '../entities/events/user.events';
 import { UserActivity } from '../entities/user-activity.entity';
+import { IdentityErrorFactory } from '../entities/errors';
 
 export class UserService {
   constructor(
@@ -76,7 +77,7 @@ export class UserService {
         `user: getProfile: user ${JSON.stringify(userId)} not found`,
       );
 
-      throw new AppError('user.profile.get.notFound');
+      throw IdentityErrorFactory.userProfileNotFound(userId);
     }
 
     return ProfileOutput.fromUser(user);
@@ -93,27 +94,31 @@ export class UserService {
     if (!user) {
       this.logger.warn(`user: updateProfile: user ${userId} not found`);
 
-      throw new AppError('user.profile.update.notFound');
+      throw IdentityErrorFactory.userNotFound(userId);
     }
 
-    const updatedUser = await this.userRepository.update({
-      where: { id: userId },
-      data: {
-        firstName: input.name,
-        avatar: input.avatar,
-      },
-    });
+    try {
+      const updatedUser = await this.userRepository.update({
+        where: { id: userId },
+        data: {
+          firstName: input.name,
+          avatar: input.avatar,
+        },
+      });
 
-    await this.eventBus.publish(new UserUpdatedEvent(updatedUser));
+      await this.eventBus.publish(new UserUpdatedEvent(updatedUser));
 
-    return ProfileOutput.fromUser(updatedUser);
+      return ProfileOutput.fromUser(updatedUser);
+    } catch (error) {
+      throw IdentityErrorFactory.userUpdateFailed(userId, error);
+    }
   }
 
   async getUserById(userId: string): Promise<User> {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new AppError('user.get.notFound');
+      throw IdentityErrorFactory.userNotFound(userId);
     }
 
     return user;
@@ -158,14 +163,20 @@ export class UserService {
             break;
           }
           case BulkOperationType.DELETE: {
-            await this.userRepository.delete(userId);
-            await this.eventBus.publish(
-              new UserDeletedEvent(userId, operatorId),
-            );
+            try {
+              await this.userRepository.delete(userId);
+              await this.eventBus.publish(
+                new UserDeletedEvent(userId, operatorId),
+              );
+            } catch (error) {
+              throw IdentityErrorFactory.userDeleteFailed(userId, error);
+            }
             break;
           }
           default:
-            throw new AppError('user.bulk.invalidOperation');
+            throw IdentityErrorFactory.invalidBulkOperation(
+              String(operation.operation),
+            );
         }
         result.successCount += 1;
       } catch (error) {

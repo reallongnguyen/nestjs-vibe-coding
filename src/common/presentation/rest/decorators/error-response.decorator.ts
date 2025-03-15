@@ -4,6 +4,9 @@ import * as lodash from 'lodash';
 import FailResponseDto from './fail-response.dto';
 import RestResponse, { RestError } from '../RestResponse';
 
+/**
+ * @deprecated Use ErrorResponse in src/common/errors/decorators/error-response.decorator.ts instead
+ */
 export const ErrorResponse = (
   errorGroup: string,
   errorMap: Record<string, Record<string, any>>,

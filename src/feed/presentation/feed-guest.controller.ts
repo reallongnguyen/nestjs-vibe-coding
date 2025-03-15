@@ -8,21 +8,20 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
+import { PagedResult, PageOptionsDto, PaginatedResponse } from 'src/common';
 import {
-  PagedResult,
-  PageOptionsDto,
-  PaginatedResponse,
+  GlobalErrorFilter,
   ErrorResponse,
-  RestExceptionFilter,
-} from 'src/common';
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import { FeedService } from '../services/feed.service';
-import { FeedType, feedErrorMap } from '../entities';
+import { FeedType } from '../entities';
 import { FeedItemDto } from './dtos/feed-item.dto';
 
 // Common decorator configurations for all endpoints
 const REST_CONFIG = {
   guards: [],
-  filters: [new RestExceptionFilter(feedErrorMap)],
+  filters: [GlobalErrorFilter],
 };
 
 @ApiTags('Feeds for Guest Users')
@@ -32,7 +31,7 @@ const REST_CONFIG = {
 })
 @UseGuards(...REST_CONFIG.guards)
 @UseFilters(...REST_CONFIG.filters)
-@ErrorResponse('common', feedErrorMap)
+@ErrorResponse(COMMON_ERRORS)
 export class FeedGuestController {
   constructor(private readonly feedService: FeedService) {}
 
@@ -45,7 +44,7 @@ export class FeedGuestController {
       'Returns a personalized feed based on user preferences and behavior. Combines recommended, popular, and latest content.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.personalized', feedErrorMap)
+  @ErrorResponse({})
   async getPersonalizedFeed(
     @Query() pageOptions: PageOptionsDto,
   ): Promise<PagedResult<FeedItemDto>> {
@@ -60,14 +59,14 @@ export class FeedGuestController {
 
   @Get('trending')
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(5000)
+  @CacheTTL(10000)
   @ApiOperation({
     summary: 'Get trending feed',
     description:
-      'Returns a feed of currently trending content. Available for both authenticated and guest users.',
+      'Returns trending posts based on engagement metrics like views, likes, and comments.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.trending', feedErrorMap)
+  @ErrorResponse({})
   async getTrendingFeed(
     @Query() pageOptions: PageOptionsDto,
   ): Promise<PagedResult<FeedItemDto>> {
@@ -85,11 +84,10 @@ export class FeedGuestController {
   @CacheTTL(5000)
   @ApiOperation({
     summary: 'Get latest feed',
-    description:
-      'Returns a feed of the most recent content in chronological order.',
+    description: 'Returns the most recently published posts.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse('feed.latest', feedErrorMap)
+  @ErrorResponse({})
   async getLatestFeed(
     @Query() pageOptions: PageOptionsDto,
   ): Promise<PagedResult<FeedItemDto>> {

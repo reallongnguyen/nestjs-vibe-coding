@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Logger } from 'nestjs-pino';
-import { AppError } from 'src/common';
 import { FeedItem } from '../entities/feed.entity';
 import { GetContentsCommand } from '../entities/commands/get-contents.command';
+import { FeedErrorFactory } from '../errors';
 
 @Injectable()
 export class FeedEnrichmentService {
@@ -39,10 +39,10 @@ export class FeedEnrichmentService {
       );
     } catch (error) {
       this.logger.error('Failed to enrich feed items', { error, contentIds });
-      if (error instanceof AppError) {
-        throw error;
+      if (error instanceof Error) {
+        throw FeedErrorFactory.feedEnrichmentFailed(error);
       }
-      throw new AppError('feed.enrichment.failed');
+      throw FeedErrorFactory.feedEnrichmentFailed();
     }
   }
 }

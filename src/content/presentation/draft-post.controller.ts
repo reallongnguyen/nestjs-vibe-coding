@@ -19,15 +19,17 @@ import {
   Role,
   RolesGuard,
   CreatedResponse,
-  ErrorResponse,
   OkResponse,
   PaginatedResponse,
-  RestExceptionFilter,
   PagedResult,
 } from 'src/common';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import { CreateDraftPostDto } from './dtos/create-draft-post.dto';
 import { DraftPostService } from '../services/draft-post.service';
-import { contentErrorMap } from '../entities/content-error.map';
 import { UpdateDraftPostDto } from './dtos/update-draft-post.dto';
 import { PublishDraftDto } from './dtos/publish-draft.dto';
 import { ListDraftPostsQueryDto } from './dtos/list-posts.dto';
@@ -37,6 +39,7 @@ import {
   PublishedPostResponseDto,
 } from './dtos/post-response.dto';
 import { ApplyDraftDto } from './dtos/apply-draft.dto';
+import { CONTENT_ERRORS } from '../entities/errors';
 
 @ApiTags('Posts')
 @Controller({
@@ -44,8 +47,8 @@ import { ApplyDraftDto } from './dtos/apply-draft.dto';
   version: '1',
 })
 @UseGuards(AuthGuard, RolesGuard)
-@UseFilters(new RestExceptionFilter(contentErrorMap))
-@ErrorResponse('common', contentErrorMap)
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 export class DraftPostController {
   constructor(private readonly draftPostService: DraftPostService) {}
 
@@ -53,7 +56,10 @@ export class DraftPostController {
   @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
   @ApiOperation({ summary: 'Create a draft post' })
   @CreatedResponse(DraftPostResponseDto)
-  @ErrorResponse('draft.create', contentErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    DRAFT_CREATE_FAILED: CONTENT_ERRORS.DRAFT_CREATE_FAILED,
+    TOPIC_NOT_FOUND: CONTENT_ERRORS.TOPIC_NOT_FOUND,
+  })
   async createDraft(
     @AuthContextUser() user: User,
     @Body() dto: CreateDraftPostDto,
@@ -63,9 +69,15 @@ export class DraftPostController {
 
   @Patch(':id')
   @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
+  @ApiParam({ name: 'id', type: 'string', description: 'Draft post ID' })
   @ApiOperation({ summary: 'Update a draft post' })
   @OkResponse(DraftPostResponseDto)
-  @ErrorResponse('draft.update', contentErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    DRAFT_UPDATE_FAILED: CONTENT_ERRORS.DRAFT_UPDATE_FAILED,
+    DRAFT_NOT_FOUND: CONTENT_ERRORS.DRAFT_NOT_FOUND,
+    DRAFT_NOT_OWNER: CONTENT_ERRORS.DRAFT_NOT_OWNER,
+    TOPIC_NOT_FOUND: CONTENT_ERRORS.TOPIC_NOT_FOUND,
+  })
   async updateDraft(
     @AuthContextUser() user: User,
     @Param('id') id: string,
@@ -76,9 +88,15 @@ export class DraftPostController {
 
   @Post(':id/publish')
   @RequireAnyRoles(Role.USER, Role.CONTENT_CREATOR)
+  @ApiParam({ name: 'id', type: 'string', description: 'Draft post ID' })
   @ApiOperation({ summary: 'Publish a draft post' })
   @OkResponse(PublishedPostResponseDto)
-  @ErrorResponse('draft.publish', contentErrorMap, { hasValidationErr: true })
+  @ErrorResponse({
+    DRAFT_PUBLISH_FAILED: CONTENT_ERRORS.DRAFT_PUBLISH_FAILED,
+    DRAFT_NOT_FOUND: CONTENT_ERRORS.DRAFT_NOT_FOUND,
+    DRAFT_NOT_OWNER: CONTENT_ERRORS.DRAFT_NOT_OWNER,
+    SLUG_EXISTS: CONTENT_ERRORS.SLUG_EXISTS,
+  })
   async publishDraft(
     @AuthContextUser() user: User,
     @Param('id') id: string,
@@ -98,7 +116,10 @@ export class DraftPostController {
   @ApiOperation({ summary: 'Delete a draft post' })
   @ApiParam({ name: 'id', type: 'string', description: 'Draft post ID' })
   @OkResponse(null)
-  @ErrorResponse('post.draft.delete', contentErrorMap)
+  @ErrorResponse({
+    DRAFT_NOT_FOUND: CONTENT_ERRORS.DRAFT_NOT_FOUND,
+    DRAFT_NOT_OWNER: CONTENT_ERRORS.DRAFT_NOT_OWNER,
+  })
   async deleteDraft(
     @Param('id') id: string,
     @AuthContextUser() user: User,
@@ -133,7 +154,12 @@ export class DraftPostController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Apply draft changes to published post' })
   @OkResponse(PublishedPostResponseDto)
-  @ErrorResponse('post.applyDraft', contentErrorMap)
+  @ErrorResponse({
+    DRAFT_PUBLISH_FAILED: CONTENT_ERRORS.DRAFT_PUBLISH_FAILED,
+    DRAFT_NOT_FOUND: CONTENT_ERRORS.DRAFT_NOT_FOUND,
+    DRAFT_NOT_OWNER: CONTENT_ERRORS.DRAFT_NOT_OWNER,
+    DRAFT_NOT_LINKED_TO_PUBLISHED: CONTENT_ERRORS.DRAFT_NOT_LINKED_TO_PUBLISHED,
+  })
   async applyDraft(
     @Param('id') id: string,
     @Body() dto: ApplyDraftDto,
