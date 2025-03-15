@@ -25,3 +25,8 @@ deployments
 docker-compose.yml
 .husky
 test
+
+docs
+infra
+tasks
+blogs
