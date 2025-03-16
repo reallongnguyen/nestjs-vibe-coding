@@ -16,7 +16,6 @@ describe('Feed System Recovery', () => {
   let mockEventBus: any;
   let mockCacheManager: any;
   let mockFallbackService: any;
-  let mockFeedCache: any;
   let mockFeedEnrichment: any;
 
   const mockFeedItems: FeedItem[] = [
@@ -87,11 +86,6 @@ describe('Feed System Recovery', () => {
       addToFallback: jest.fn(),
     };
 
-    mockFeedCache = {
-      getFeed: jest.fn(),
-      cacheFeed: jest.fn(),
-    };
-
     mockFeedEnrichment = {
       enrichFeedItems: jest.fn(),
     };
@@ -141,10 +135,6 @@ describe('Feed System Recovery', () => {
         {
           provide: FeedFallbackService,
           useValue: mockFallbackService,
-        },
-        {
-          provide: 'IFeedCacheService',
-          useValue: mockFeedCache,
         },
         {
           provide: 'IFeedEnrichmentService',

@@ -9,21 +9,6 @@ import { FeedCacheManagerService } from './feed-cache-manager.service';
 import { FeedFallbackService } from './feed-fallback.service';
 import { FeedErrorFactory } from '../errors';
 
-// Service interfaces
-interface IFeedCacheService {
-  getFeed(
-    userId: string,
-    pageOptions: PageOptionsDto,
-    feedType: FeedType,
-  ): Promise<FeedItem[] | null>;
-  cacheFeed(
-    userId: string,
-    pageOptions: PageOptionsDto,
-    feedType: FeedType,
-    items: FeedItem[],
-  ): Promise<void>;
-}
-
 interface IFeedEnrichmentService {
   enrichFeedItems(contentIds: string[]): Promise<FeedItem[]>;
 }
@@ -33,8 +18,6 @@ export class FeedService {
   constructor(
     private readonly eventBus: EventBus,
     private readonly commandBus: CommandBus,
-    @Inject('IFeedCacheService')
-    private readonly feedCache: IFeedCacheService,
     @Inject('IFeedEnrichmentService')
     private readonly feedEnrichment: IFeedEnrichmentService,
     private readonly cacheManager: FeedCacheManagerService,

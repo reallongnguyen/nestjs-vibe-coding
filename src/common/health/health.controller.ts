@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseFilters } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   HealthCheck,
@@ -6,10 +6,17 @@ import {
   MemoryHealthIndicator,
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
+import {
+  GlobalErrorFilter,
+  ErrorResponse,
+  COMMON_ERRORS,
+} from 'src/common/errors';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CacheHealthIndicator } from './cache.health';
 
 @Controller('health')
+@UseFilters(GlobalErrorFilter)
+@ErrorResponse(COMMON_ERRORS)
 @ApiTags('app')
 export class HealthController {
   constructor(
