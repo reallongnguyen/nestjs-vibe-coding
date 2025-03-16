@@ -66,6 +66,19 @@ export class UserDeleteError extends AppError {
   }
 }
 
+export class UserQueryError extends AppError {
+  constructor(cause?: Error) {
+    super(
+      IdentityErrorCode.USER_QUERY_FAILED,
+      IDENTITY_ERRORS[IdentityErrorCode.USER_QUERY_FAILED],
+      {
+        params: { cause: cause?.message },
+        cause,
+      },
+    );
+  }
+}
+
 /**
  * Profile-related error classes
  */

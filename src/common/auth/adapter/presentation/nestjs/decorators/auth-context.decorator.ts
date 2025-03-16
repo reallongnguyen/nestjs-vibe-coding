@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AppError } from '../../../../../models';
+import { createCommonError } from 'src/common/errors';
 
 import { AuthCtx } from '../../../../core/domain/entities/auth-ctx.model';
 import { User } from '../../../../core/domain/entities/user.entity';
@@ -11,7 +11,7 @@ export const AuthContext = createParamDecorator(
     const { authCtx } = request;
 
     if (!authCtx) {
-      throw new AppError('common.invalidToken');
+      throw createCommonError('auth.invalid-token');
     }
 
     return authCtx;
@@ -25,11 +25,11 @@ export const AuthContextUser = createParamDecorator(
     const { authCtx } = request;
 
     if (!authCtx) {
-      throw new AppError('common.invalidToken');
+      throw createCommonError('auth.invalid-token');
     }
 
     if (!authCtx.isUser()) {
-      throw new AppError('common.requireUser');
+      throw createCommonError('auth.require-user');
     }
 
     if (data && typeof data === 'string') {

@@ -35,5 +35,9 @@ export function calculateReadingTime(content: Record<string, any>): number {
 export function generateExcerpt(content: Record<string, any>): string {
   const text = extractTextFromBlocks(content.blocks || []);
 
+  if (text.length === 0) {
+    return '';
+  }
+
   return `${text.slice(0, 157).trim()}...`;
 }

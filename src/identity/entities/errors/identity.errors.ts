@@ -24,6 +24,10 @@ export const IDENTITY_ERRORS: Record<IdentityErrorCode, ErrorDefinition> = {
     message: 'Failed to delete user {{userId}}: {{cause}}',
     status: HttpStatus.INTERNAL_SERVER_ERROR,
   },
+  [IdentityErrorCode.USER_QUERY_FAILED]: {
+    message: 'Failed to query users: {{cause}}',
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+  },
 
   // Profile errors
   [IdentityErrorCode.USER_PROFILE_NOT_FOUND]: {

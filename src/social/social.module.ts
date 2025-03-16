@@ -20,6 +20,8 @@ import { UpdateViewCountHandler } from './presentation/handlers/update-view-coun
 import { ViewRepository } from './repositories/view.repository';
 import { SocialEngagementRedisService } from './services/social-engagement-redis.service';
 import { SocialEngagementMetricsService } from './services/social-engagement-metrics.service';
+import { GetEngagementMetricsHandler } from './presentation/handlers/get-engagement-metrics.handler';
+import { GetUserLikesStatusHandler } from './presentation/handlers/get-user-likes-status.handler';
 
 @Module({
   imports: [
@@ -59,6 +61,8 @@ import { SocialEngagementMetricsService } from './services/social-engagement-met
     },
     SocialEngagementRedisService,
     SocialEngagementMetricsService,
+    GetEngagementMetricsHandler,
+    GetUserLikesStatusHandler,
   ],
 })
 export class SocialModule {}

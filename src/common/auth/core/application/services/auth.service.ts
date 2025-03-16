@@ -1,6 +1,6 @@
 import { Logger } from 'nestjs-pino';
 import { Cache } from 'cache-manager';
-import { AppError } from '../../../../models';
+import { AppError, createCommonError } from 'src/common/errors';
 
 import { AuthCtx, shouldCache } from '../../domain/entities/auth-ctx.model';
 import { AuthCtxRepoPort } from '../../ports/auth-ctx-repo.port';
@@ -70,7 +70,7 @@ export class AuthService {
 
       this.logger.error(`auth: authService: ${err.message}`);
 
-      throw new AppError('common.serverError');
+      throw createCommonError('server.error');
     }
   }
 }

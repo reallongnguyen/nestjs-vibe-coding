@@ -34,6 +34,7 @@ export interface UpsertUserParams {
 
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
+  findByIds(ids: string[]): Promise<User[]>;
   findUnique(params: FindUniqueUserParams): Promise<User | null>;
   findMany(filters: UserSearchFiltersDto): Promise<PagedResult<User>>;
   count(): Promise<number>;

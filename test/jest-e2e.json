@@ -5,5 +5,16 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/../src/$1"
+  },
+  "globalSetup": "<rootDir>/jest-global-setup.ts",
+  "globalTeardown": "<rootDir>/jest-global-teardown.ts",
+  "setupFilesAfterEnv": [
+    "<rootDir>/jest-setup.ts"
+  ],
+  "testTimeout": 20000,
+  "forceExit": true,
+  "detectOpenHandles": true
 }

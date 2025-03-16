@@ -32,6 +32,7 @@ export class DraftPostRepository
         cover: data.cover,
         topics: data.topics,
         userId: data.userId,
+        publishedId: data.publishedId,
       },
     });
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
@@ -22,6 +23,7 @@ export class FeedCacheManagerService {
   constructor(
     private readonly redisService: RedisService,
     private readonly logger: Logger,
+    private readonly config: ConfigService,
   ) {
     this.redis = this.redisService.getOrThrow();
   }
@@ -34,6 +36,10 @@ export class FeedCacheManagerService {
     pageOptions: PageOptionsDto,
     feedType: FeedType,
   ): Promise<FeedItem[] | null> {
+    if (this.config.get('feed.cache.disabled', false)) {
+      return null;
+    }
+
     try {
       const key = this.getCacheKey(userId, pageOptions, feedType);
       const cached = await this.redis.get(key);

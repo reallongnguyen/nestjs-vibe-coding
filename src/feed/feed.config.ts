@@ -2,7 +2,8 @@ import { registerAs } from '@nestjs/config';
 
 export default registerAs('feed', () => ({
   cache: {
-    ttl: parseInt(process.env.FEED_CACHE_TTL || '300', 10), // 5 minutes
+    disabled: process.env.FEED_CACHE_DISABLED === 'true',
+    ttl: parseInt(process.env.FEED_CACHE_TTL || '16', 10), // seconds
     prefix: 'feed:',
   },
   pagination: {

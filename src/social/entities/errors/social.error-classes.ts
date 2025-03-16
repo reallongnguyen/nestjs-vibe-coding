@@ -174,13 +174,29 @@ export class CommentNotLikedError extends AppError {
  * Error thrown when a Redis operation fails
  */
 export class RedisOperationError extends AppError {
-  constructor(operation: string, error: Error) {
+  constructor(operation: string, cause?: Error) {
     super(
       SocialErrorCode.REDIS_OPERATION_FAILED,
       SOCIAL_ERRORS[SocialErrorCode.REDIS_OPERATION_FAILED],
       {
-        params: { operation },
-        cause: error,
+        params: { operation, cause: cause?.message },
+        cause,
+      },
+    );
+  }
+}
+
+/**
+ * Error for when a general social operation fails
+ */
+export class SocialOperationError extends AppError {
+  constructor(operation: string, cause?: Error) {
+    super(
+      SocialErrorCode.SOCIAL_OPERATION_FAILED,
+      SOCIAL_ERRORS[SocialErrorCode.SOCIAL_OPERATION_FAILED],
+      {
+        params: { operation, cause: cause?.message },
+        cause,
       },
     );
   }

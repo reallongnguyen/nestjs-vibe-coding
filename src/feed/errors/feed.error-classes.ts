@@ -105,3 +105,58 @@ export class FeedCacheError extends AppError {
     );
   }
 }
+
+/**
+ * Feed enrichment-related error classes
+ */
+export class IdentityFetchError extends AppError {
+  constructor(cause?: Error) {
+    super(
+      FeedErrorCode.IDENTITY_FETCH_FAILED,
+      FEED_ERRORS[FeedErrorCode.IDENTITY_FETCH_FAILED],
+      {
+        params: { cause: cause?.message },
+        cause,
+      },
+    );
+  }
+}
+
+export class SocialMetricsFetchError extends AppError {
+  constructor(cause?: Error) {
+    super(
+      FeedErrorCode.SOCIAL_METRICS_FETCH_FAILED,
+      FEED_ERRORS[FeedErrorCode.SOCIAL_METRICS_FETCH_FAILED],
+      {
+        params: { cause: cause?.message },
+        cause,
+      },
+    );
+  }
+}
+
+export class LikeStatusFetchError extends AppError {
+  constructor(cause?: Error) {
+    super(
+      FeedErrorCode.LIKE_STATUS_FETCH_FAILED,
+      FEED_ERRORS[FeedErrorCode.LIKE_STATUS_FETCH_FAILED],
+      {
+        params: { cause: cause?.message },
+        cause,
+      },
+    );
+  }
+}
+
+export class FollowStatusFetchError extends AppError {
+  constructor(cause?: Error) {
+    super(
+      FeedErrorCode.FOLLOW_STATUS_FETCH_FAILED,
+      FEED_ERRORS[FeedErrorCode.FOLLOW_STATUS_FETCH_FAILED],
+      {
+        params: { cause: cause?.message },
+        cause,
+      },
+    );
+  }
+}

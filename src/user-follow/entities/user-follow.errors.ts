@@ -19,4 +19,8 @@ export const USER_FOLLOW_ERRORS = {
       'Follow relationship between {followerId} and {followingId} not found',
     status: HttpStatus.NOT_FOUND,
   },
+  'operation-failed': {
+    message: 'Failed to perform user follow operation: {reason}',
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+  },
 } as const satisfies Record<string, ErrorDefinition>;

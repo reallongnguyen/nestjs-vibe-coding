@@ -27,4 +27,7 @@ export enum SocialErrorCode {
 
   // Redis errors
   REDIS_OPERATION_FAILED = 'social.redis.operation_failed',
+
+  // General errors
+  SOCIAL_OPERATION_FAILED = 'social.operation.failed',
 }

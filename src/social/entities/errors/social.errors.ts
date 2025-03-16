@@ -74,4 +74,8 @@ export const SOCIAL_ERRORS: Record<SocialErrorCode, ErrorDefinition> = {
     message: 'Failed to perform Redis operation {operation}',
     status: HttpStatus.INTERNAL_SERVER_ERROR,
   },
+  [SocialErrorCode.SOCIAL_OPERATION_FAILED]: {
+    message: 'Failed to perform social operation {operation}: {cause}',
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+  },
 };

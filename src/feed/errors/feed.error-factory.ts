@@ -6,6 +6,10 @@ import {
   FeedGenerationError,
   FeedEnrichmentError,
   FeedCacheError,
+  IdentityFetchError,
+  SocialMetricsFetchError,
+  LikeStatusFetchError,
+  FollowStatusFetchError,
 } from './feed.error-classes';
 
 /**
@@ -64,6 +68,42 @@ export class FeedErrorFactory {
    */
   static feedEnrichmentFailed(cause?: Error): FeedEnrichmentError {
     return new FeedEnrichmentError(cause);
+  }
+
+  /**
+   * Creates an error for when user information fetching fails
+   * @param cause - The original error
+   * @returns IdentityFetchError
+   */
+  static identityFetchFailed(cause?: Error): IdentityFetchError {
+    return new IdentityFetchError(cause);
+  }
+
+  /**
+   * Creates an error for when engagement metrics fetching fails
+   * @param cause - The original error
+   * @returns SocialMetricsFetchError
+   */
+  static socialMetricsFetchFailed(cause?: Error): SocialMetricsFetchError {
+    return new SocialMetricsFetchError(cause);
+  }
+
+  /**
+   * Creates an error for when like status fetching fails
+   * @param cause - The original error
+   * @returns LikeStatusFetchError
+   */
+  static likeStatusFetchFailed(cause?: Error): LikeStatusFetchError {
+    return new LikeStatusFetchError(cause);
+  }
+
+  /**
+   * Creates an error for when follow status fetching fails
+   * @param cause - The original error
+   * @returns FollowStatusFetchError
+   */
+  static followStatusFetchFailed(cause?: Error): FollowStatusFetchError {
+    return new FollowStatusFetchError(cause);
   }
 
   /**

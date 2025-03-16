@@ -3,13 +3,13 @@ import { CommonModule } from 'src/common/common.module';
 import { AppController } from 'src/app.controller';
 import { FileModule } from 'src/storage/file.module';
 import { NotificationModule } from 'src/notification/notification.module';
-import { IdentityModule } from './identity/identity.module';
-import { GamificationModule } from './gamification/gamification.module';
-import { SocialModule } from './social/social.module';
-import { ContentModule } from './content/content.module';
-import { UserFollowModule } from './user-follow/user-follow.module';
-import { RecommendationModule } from './recommendation/recommendation.module';
-import { FeedModule } from './feed/feed.module';
+import { IdentityModule } from 'src/identity/identity.module';
+import { GamificationModule } from 'src/gamification/gamification.module';
+import { SocialModule } from 'src/social/social.module';
+import { ContentModule } from 'src/content/content.module';
+import { UserFollowModule } from 'src/user-follow/user-follow.module';
+import { RecommendationModule } from 'src/recommendation/recommendation.module';
+import { FeedModule } from 'src/feed/feed.module';
 
 @Module({
   imports: [

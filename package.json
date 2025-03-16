@@ -17,9 +17,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "jest --config ./test/jest-e2e.json --forceExit --detectOpenHandles",
     "prepare": "husky",
-    "check-outdated": "npx --yes -- check-outdated --ignore-pre-releases --columns name,type,current,latest,changes --types major,minor,patch,reverted"
+    "check-outdated": "npx --yes -- check-outdated --ignore-pre-releases --columns name,type,current,latest,changes --types major,minor,patch,reverted",
+    "test:e2e:debug": "NODE_DEBUG=test,jest jest --config ./test/jest-e2e.json --runInBand --verbose"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

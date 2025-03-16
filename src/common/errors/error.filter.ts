@@ -48,7 +48,7 @@ export class GlobalErrorFilter implements ExceptionFilter {
     }
 
     // Handle unknown errors
-    this.logger.error('Unhandled error', error);
+    this.logger.error(`Unhandled error: ${error.stack}`);
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       code: 'internal.error',
       message: 'Internal server error',

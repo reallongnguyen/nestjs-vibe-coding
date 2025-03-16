@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { AppError } from 'src/common/errors';
 import { AuthGuard } from './auth.guard';
-import { AppError } from '../../../../models';
 
 @Injectable()
 export class OptionalAuthGuard implements CanActivate {
@@ -8,7 +8,7 @@ export class OptionalAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     return this.authGuard.canActivate(context).catch((e) => {
-      if (e instanceof AppError && e.name === 'common.invalidToken') {
+      if (e instanceof AppError && e.code === 'auth.invalid-token') {
         return true;
       }
 

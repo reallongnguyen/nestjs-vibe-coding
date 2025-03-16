@@ -23,3 +23,27 @@ export interface FeedEnrichmentData {
   feedType: FeedType;
   userId: string;
 }
+
+export interface UserInfo {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  avatarUrl: string | null;
+}
+
+export interface EngagementMetrics {
+  contentId: string;
+  likeCount: number;
+  commentCount: number;
+  viewCount: number;
+}
+
+export interface UserLikeStatus {
+  contentId: string;
+  liked: boolean;
+}
+
+export interface UserFollowStatus {
+  targetUserId: string;
+  following: boolean;
+}

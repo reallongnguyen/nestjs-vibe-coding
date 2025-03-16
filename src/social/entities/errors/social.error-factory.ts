@@ -11,6 +11,7 @@ import {
   EngageableNotFoundError,
   NotCommentOwnerError,
   RedisOperationError,
+  SocialOperationError,
 } from './social.error-classes';
 
 /**
@@ -163,5 +164,18 @@ export class SocialErrorFactory {
     error: Error,
   ): RedisOperationError {
     return new RedisOperationError(operation, error);
+  }
+
+  /**
+   * Creates an error for when a general social operation fails
+   * @param operation - The operation that failed
+   * @param cause - The original error
+   * @returns SocialOperationError
+   */
+  static socialOperationFailed(
+    operation: string,
+    cause?: Error,
+  ): SocialOperationError {
+    return new SocialOperationError(operation, cause);
   }
 }

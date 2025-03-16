@@ -548,6 +548,393 @@ networks:
 
    TBD
 
+## Testing Strategy
+
+NestJS provides a comprehensive testing framework built on top of Jest. Our testing strategy follows modern practices for unit, integration, and end-to-end testing of NestJS applications.
+
+### Testing Philosophy
+
+We follow these core principles for testing:
+
+1. **Test Pyramid**: Prioritize unit tests (fast, many) over integration tests (slower, fewer) over E2E tests (slowest, fewest)
+2. **Isolation**: Unit tests must be independent and isolated
+3. **Mocking**: Use mocks, stubs and spies appropriately to isolate components
+4. **Coverage**: Aim for >85% test coverage for critical business logic
+5. **Maintainability**: Tests should be easy to understand and maintain
+
+### Test Types
+
+#### 1. Unit Tests
+
+Unit tests verify individual components in isolation. For services, repositories, and other providers:
+
+```typescript
+// user.service.spec.ts
+describe('UserService', () => {
+  let service: UserService;
+  let repository: MockType<Repository<User>>;
+  
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        UserService,
+        // Provide mock implementation for dependencies
+        {
+          provide: getRepositoryToken(User),
+          useFactory: mockRepository,
+        },
+      ],
+    }).compile();
+
+    service = module.get<UserService>(UserService);
+    repository = module.get(getRepositoryToken(User));
+  });
+
+  it('should find a user by id', async () => {
+    const user = { id: '1', firstName: 'Test', lastName: 'User' };
+    repository.findOne.mockReturnValue(user);
+    
+    expect(await service.findById('1')).toEqual(user);
+    expect(repository.findOne).toHaveBeenCalledWith({ id: '1' });
+  });
+  
+  it('should throw when user not found', async () => {
+    repository.findOne.mockReturnValue(null);
+    
+    await expect(service.findById('1')).rejects.toThrow(
+      new AppError('user.profile.get.notFound')
+    );
+  });
+});
+```
+
+#### 2. Integration Tests
+
+Integration tests verify the interaction between components:
+
+```typescript
+// user.controller.spec.ts
+describe('UserController', () => {
+  let controller: UserController;
+  let service: UserService;
+  
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      controllers: [UserController],
+      providers: [
+        {
+          provide: UserService,
+          useValue: {
+            findById: jest.fn(),
+            create: jest.fn(),
+            // Other methods
+          },
+        },
+      ],
+    }).compile();
+
+    controller = module.get<UserController>(UserController);
+    service = module.get<UserService>(UserService);
+  });
+
+  describe('findById', () => {
+    it('should return a user', async () => {
+      const user = { id: '1', firstName: 'Test', lastName: 'User' };
+      jest.spyOn(service, 'findById').mockResolvedValue(user);
+      
+      expect(await controller.findById('1')).toEqual(user);
+    });
+    
+    it('should handle errors properly', async () => {
+      jest.spyOn(service, 'findById').mockRejectedValue(
+        new AppError('user.profile.get.notFound')
+      );
+      
+      await expect(controller.findById('1')).rejects.toThrow();
+    });
+  });
+});
+```
+
+#### 3. End-to-End (E2E) Tests
+
+E2E tests verify the entire application flow from HTTP request to response:
+
+```typescript
+// user.e2e-spec.ts
+describe('UserController (E2E)', () => {
+  let app: INestApplication;
+  let prismaService: PrismaService;
+  
+  beforeAll(async () => {
+    const moduleFixture = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    prismaService = app.get(PrismaService);
+    
+    // Apply same pipes, filters, etc as the real app
+    app.useGlobalPipes(new ValidationPipe());
+    
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+  
+  beforeEach(async () => {
+    // Clean database between tests
+    await prismaService.user.deleteMany();
+    
+    // Seed test data
+    await prismaService.user.create({
+      data: {
+        id: 'test-user-id',
+        authId: 'auth-id',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+      },
+    });
+  });
+
+  it('/GET users/:id', () => {
+    return request(app.getHttpServer())
+      .get('/users/test-user-id')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('id', 'test-user-id');
+        expect(res.body).toHaveProperty('firstName', 'Test');
+      });
+  });
+  
+  it('/GET users/:id - not found', () => {
+    return request(app.getHttpServer())
+      .get('/users/nonexistent-id')
+      .expect(404)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('code', 'user.profile.get.notFound');
+        expect(res.body).toHaveProperty('message');
+      });
+  });
+});
+```
+
+### Test Setup Patterns
+
+#### 1. Mock Factory Pattern
+
+For consistent mocking across tests:
+
+```typescript
+// mock.factory.ts
+export type MockType<T> = {
+  [P in keyof T]?: jest.Mock<any>;
+};
+
+export const mockRepository = jest.fn(() => ({
+  findOne: jest.fn(),
+  find: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+}));
+
+export const mockService = <T>(type: new (...args: any[]) => T): MockType<T> => {
+  const mock: any = {};
+  
+  // Extract all public methods to create mocks
+  const prototype = type.prototype;
+  const propertyNames = Object.getOwnPropertyNames(prototype);
+  
+  for (const prop of propertyNames) {
+    if (prop !== 'constructor' && typeof prototype[prop] === 'function') {
+      mock[prop] = jest.fn();
+    }
+  }
+  
+  return mock;
+};
+```
+
+#### 2. Testing Module Pattern
+
+For reusable test modules:
+
+```typescript
+// user-testing.module.ts
+@Module({
+  imports: [
+    // Lightweight, in-memory implementations
+  ],
+  providers: [
+    UserService,
+    {
+      provide: getRepositoryToken(User),
+      useFactory: mockRepository,
+    },
+    // Other mocked dependencies
+  ],
+  exports: [UserService],
+})
+export class UserTestingModule {}
+```
+
+### Testing Error Handling
+
+For testing our new error system:
+
+```typescript
+describe('ErrorHandler', () => {
+  let app: INestApplication;
+  
+  beforeAll(async () => {
+    const moduleFixture = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('should transform AppError to standardized response', async () => {
+    // Endpoint that throws a known AppError
+    const response = await request(app.getHttpServer())
+      .get('/test/error')
+      .expect(400);
+      
+    expect(response.body).toMatchObject({
+      code: 'test.error.code',
+      message: expect.any(String),
+      timestamp: expect.any(String),
+    });
+  });
+  
+  it('should handle validation errors consistently', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/users')
+      .send({ /* invalid data */ })
+      .expect(400);
+      
+    expect(response.body).toMatchObject({
+      code: 'common.validation',
+      message: expect.stringContaining('validation'),
+      params: expect.objectContaining({
+        errors: expect.any(Array),
+      }),
+    });
+  });
+});
+```
+
+### Best Practices for NestJS Testing
+
+1. **Use Test Databases**:
+   - Use test-specific database (or in-memory DB for unit tests)
+   - Ensure test data isolation
+   - Reset data between tests
+
+2. **Test Provider Patterns**:
+   - Test custom providers
+   - Verify provider registration
+   - Test factory providers separately
+
+3. **Mock External Dependencies**:
+   - Use Jest mocks for external services
+   - Mock HTTP calls with libraries like `nock`
+   - Create dedicated mock modules
+
+4. **Event Testing**:
+   - Test event emitters and handlers
+   - Verify event payloads
+   - Test event processing flow
+
+5. **Error Handling Tests**:
+   - Test error responses
+   - Verify error transformation
+   - Test global error filters
+
+6. **Performance Testing**:
+   - Measure response times
+   - Test with realistic data volumes
+   - Verify memory usage
+
+### Continuous Integration Setup
+
+Our testing strategy integrates with CI/CD:
+
+```yaml
+# .github/workflows/test.yml
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Run tests
+        run: yarn test:ci
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          # Other environment variables
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
+```
+
+### Testing Tools and Libraries
+
+1. **Core Testing Stack**:
+   - Jest: Test runner and assertion library
+   - Supertest: E2E API testing
+   - @nestjs/testing: NestJS testing utilities
+
+2. **Supplementary Tools**:
+   - ts-mockito: Type-safe mocking
+   - jest-extended: Additional matchers
+   - faker: Test data generation
+
+3. **Coverage and Reporting**:
+   - Jest coverage reports
+   - SonarQube integration
+   - Test result publishing
+
 ## Future Considerations
 
 1. **Production ready**

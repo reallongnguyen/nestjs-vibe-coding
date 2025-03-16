@@ -165,6 +165,204 @@ Implement notifications for new content from followed users.
 - System handles high-volume creators efficiently
 - User preferences are respected
 
+### ERR-006: Complete Module Integration Tests
+
+**Quick Start**:
+
+- Similar Feature: src/common/errors
+- Example Test: src/user/tests/integration
+- Key Files:
+  - src/social/errors
+  - src/content/errors
+  - src/feed/errors
+  - src/common/errors
+- Setup Steps:
+  1. Review existing integration tests in User module
+  2. Understand error response format
+  3. Set up test data for each module
+
+**Priority**: Medium
+**Status**: Ready to Start
+**Story Points**: 3
+**Sprint**: 014
+**Change Type**: Enhancement
+
+**Description**:
+Implement integration tests for the error handling in the Social, Content, and Feed modules. This task addresses the missing integration tests identified in the ERR-001 task. The tests should verify that each module properly uses the standardized error system and returns consistent error responses.
+
+**Tasks**:
+
+1. [ ] Social Module Integration Tests
+   - [ ] Test like error scenarios
+   - [ ] Test comment error scenarios
+   - [ ] Test follow error scenarios
+   - [ ] Verify error response format
+
+2. [ ] Content Module Integration Tests
+   - [ ] Test post creation error scenarios
+   - [ ] Test post update error scenarios
+   - [ ] Test post publishing error scenarios
+   - [ ] Verify error response format
+
+3. [ ] Feed Module Integration Tests
+   - [ ] Test feed composition error scenarios
+   - [ ] Test feed filter error scenarios
+   - [ ] Test feed pagination error scenarios
+   - [ ] Verify error response format
+
+4. [ ] Error Propagation Tests
+   - [ ] Test error propagation between modules
+   - [ ] Test error logging
+   - [ ] Verify consistent error handling
+
+**Technical Notes**:
+
+- Follow the testing patterns established in the User module
+- Ensure consistent approach to testing error responses
+- Verify all error codes are properly defined and used
+- Test both expected and unexpected error scenarios
+
+**Acceptance Criteria**:
+
+- [ ] All Social module error scenarios are tested
+- [ ] All Content module error scenarios are tested
+- [ ] All Feed module error scenarios are tested
+- [ ] Error propagation is properly tested
+- [ ] All tests pass and provide adequate coverage
+
+### ERR-005: Fix Content & Feed E2E Test Authentication
+
+**Quick Start**:
+
+- Similar Feature: test/e2e/user
+- Example Test: test/e2e/user/user.e2e-spec.ts
+- Key Files:
+  - test/e2e/content/content-recovery.e2e-spec.ts
+  - test/e2e/feed/feed-recovery.e2e-spec.ts
+  - test/utils/test-setup.utils.ts
+  - test/utils/error-testing.utils.ts
+- Setup Steps:
+  1. Review current E2E test setup
+  2. Understand auth token mechanism
+  3. Fix mock authentication for tests
+
+**Priority**: High
+**Status**: Ready to Start
+**Story Points**: 2
+**Sprint**: 014
+**Change Type**: Bug Fix
+
+**Description**:
+Fix the authentication issues in Content & Feed module E2E tests that were identified during the ERR-003 task. Currently, these tests are skipped due to issues with the mock authentication token format being incompatible with the JWT auth system.
+
+**Tasks**:
+
+1. [ ] Analyze authentication issues
+   - [ ] Identify incompatibilities in mock token format
+   - [ ] Compare with working authentication in User & Social tests
+   - [ ] Document required changes
+
+2. [ ] Update mock authentication
+   - [ ] Fix token creation for Content & Feed tests
+   - [ ] Update auth context repository if needed
+   - [ ] Ensure consistent auth approach across all tests
+
+3. [ ] Enable and fix Content module tests
+   - [ ] Update test setup in content-recovery.e2e-spec.ts
+   - [ ] Enable skipped tests
+   - [ ] Verify all tests pass
+
+4. [ ] Enable and fix Feed module tests
+   - [ ] Update test setup in feed-recovery.e2e-spec.ts
+   - [ ] Enable skipped tests
+   - [ ] Verify all tests pass
+
+**Technical Notes**:
+
+- Maintain consistent approach to E2E test authentication
+- Ensure proper test isolation
+- Follow the patterns documented in E2E-TESTING.md
+- Use the JWT auth system correctly
+
+**Acceptance Criteria**:
+
+- [ ] All Content module E2E tests pass
+- [ ] All Feed module E2E tests pass
+- [ ] Authentication mechanism is consistent across all E2E tests
+- [ ] Tests run and terminate properly
+
+### ERR-004: Frontend Error Handling Integration
+
+**Quick Start**:
+
+- Similar Feature: src/common/errors
+- Example Test: src/frontend/components/common/tests/error-boundary.spec.ts
+- Key Files:
+  - src/common/errors/
+  - src/frontend/components/error/
+  - src/frontend/services/api/error-handler.ts
+- Setup Steps:
+  1. Review error standardization documentation
+  2. Understand error response format
+  3. Set up i18n for error messages
+
+**Priority**: High
+**Status**: Ready to Start
+**Story Points**: 3
+**Sprint**: 014
+**Change Type**: Enhancement
+
+**Description**:
+Implement the frontend integration for the error standardization system. This task was originally part of ERR-001 but was moved to the backlog due to sprint constraints. The frontend components need to handle standardized error responses from the backend, display appropriate error messages to users, and provide recovery paths where possible.
+
+**Tasks**:
+
+1. [ ] Update frontend error handling
+   - [ ] Create error handler service
+   - [ ] Add error response type definitions
+   - [ ] Add error monitoring integration
+
+2. [ ] Create error components
+   - [ ] Implement ErrorBoundary component
+   - [ ] Create ErrorMessage component
+   - [ ] Add error recovery buttons
+
+3. [ ] Add i18n support
+   - [ ] Create error message translations
+   - [ ] Implement dynamic message formatting
+   - [ ] Add context-specific error messages
+
+4. [ ] Setup error tracking
+   - [ ] Add error logging
+   - [ ] Configure client-side monitoring
+   - [ ] Create error reporting dashboard
+
+5. [ ] Add error recovery
+   - [ ] Implement automatic retry logic
+   - [ ] Add manual retry buttons
+   - [ ] Create guided recovery flows
+
+6. [ ] Write component tests
+   - [ ] Test error boundary
+   - [ ] Test error messages
+   - [ ] Test recovery mechanisms
+
+**Technical Notes**:
+
+- Integrate with the backend error system
+- Use the standardized error response format
+- Support i18n for error messages
+- Provide recovery paths for common errors
+- Add comprehensive error monitoring
+
+**Acceptance Criteria**:
+
+- [ ] All API errors are properly handled and displayed
+- [ ] Error messages are clear and helpful
+- [ ] Error recovery paths are provided where applicable
+- [ ] Error tracking is implemented
+- [ ] All components have tests
+
 ### REC-001: Gorse Integration Research and POC
 
 **Priority**: High

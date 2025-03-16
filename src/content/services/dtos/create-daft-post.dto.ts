@@ -5,4 +5,5 @@ export interface CreateDraftPostData {
   cover?: string | null;
   topics: string[];
   userId: string;
+  publishedId?: string | null;
 }

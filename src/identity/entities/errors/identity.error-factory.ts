@@ -7,6 +7,7 @@ import {
   UserNotFoundError,
   UserProfileNotFoundError,
   UserProfileUpdateError,
+  UserQueryError,
   UserUpdateError,
 } from './identity.error-classes';
 
@@ -69,6 +70,15 @@ export class IdentityErrorFactory {
    */
   static userDeleteFailed(userId: string, cause?: Error): UserDeleteError {
     return new UserDeleteError(userId, cause);
+  }
+
+  /**
+   * Creates an error for when querying users fails
+   * @param cause - The original error
+   * @returns UserQueryError
+   */
+  static userQueryFailed(cause?: Error): UserQueryError {
+    return new UserQueryError(cause);
   }
 
   /**

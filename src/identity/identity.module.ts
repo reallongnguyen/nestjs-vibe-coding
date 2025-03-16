@@ -6,6 +6,7 @@ import { UserActivityRepository } from './repositories/user-activity.repository'
 import { UserProfileController } from './presentation/user-profile.controller';
 import { UserActivityHandler } from './presentation/user-activity.handler';
 import { UserActivityService } from './services/user-activity.service';
+import { GetUsersHandler } from './presentation/handlers/get-users.handler';
 
 @Module({
   imports: [],
@@ -16,6 +17,7 @@ import { UserActivityService } from './services/user-activity.service';
     UserActivityRepository,
     UserActivityHandler,
     UserActivityService,
+    GetUsersHandler,
     {
       provide: 'IUserActivityRepository',
       useClass: UserActivityRepository,

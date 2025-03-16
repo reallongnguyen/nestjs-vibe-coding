@@ -3,8 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from 'nestjs-pino';
 import { Request } from 'express';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { AppError } from '../../../../models/AppError';
+import { createCommonError } from 'src/common/errors';
+import { PrismaService } from 'src/common/prisma/prisma.service';
+
 import { AuthCtx } from '../../../core/domain/entities/auth-ctx.model';
 import { AuthCtxRepoPort } from '../../../core/ports/auth-ctx-repo.port';
 
@@ -22,21 +23,21 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
 
     if (!token) {
       this.logger.debug('auth: jwtGuard: missing access token');
-      throw new AppError('common.invalidToken');
+      throw createCommonError('auth.invalid-token');
     }
 
     const signature = token.split('.')[2];
 
     if (!signature) {
       this.logger.warn('auth: jwtGuard: incorrect token format');
-      throw new AppError('common.invalidToken');
+      throw createCommonError('auth.invalid-token');
     }
 
     const payload = this.jwtService.decode(token);
 
     if (!payload) {
       this.logger.warn('auth: jwtGuard: decode token got error');
-      throw new AppError('common.invalidToken');
+      throw createCommonError('auth.invalid-token');
     }
 
     return `${payload.sub}:${signature}`;
@@ -47,7 +48,7 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
 
     if (!token) {
       this.logger.debug('auth: jwtGuard: missing access token');
-      throw new AppError('common.invalidToken');
+      throw createCommonError('auth.invalid-token');
     }
 
     const shouldVerifyToken = this.configService.get<boolean>(
@@ -62,7 +63,7 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
 
       if (!payload) {
         this.logger.warn('auth: jwtGuard: decode token got error');
-        throw new AppError('common.invalidToken');
+        throw createCommonError('auth.invalid-token');
       }
     } else {
       payload = await this.jwtService
@@ -71,7 +72,7 @@ export class JwtAuthCtxRepo implements AuthCtxRepoPort {
         })
         .catch((err) => {
           this.logger.warn(`auth: jwtGuard: invalid token: ${err.message}`);
-          throw new AppError('common.invalidToken');
+          throw createCommonError('auth.invalid-token');
         });
     }
 

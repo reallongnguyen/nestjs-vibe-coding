@@ -163,7 +163,7 @@ export class DraftPostService {
         }
 
         // Generate slug if not provided
-        const slug = data.slug || generateSlug(draft.title);
+        const slug = data.slug || `${generateSlug(draft.title)}-${draftId}`;
 
         // Check if slug already exists
         const existingPost = await this.prisma.publishedPost.findUnique({

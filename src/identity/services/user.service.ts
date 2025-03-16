@@ -124,6 +124,24 @@ export class UserService {
     return user;
   }
 
+  /**
+   * Get multiple users by their IDs
+   * @param userIds Array of user IDs to fetch
+   * @returns Array of users found
+   */
+  async getUsersByIds(userIds: string[]): Promise<User[]> {
+    if (!userIds.length) {
+      return [];
+    }
+
+    try {
+      return await this.userRepository.findByIds(userIds);
+    } catch (error) {
+      this.logger.error(`Failed to get users by IDs: ${error.stack}`);
+      throw IdentityErrorFactory.userQueryFailed(error);
+    }
+  }
+
   async searchUsers(filters: UserSearchFiltersDto): Promise<PagedResult<User>> {
     return this.userRepository.search(filters);
   }

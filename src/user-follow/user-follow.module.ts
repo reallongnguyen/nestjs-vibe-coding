@@ -6,8 +6,9 @@ import { UserFollowController } from './presentation/user-follow.controller';
 import { UserFollowService } from './services/user-follow.service';
 import { UserFollowRepository } from './repositories/user-follow.repository';
 import { GetFollowingIdsHandler } from './presentation/handlers/get-following-ids.handler';
+import { GetUserFollowStatusHandler } from './presentation/handlers/get-user-follow-status.handler';
 
-const CommandHandlers = [GetFollowingIdsHandler];
+const CommandHandlers = [GetFollowingIdsHandler, GetUserFollowStatusHandler];
 
 @Module({
   imports: [EventManagerModule, CqrsModule],

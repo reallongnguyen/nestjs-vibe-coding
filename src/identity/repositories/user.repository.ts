@@ -59,6 +59,20 @@ export class UserRepository implements IUserRepository {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (!ids.length) {
+      return [];
+    }
+
+    return this.prisma.user.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  }
+
   async search(filters: UserSearchFiltersDto): Promise<PagedResult<User>> {
     const {
       searchTerm,
