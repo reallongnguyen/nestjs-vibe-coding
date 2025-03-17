@@ -59,6 +59,8 @@ model User {
   followers               UserFollow[]             @relation("UserFollowers")
   following               UserFollow[]             @relation("UserFollowing")
   notificationPreferences NotificationPreference[]
+  sentInvitations         Invitation[]             @relation("UserInvitations")
+  invitedByInvitations    Invitation[]             @relation("UserInvitedBy")
 
   @@map("users")
 }
@@ -642,4 +644,33 @@ model Tweet {
   @@index([createdAt])
   @@index([isArchived])
   @@map("tweets")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+
+  @@map("invitation_status")
+}
+
+model Invitation {
+  id          String           @id @default(uuid())
+  code        String           @unique // Unique invitation code
+  inviterId   String           @map("inviter_id")
+  message     String?          @db.Text // Optional personal message
+  email       String?          // Optional target email
+  status      InvitationStatus @default(PENDING)
+  acceptedBy  String?          @map("accepted_by")
+  acceptedAt  DateTime?        @map("accepted_at")
+  expiresAt   DateTime?        @map("expires_at") // Optional expiration
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+  
+  inviter     User             @relation("UserInvitations", fields: [inviterId], references: [id])
+  invitee     User?            @relation("UserInvitedBy", fields: [acceptedBy], references: [id])
+
+  @@index([inviterId])
+  @@index([code])
+  @@map("invitations")
 }
