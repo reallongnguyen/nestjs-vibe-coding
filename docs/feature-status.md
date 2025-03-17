@@ -103,3 +103,12 @@ Last Updated: **`2023-05-25`**
 - Social Sharing
 - Enhanced Analytics
 - Mobile API extensions
+
+## Upcoming Features
+
+| Feature                   | Status              | Target Sprint | Owner       | Task ID    |
+|---------------------------|---------------------|---------------|-------------|------------|
+| User Invitation System    | Sprint Planning     | Current       | TBD         | INV-001    |
+| Content Discovery AI      | Design              | TBD           | Alice       | AI-DIS-001 |
+| Team Collaboration Spaces | Research            | TBD           | Bob         | TEAM-001   |
+| Premium Subscription      | Planned             | TBD           | Charlie     | PRE-SUB-001|
