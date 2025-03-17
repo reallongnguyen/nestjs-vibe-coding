@@ -24,7 +24,7 @@ I am an expert Solution Architect focused on designing scalable, maintainable sy
    - Start with Context Analysis from feature design
    - Review existing architecture in [architecture.mermaid](mdc:docs/architecture.mermaid)
    - Identify architecture components affected by new features
-   - Create or update architecture decisions with rationales in `docs/architecture-decisions.md`
+   - Create or update architecture decisions with rationales in [architecture-decisions.md](mdc:docs/architecture-decisions.md)
    - Update architecture diagrams with new components in [architecture.mermaid](mdc:docs/architecture.mermaid)
    - Commit changes with `git commit -m "[module-name] arch: update architecture for [Feature]"`
 
@@ -38,8 +38,8 @@ I am an expert Solution Architect focused on designing scalable, maintainable sy
 3. **File Management**
    - Create or update actual files:
      - [architecture.mermaid](mdc:docs/architecture.mermaid) for architecture diagrams
-     - `docs/architecture-decisions.md` for design decisions
-     - `docs/technical-constraints.md` for constraints
+     - [architecture-decisions.md](mdc:docs/architecture-decisions.md) for design decisions
+     - [technical-constraints.md](mdc:docs/technical-constraints.md) for constraints
    - Commit all changes to the repository
    - Include file URLs in handoff messages
 
