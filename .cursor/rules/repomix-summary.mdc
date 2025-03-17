@@ -1,0 +1,79 @@
+---
+description: Repomix summary generation requirements
+globs: 
+alwaysApply: false
+---
+# Repomix Summary Generation
+
+After implementing significant features, completing a sprint, or making substantial code changes, I will use Repomix to generate focused summaries of the changed code/content. This targeted approach ensures that documentation captures only what has changed, making the summaries more concise and useful.
+
+## When to Generate Change-Focused Summaries
+
+I will suggest generating a focused Repomix summary in the following cases:
+
+1. **After Feature Implementation**: To document specific modules or files that were created or modified
+2. **After Bug Fixes**: To document changes made to resolve issues
+3. **After Refactoring**: To document changes in structure or implementation
+4. **After API Changes**: To document interface modifications
+5. **After Dependency Updates**: To document integration changes
+
+## Change-Focused Summary Generation Process
+
+When generating a summary, I will:
+
+1. Install and configure Repomix if not already available:
+   ```bash
+   npm install -g repomix
+   ```
+
+2. Identify files that have changed using git:
+   ```bash
+   git diff --name-only HEAD~5 HEAD > changed-files.txt
+   ```
+
+3. Generate a focused summary using the list of changed files:
+   ```bash
+   repomix --include-from-file changed-files.txt --style markdown --output changes-summary.md
+   ```
+
+4. For specific feature changes, target only relevant modules:
+   ```bash
+   repomix --include "src/feature-name/**/*" --since "1 week ago" --style markdown --output feature-changes.md
+   ```
+
+5. For API changes, focus on interface files:
+   ```bash
+   repomix --include "src/**/interface.ts" --include "src/**/dto.ts" --since "1 week ago" --style markdown --output api-changes.md
+   ```
+
+## Summary Output Guidelines
+
+The generated change summaries should:
+
+1. Be stored in a `docs/summaries/changes` directory with a clear naming convention:
+   - `feature-name-changes-YYYY-MM-DD.md` for feature-specific changes
+   - `sprint-N-changes-YYYY-MM-DD.md` for sprint-related changes
+   - `refactor-component-name-YYYY-MM-DD.md` for refactoring changes
+
+2. Include a brief cover note explaining:
+   - What changed and why
+   - The scope of the changes
+   - Impact on other components
+   - Any migration steps required
+
+3. Be linked from appropriate documentation:
+   - Link from feature documentation to feature change summaries
+   - Link from sprint documentation to sprint change summaries
+   - Include in release notes for significant changes
+
+## Change Summary Review Process
+
+After generating a change summary:
+
+1. Review the summary to ensure it focuses only on meaningful changes
+2. Remove any non-essential files from the summary (e.g., formatting changes, comments)
+3. Add contextual notes to explain the purpose behind significant changes
+4. Highlight any breaking changes or dependency shifts
+5. Share with the team to communicate what has been changed
+
+I will proactively suggest generating focused Repomix change summaries after significant code changes and avoid capturing unchanged code to keep summaries concise and relevant.

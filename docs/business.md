@@ -946,3 +946,82 @@ This architecture provides a scalable foundation for implementing the TikTok-ins
 5. **Measurability**: Via comprehensive monitoring and analytics
 
 Each phase builds upon the previous one, allowing for iterative development and testing while maintaining system stability and performance.
+
+## Tweet Feature
+
+### Overview
+
+A short-form content feature similar to Twitter's tweet functionality, allowing users to quickly share thoughts and media.
+
+### Business Value and Goals
+
+- Expand content creation options with lightweight "tweet" format
+- Increase user engagement through quick content sharing
+- Enable rich media sharing via image attachments
+- Foster community interaction through a familiar, Twitter-like experience
+- Enhance content discovery through personalized recommendations
+
+### User Stories
+
+1. As a user, I want to create short text posts to quickly share thoughts
+2. As a user, I want to attach images to my tweets to share visual content
+3. As a user, I want to view tweets in my feed alongside other content
+4. As a user, I want to like and comment on tweets to engage with others
+5. As a user, I want to discover tweets that match my interests through recommendations
+
+### Requirements
+
+#### Functional Requirements
+
+- Users can create tweets with text up to 280 characters
+- Users can attach up to 4 images per tweet
+- Tweets appear in user feeds based on following relationships
+- Users can like and comment on tweets
+- Users can view all tweets from a specific user
+- System recommends relevant tweets based on user behavior and preferences
+- Tweets can be archived to hide them from public view
+
+#### Non-Functional Requirements
+
+- Tweet creation should be responsive (<1 second)
+- Tweet feeds should load quickly with pagination
+- Image optimizations for faster loading
+- Content moderation for text and images
+- Rate limiting to prevent abuse
+- Real-time recommendation updates based on user engagement
+
+### Integration Points
+
+- Feed system for tweet discovery and timeline
+- Storage system for image attachments
+- Comment functionality for responses
+- Notification system for engagement alerts
+- User profile for tweet ownership
+- Recommendation system (Gorse) for personalized content discovery
+- Event bus for asynchronous processing and decoupled architecture
+
+### Implementation Architecture
+
+The Tweet feature uses an event-driven architecture to ensure:
+
+1. **Loose Coupling**: Tweet and Recommendation modules communicate via events
+2. **Scalability**: Asynchronous processing allows independent scaling of components
+3. **Maintainability**: Clear separation of concerns between content creation and recommendation
+
+Key events:
+
+- `content.tweet.created`: Generated when a user creates a tweet
+- `content.tweet.updated`: Generated when a tweet is modified
+- `content.tweet.deleted`: Generated when a tweet is removed
+- `content.tweet.viewed`: Tracks when users view tweets for recommendation data
+
+The recommendation system listens for these events and updates its item database and user behavior data accordingly.
+
+### Success Metrics
+
+- Increase in daily active users
+- Growth in content creation rate
+- Higher engagement metrics (likes, comments)
+- Increased time spent on platform
+- Click-through rate on recommended tweets
+- Diversity of content consumed by users

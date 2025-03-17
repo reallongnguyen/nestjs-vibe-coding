@@ -6,7 +6,7 @@ import { AppError } from 'src/common/models';
 import { v7 as uuidv7 } from 'uuid';
 
 import { UploadUrlDto } from './dto/upload-url.dto';
-import { AvatarMimeType } from './models/file-type.enum';
+import { AvatarMimeType, TweetImageMimeType } from './models/file-type.enum';
 
 @Injectable()
 export class FileService {
@@ -29,6 +29,18 @@ export class FileService {
   ): Promise<UploadUrlDto> {
     const fileExtension = mimeType.split('/')[1];
     const fileName = `images/users/${userId}/profile/${uuidv7()}.${fileExtension}`;
+
+    return this.generateUploadUrl(this.userAssetBucketName, fileName, fileSize);
+  }
+
+  async generateUploadTweetImageUrl(
+    userId: string,
+    tweetId: string,
+    mimeType: TweetImageMimeType,
+    fileSize: number,
+  ): Promise<UploadUrlDto> {
+    const fileExtension = mimeType.split('/')[1];
+    const fileName = `images/users/${userId}/tweets/${tweetId}/${uuidv7()}.${fileExtension}`;
 
     return this.generateUploadUrl(this.userAssetBucketName, fileName, fileSize);
   }

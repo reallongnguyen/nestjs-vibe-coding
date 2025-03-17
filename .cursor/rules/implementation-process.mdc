@@ -1,0 +1,120 @@
+---
+description: Implementation process and task workflow
+globs: 
+alwaysApply: false
+---
+## Implementation process
+
+### STEP 1: Task Analysis
+
+- Read the file: [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md)
+- Extract and understand:
+  - Task requirements
+  - Acceptance criteria
+  - Technical notes
+  - Dependencies task
+- Review similar implementations in codebase
+- Identify reusable patterns and components
+- List potential technical challenges
+- Document assumptions and questions
+- If task is not clear, ask for clarification
+- If dependencies task is not completed, ask for clarification
+
+### STEP 2: Development Environment Setup
+
+- Verify required dependencies
+- Set up necessary tools and configurations
+- Create feature branch with correct naming
+- Set up test environment if needed
+
+### STEP 3: Confirm current context
+
+- If Change Type is one of Enhancement, Integration, Refactoring, you must investigate current code that relate task description
+  - Understand impact of change
+  - Understand scope of change
+  - Don't change current code if no need
+- Read the file: [architecture.mermaid](mdc:docs/architecture.mermaid)
+  - Extract and understand:
+    - Module boundaries and relationships
+    - Data flow patterns
+    - System interfaces
+    - Component dependencies
+  - Validate any changes against architectural constraints
+  - Ensure new code maintains defined separation of concerns
+- Read the file: [schema.prisma](mdc:prisma/schema.prisma)
+  - Understand the data model
+  - Understand the constraints
+- Read the file: [technical.md](mdc:docs/technical.md)
+  - Understand folder structure
+  - Understand code conventions
+- Understand the module's style:
+  - Clear separation of entities, repositories, services, and presentation layers follow module structure [module-structure.md](mdc:docs/module-structure.md)
+  - Specific error classes for better error handling
+  - Consistent DTO patterns with fromDomain static methods
+  - Proper use of decorators for API documentation
+  - Consistent error mapping
+  - Proper use of dependency injection
+
+### STEP 4: Implementation Planning
+
+If this task is complex or high risk or integration-heavy, consider to perform Dependency Analysis and Planning first. You can create sub folder in `tasks/work/` to store analysis files.
+
+Complex task implementation steps:
+
+1. Create skeleton:
+   - Module structure following patterns
+   - Interface definitions
+   - Type definitions
+2. Add tests structure:
+   - Unit test files
+   - Integration test points
+   - E2E test structure
+3. Implement data layer:
+   - Entities/Models
+   - Repositories
+   - Data validation
+   - Unit tests
+4. Implement business logic:
+   - Services with clean interfaces
+   - Error handling
+   - Event handling
+   - Unit tests
+5. Implement presentation layer:
+   - Controllers/Resolvers
+   - DTOs with validation
+   - API documentation
+   - Unit tests
+6. Add end-to-end tests:
+   - Happy path scenarios
+   - Error scenarios
+   - Edge cases
+7. Add documentation:
+   - API documentation
+   - Technical documentation
+   - Update architecture diagrams
+
+Simple task implementation steps:
+
+1. Add tests structure:
+   - Unit test files
+   - Integration points if needed
+2. Implement with TDD approach:
+   - Write failing test
+   - Implement feature
+   - Refactor
+3. Add documentation:
+   - Update relevant docs
+   - Add code comments
+
+### STEP 5: Quality Checks
+
+- Run linter and fix issues
+- Run tests and ensure coverage
+- Review code against style guide
+- Self-review changes
+- Update relevant documentation
+
+### STEP 6: Keep documentation updated
+
+- Follow Documentation Requirements (Section: Implementation Documentation)
+

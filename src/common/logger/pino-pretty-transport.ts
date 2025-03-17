@@ -2,11 +2,9 @@
 import PinoPretty, { PrettyOptions } from 'pino-pretty';
 import { red, gray, green, blue, yellow } from 'colors';
 
-// const levelColorize = colorizerFactory(true);
 const levelPrettifier = (logLevel) => {
   let levelColorize: string;
   let rightPad = '';
-
   switch (logLevel) {
     case 10:
       levelColorize = gray('TRACE');
@@ -25,9 +23,7 @@ const levelPrettifier = (logLevel) => {
       levelColorize = blue('INFO');
       rightPad = ' ';
   }
-
   const baseLevelLog = `${gray('[')}${levelColorize}${gray(']')}${rightPad}`;
-
   return baseLevelLog;
 };
 

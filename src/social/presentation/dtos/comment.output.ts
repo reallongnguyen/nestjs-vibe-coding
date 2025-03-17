@@ -10,13 +10,13 @@ export class CommentDto implements Comment {
   content: string;
 
   @ApiProperty()
-  postId: string;
+  postId: string | null;
 
   @ApiProperty({ required: false })
   parentId: string | null;
 
   @ApiProperty()
-  userId: string;
+  userId: string | null;
 
   @ApiProperty()
   createdAt: Date;
@@ -53,6 +53,9 @@ export class CommentDto implements Comment {
 
   @ApiProperty({ description: 'ID of the emotion if comment is on an emotion' })
   emotionId: string | null;
+
+  @ApiProperty({ description: 'ID of the tweet if comment is on a tweet' })
+  tweetId: string | null;
 
   static fromApplication(comment: CommentOutput): CommentDto {
     return {

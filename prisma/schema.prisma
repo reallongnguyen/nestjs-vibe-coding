@@ -48,6 +48,7 @@ model User {
   publishedPosts          PublishedPost[]          @relation("UserAuthorPosts")
   draftPosts              DraftPost[]
   comments                Comment[]                @relation("UserAuthorComments")
+  tweets                  Tweet[]                  @relation("UserTweets")
   bookmarks               Bookmark[]
   feeds                   Feed[]
   emotions                UserEmotion[]
@@ -334,6 +335,7 @@ model Comment {
   content    String    @db.Text
   postId     String?   @map("post_id")
   emotionId  String?   @map("emotion_id")
+  tweetId    String?   @map("tweet_id")
   parentId   String?   @map("parent_id")
   userId     String?   @map("user_id")
   botId      String?   @map("bot_id")
@@ -345,6 +347,7 @@ model Comment {
   // Relations
   post       PublishedPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
   emotion    UserEmotion?   @relation(fields: [emotionId], references: [id], onDelete: Cascade)
+  tweet      Tweet?         @relation(fields: [tweetId], references: [id], onDelete: Cascade)
   parent     Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies    Comment[]      @relation("CommentReplies")
   userAuthor User?          @relation("UserAuthorComments", fields: [userId], references: [id], onDelete: Cascade)
@@ -382,6 +385,7 @@ model Bookmark {
 enum FeedContentType {
   POST
   USER_EMOTION
+  TWEET
 
   @@map("feed_content_type")
 }
@@ -391,6 +395,7 @@ model Feed {
   contentType     FeedContentType @map("content_type")
   publishedPostId String?         @map("published_post_id")
   userEmotionId   String?         @map("user_emotion_id")
+  tweetId         String?         @map("tweet_id")
   userId          String          @map("user_id")
   score           Float           @default(0) // For ranking/sorting content
   viewedAt        DateTime?       @map("viewed_at") @db.Timestamptz()
@@ -402,10 +407,12 @@ model Feed {
   // Use conditional foreign key constraints based on contentType
   publishedPost PublishedPost? @relation(fields: [publishedPostId], references: [id], map: "feeds_published_post_fkey")
   userEmotion   UserEmotion?   @relation(fields: [userEmotionId], references: [id], map: "feeds_user_emotion_fkey")
+  tweet         Tweet?         @relation(fields: [tweetId], references: [id], map: "feeds_tweet_fkey")
 
   @@index([userId])
   @@index([contentType, publishedPostId])
   @@index([contentType, userEmotionId])
+  @@index([contentType, tweetId])
   @@index([score])
   @@index([viewedAt])
   @@map("feeds")
@@ -615,4 +622,24 @@ model NotificationTemplateContent {
 
   @@unique([templateId, language])
   @@map("notification_template_contents")
+}
+
+model Tweet {
+  id          String    @id @default(uuid())
+  content     String    @db.Text
+  images      String[]
+  userId      String    @map("user_id")
+  isArchived  Boolean   @default(false) @map("is_archived")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user        User      @relation("UserTweets", fields: [userId], references: [id], onDelete: Cascade)
+  feeds       Feed[]
+  comments    Comment[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isArchived])
+  @@map("tweets")
 }

@@ -7,7 +7,7 @@ import {
   SocialEventSchemas,
   EventBusMessage,
 } from 'src/common/event-manager';
-import { PublishedPostService } from '../../services/published-post.service';
+import { PublishedPostService } from '../../post/services/published-post.service';
 
 @Injectable()
 export class SocialEngagementHandler {
