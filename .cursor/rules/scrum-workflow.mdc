@@ -1,0 +1,133 @@
+---
+description: SCRUM Workflow Framework
+globs: 
+alwaysApply: false
+---
+# SCRUM Workflow Framework
+
+This document defines the overall workflow for our SCRUM process. It provides a central reference for how roles interact and hand off work to each other. For role-specific responsibilities, see the individual role documentation files.
+
+## Workflow Sequence
+
+The complete workflow follows this sequence, with each step having a specific responsible role and handoff point:
+
+1. **Feature Specification Complete**
+   - **Role**: Product Owner
+   - **Handoff to**: Solution Architect
+   - **Template**: Feature Specification Complete
+
+2. **Architecture Review Complete**
+   - **Role**: Solution Architect
+   - **Handoff to**: Scrum Master
+   - **Template**: Architecture Review Complete
+
+3. **Architecture Review Decision**
+   - **Role**: Scrum Master
+   - **Handoff to**: Product Owner and Solution Architect
+   - **Template**: Architecture Review Decision
+
+4. **Task Creation**
+   - **Role**: Product Owner
+   - **Handoff to**: Scrum Master
+   - **Template**: Tasks Ready for Planning
+
+5. **Task Selection for Sprint**
+   - **Role**: Scrum Master
+   - **Handoff to**: Product Owner
+   - **Template**: Task Selection for Sprint
+
+6. **Sprint Planning Complete**
+   - **Role**: Scrum Master
+   - **Handoff to**: Team
+   - **Template**: Sprint Planning Complete
+
+7. **Technical Design Request**
+   - **Role**: Scrum Master
+   - **Handoff to**: Technical Leader
+   - **Template**: Technical Design Request
+
+8. **Technical Design Complete**
+   - **Role**: Technical Leader
+   - **Handoff to**: Developer
+   - **Template**: Technical Design Complete
+
+9. **Implementation Complete**
+   - **Role**: Developer
+   - **Handoff to**: Technical Leader
+   - **Template**: Implementation Complete
+
+10. **Code Review Complete**
+    - **Role**: Technical Leader
+    - **Handoff to**: Test Leader
+    - **Template**: Code Review Complete
+
+11. **Testing Complete**
+    - **Role**: Test Leader
+    - **Handoff to**: Product Owner
+    - **Template**: Testing Complete
+
+12. **Daily Sprint Status Update**
+    - **Role**: Scrum Master
+    - **Handoff to**: Team
+    - **Template**: Daily Sprint Status Update
+
+13. **Sprint Completion**
+    - **Role**: Scrum Master
+    - **Handoff to**: Team and Product Owner
+    - **Template**: Sprint Completion
+
+## Process Governance
+
+Each role is responsible for:
+
+1. Following their defined processes in their role-specific documentation
+2. Explicitly calling the next role in the workflow when handing off work
+3. Providing complete information in the handoff using the specified template
+4. Confirming receipt of work when called by another role
+5. Creating and updating actual files rather than just describing them
+6. Committing changes to the repository with clear, standardized messages
+7. Including links to actual files and commits in handoffs
+
+## Alternative: Expedited Process for Simple Features
+
+For smaller features with minimal architectural impact:
+
+1. **Combined Context Analysis and Feature Specification** (Product Owner)
+   - **Handoff to**: Directly to Scrum Master for sprint consideration
+
+2. **Sprint Selection Decision** (Scrum Master)
+   - For simple features with no architectural concerns
+   - **Handoff to**: To Product Owner for task creation
+
+The remaining steps (5-13) follow the same process as above.
+
+## Process Verification Checkpoints
+
+At each handoff point, verify that:
+
+1. The previous step is genuinely complete
+2. All required documentation exists and is up to date
+3. Proper file structure and naming conventions are followed
+4. Any automated checks have passed
+5. The handoff includes all necessary information
+
+## Critical Process Requirements
+
+1. **Architecture-First Approach**:
+   - Architecture must be reviewed before technical design
+   - The Scrum Master must explicitly decide on sprint inclusion
+
+2. **Just-In-Time Technical Design**:
+   - Technical design only happens for tasks committed to the current sprint
+   - Design occurs after sprint planning to avoid wasted effort
+
+3. **Clear Documentation Path**:
+   - Each step produces specific documentation artifacts
+   - Documentation updates must be committed to the repository
+
+4. **Explicit Handoffs**:
+   - Each handoff must use the correct template
+   - Handoffs must include links to actual artifacts
+
+For detailed handoff message templates, see [handoff-templates.mdc](mdc:.cursor/rules/handoff-templates.mdc).
+For each role's specific responsibilities, see their individual role documentation.

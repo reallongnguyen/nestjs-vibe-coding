@@ -13,7 +13,7 @@ After generating or modifying features, task descriptions, or code, I will autom
 
 After defining a new feature or updating an existing one:
 
-1. Update the relevant feature section in `docs/business.md`
+1. Update the relevant feature section in [business.md](mdc:docs/business.md)
 2. Include:
    - Business value and purpose
    - User stories or use cases
@@ -33,13 +33,13 @@ After defining a new feature or updating an existing one:
 
 After creating or modifying task descriptions:
 
-1. Ensure the task is properly recorded in `tasks/sprint-current-tasks.md` with:
+1. Ensure the task is properly recorded in [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md) with:
    - Clear metadata (type, priority, risk level)
    - Integration analysis details
    - Dependencies on other tasks
    - Acceptance criteria
    - Technical notes
-2. Update `tasks/sprint-current-status.md` with the new task status
+2. Update [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md) with the new task status
 3. For completed tasks, generate a Repomix summary of the files changed for the task:
    ```bash
    # For task-specific changes, use the task branch or commits
@@ -59,10 +59,10 @@ After generating or modifying code:
    - Complex algorithms or business logic
 2. Update relevant technical documentation:
    - API documentation if endpoints changed
-   - `docs/technical.md` for significant technical decisions
-   - Architecture diagrams in `docs/architecture.mermaid` if structure changed
+   - [technical.md](mdc:docs/technical.md) for significant technical decisions
+   - Architecture diagrams in [architecture.mermaid](mdc:docs/architecture.mermaid) if structure changed
 3. Add inline comments for complex sections or non-obvious decisions
-4. Update task status in `tasks/sprint-current-tasks.md`
+4. Update task status in [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md)
 5. For major code changes or refactoring, generate a before/after Repomix diff:
    ```bash
    # Capture the before state of specific files that will be changed
