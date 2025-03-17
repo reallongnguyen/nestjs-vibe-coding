@@ -5,6 +5,7 @@ import { EventValidationError } from '../entities/errors/event.errors';
 import { ContentEventSchemas } from '../entities/events/schemas/content.events';
 import { GamificationEventSchemas } from '../entities/events/schemas/gamification.events';
 import { IdentityEventSchemas } from '../entities/events/schemas/identity.events';
+import { InvitationEventSchemas } from '../entities/events/schemas/invitation.events';
 import { SocialEventSchemas } from '../entities/events/schemas/social.events';
 
 /**
@@ -38,6 +39,11 @@ export class EventRegistryService implements OnModuleInit {
     // Register social events
     this.registerEventSchemas(
       SocialEventSchemas as Record<string, EventSchema<object>>,
+    );
+
+    // Register invitation events
+    this.registerEventSchemas(
+      InvitationEventSchemas as Record<string, EventSchema<object>>,
     );
 
     this.logger.log(`Registered ${this.registry.size} event types`);

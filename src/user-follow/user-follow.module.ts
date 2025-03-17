@@ -7,8 +7,13 @@ import { UserFollowService } from './services/user-follow.service';
 import { UserFollowRepository } from './repositories/user-follow.repository';
 import { GetFollowingIdsHandler } from './presentation/handlers/get-following-ids.handler';
 import { GetUserFollowStatusHandler } from './presentation/handlers/get-user-follow-status.handler';
+import { InvitationAcceptedHandler } from './presentation/handlers/invitation-accepted.handler';
 
-const CommandHandlers = [GetFollowingIdsHandler, GetUserFollowStatusHandler];
+const CommandHandlers = [
+  GetFollowingIdsHandler,
+  GetUserFollowStatusHandler,
+  InvitationAcceptedHandler,
+];
 
 @Module({
   imports: [EventManagerModule, CqrsModule],

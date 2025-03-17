@@ -1,25 +1,8 @@
 import { BaseEvent } from 'src/common/event-manager/entities/events/base.event';
-import { EventSchema } from 'src/common/event-manager/entities/events/event.interface';
-
-interface InvitationAcceptedPayload {
-  invitationId: string;
-  inviterId: string;
-  acceptedBy: string;
-  code: string;
-}
-
-const INVITATION_ACCEPTED_SCHEMA: EventSchema<InvitationAcceptedPayload> = {
-  eventName: 'invitation.accepted',
-  schema: {
-    invitationId: '',
-    inviterId: '',
-    acceptedBy: '',
-    code: '',
-  },
-  version: '1.0',
-  module: 'invitation',
-  description: 'Emitted when an invitation is accepted',
-};
+import {
+  InvitationEventSchemas,
+  InvitationAcceptedPayload,
+} from 'src/common/event-manager/entities/events/schemas/invitation.events';
 
 export class InvitationAcceptedEvent extends BaseEvent<InvitationAcceptedPayload> {
   constructor(
@@ -29,7 +12,7 @@ export class InvitationAcceptedEvent extends BaseEvent<InvitationAcceptedPayload
     public readonly code: string,
     params?: { correlationId?: string; metadata?: Record<string, unknown> },
   ) {
-    super(INVITATION_ACCEPTED_SCHEMA, params);
+    super(InvitationEventSchemas.INVITATION_ACCEPTED, params);
   }
 
   toJSON(): InvitationAcceptedPayload {
