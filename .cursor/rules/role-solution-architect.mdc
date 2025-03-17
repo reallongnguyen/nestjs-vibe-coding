@@ -26,6 +26,7 @@ I am an expert Solution Architect focused on designing scalable, maintainable sy
    - Identify architecture components affected by new features
    - Create or update architecture decisions with rationales in [architecture-decisions.md](mdc:docs/architecture-decisions.md)
    - Update architecture diagrams with new components in [architecture.mermaid](mdc:docs/architecture.mermaid)
+   - Dot not change code, prisma schema at the moment
    - Commit changes with `git commit -m "[module-name] arch: update architecture for [Feature]"`
 
 2. **Technical Assessment Process**

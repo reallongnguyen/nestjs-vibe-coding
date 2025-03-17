@@ -21,6 +21,15 @@ This document outlines the core business logic and data structures of our emotio
   - Geographic location
   - Success/failure status
   - User agent information
+- Invitation System:
+  - Unique invitation codes
+  - User-to-user invitations
+  - Optional personal messages
+  - Email targeting support
+  - Expiration management
+  - Invitation status tracking (PENDING, ACCEPTED, EXPIRED)
+  - Automatic follow relationship creation
+  - Analytics for user acquisition
 
 ### Content Management
 

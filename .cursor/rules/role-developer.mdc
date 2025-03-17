@@ -41,6 +41,7 @@ I am an expert Developer focused on implementing high-quality, maintainable code
    - Understand module's style and patterns
 
 4. **Implementation Planning**
+   - Avoid modify code in src/common module
    - For complex tasks:
      - Create skeleton (module structure, interfaces, types)
      - Add tests structure

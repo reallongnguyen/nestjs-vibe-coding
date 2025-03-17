@@ -298,7 +298,7 @@
 
 "@babel/runtime@^7.23.8", "@babel/runtime@^7.24.5":
   version "7.26.10"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.26.10.tgz#a07b4d8fa27af131a633d7b3524db803eb4764c2"
+  resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.26.10.tgz"
   integrity sha512-2WJMeRQPHKSPemqk/awGrAiuFfzBmOIPXKizAsVhWH9YJqLZ0H+HS4c8loHGgW6utJ3E/ejXQUsiGaQy2NZ9Fw==
   dependencies:
     regenerator-runtime "^0.14.0"
@@ -1122,7 +1122,7 @@
 
 "@nestjs/common@^11.0.11":
   version "11.0.11"
-  resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-11.0.11.tgz#6ae7bb7a7dce323179fb93ca016b27350853ce5c"
+  resolved "https://registry.npmjs.org/@nestjs/common/-/common-11.0.11.tgz"
   integrity sha512-b3zYiho5/XGCnLa7W2hHv5ecSBR1huQrXCHu6pxd+g2HY2B7sKP5CXHMv4gHYqpIqu4ClOb7Q4tLKXMp9LyLUg==
   dependencies:
     uid "2.0.2"
@@ -1185,7 +1185,7 @@
 
 "@nestjs/platform-express@^11.0.11":
   version "11.0.11"
-  resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-11.0.11.tgz#762d743b46addf52e086aa9a872a41ef803d132f"
+  resolved "https://registry.npmjs.org/@nestjs/platform-express/-/platform-express-11.0.11.tgz"
   integrity sha512-iv6nH66i/RuRQufg5UUboQ4jQX4NuuePrYQpHB3ueiEIhJm2yLhhNYM6Y2l/76y9woW2eckbiqbzmW/JajAgeQ==
   dependencies:
     cors "2.8.5"
@@ -1234,7 +1234,7 @@
 
 "@nestjs/testing@^11.0.11":
   version "11.0.11"
-  resolved "https://registry.yarnpkg.com/@nestjs/testing/-/testing-11.0.11.tgz#38c339de5a9fa7752563b54c3bc48ec90cc42017"
+  resolved "https://registry.npmjs.org/@nestjs/testing/-/testing-11.0.11.tgz"
   integrity sha512-SoMIrhRpElV53btmGnEwpIQmXn2Xcztb9ae3lv+eVVnPHQuyB2zlgDIQVNjicbj7+3jdycX52KctOoj2eXEo1Q==
   dependencies:
     tslib "2.8.1"
@@ -1827,7 +1827,7 @@
 
 "@typescript-eslint/eslint-plugin@^8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.26.1.tgz#3e48eb847924161843b092c87a9b65176b53782f"
+  resolved "https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.26.1.tgz"
   integrity sha512-2X3mwqsj9Bd3Ciz508ZUtoQQYpOhU/kWoUqIf49H8Z0+Vbh6UF/y0OEYp0Q0axOGzaBGs7QxRwq0knSQ8khQNA==
   dependencies:
     "@eslint-community/regexpp" "^4.10.0"
@@ -1861,7 +1861,7 @@
 
 "@typescript-eslint/scope-manager@8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-8.26.1.tgz#5e6ad0ac258ccf79462e91c3f43a3f1f7f31a6cc"
+  resolved "https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.26.1.tgz"
   integrity sha512-6EIvbE5cNER8sqBu6V7+KeMZIC1664d2Yjt+B9EWUXrsyWpxx4lEZrmvxgSKRC6gX+efDL/UY9OpPZ267io3mg==
   dependencies:
     "@typescript-eslint/types" "8.26.1"
@@ -1869,7 +1869,7 @@
 
 "@typescript-eslint/type-utils@8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/type-utils/-/type-utils-8.26.1.tgz#462f0bae09de72ac6e8e1af2ebe588c23224d7f8"
+  resolved "https://registry.npmjs.org/@typescript-eslint/type-utils/-/type-utils-8.26.1.tgz"
   integrity sha512-Kcj/TagJLwoY/5w9JGEFV0dclQdyqw9+VMndxOJKtoFSjfZhLXhYjzsQEeyza03rwHx2vFEGvrJWJBXKleRvZg==
   dependencies:
     "@typescript-eslint/typescript-estree" "8.26.1"
@@ -1884,7 +1884,7 @@
 
 "@typescript-eslint/types@8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-8.26.1.tgz#d5978721670cff263348d5062773389231a64132"
+  resolved "https://registry.npmjs.org/@typescript-eslint/types/-/types-8.26.1.tgz"
   integrity sha512-n4THUQW27VmQMx+3P+B0Yptl7ydfceUj4ON/AQILAASwgYdZ/2dhfymRMh5egRUrvK5lSmaOm77Ry+lmXPOgBQ==
 
 "@typescript-eslint/typescript-estree@8.21.0":
@@ -1903,7 +1903,7 @@
 
 "@typescript-eslint/typescript-estree@8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-8.26.1.tgz#eb0e4ce31753683d83be53441a409fd5f0b34afd"
+  resolved "https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.26.1.tgz"
   integrity sha512-yUwPpUHDgdrv1QJ7YQal3cMVBGWfnuCdKbXw1yyjArax3353rEJP1ZA+4F8nOlQ3RfS2hUN/wze3nlY+ZOhvoA==
   dependencies:
     "@typescript-eslint/types" "8.26.1"
@@ -1917,7 +1917,7 @@
 
 "@typescript-eslint/utils@8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-8.26.1.tgz#54cc58469955f25577f659753b71a0e117a0539f"
+  resolved "https://registry.npmjs.org/@typescript-eslint/utils/-/utils-8.26.1.tgz"
   integrity sha512-V4Urxa/XtSUroUrnI7q6yUTD3hDtfJ2jzVfeT3VK0ciizfK2q/zGC0iDh1lFMUZR8cImRrep6/q0xd/1ZGPQpg==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
@@ -1935,7 +1935,7 @@
 
 "@typescript-eslint/visitor-keys@8.26.1":
   version "8.26.1"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-8.26.1.tgz#c5267fcc82795cf10280363023837deacad2647c"
+  resolved "https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.26.1.tgz"
   integrity sha512-AjOC3zfnxd6S4Eiy3jwktJPclqhFHNyd8L6Gycf9WUPoKZpgM5PjkxY1X7uSy61xVpiJDhhk7XT2NVsN3ALTWg==
   dependencies:
     "@typescript-eslint/types" "8.26.1"
@@ -2451,7 +2451,7 @@ available-typed-arrays@^1.0.7:
 
 axios@^1.8.2:
   version "1.8.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.8.2.tgz#fabe06e241dfe83071d4edfbcaa7b1c3a40f7979"
+  resolved "https://registry.npmjs.org/axios/-/axios-1.8.2.tgz"
   integrity sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==
   dependencies:
     follow-redirects "^1.15.6"
@@ -5820,6 +5820,11 @@ mute-stream@^2.0.0:
   resolved "https://registry.npmjs.org/mute-stream/-/mute-stream-2.0.0.tgz"
   integrity sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==
 
+nanoid@^5.1.4:
+  version "5.1.4"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-5.1.4.tgz#10b15a91d2f727b1f200faf0ff73656fd96c497d"
+  integrity sha512-GTFcMIDgR7tqji/LpSY8rtg464VnJl/j6ypoehYnuGb+Y8qZUdtKB8WVCXon0UEZgFDbuUxpIl//6FHLHgXSNA==
+
 natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz"
@@ -7268,7 +7273,7 @@ tree-kill@1.2.2:
 
 ts-api-utils@^2.0.0, ts-api-utils@^2.0.1:
   version "2.0.1"
-  resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-2.0.1.tgz#660729385b625b939aaa58054f45c058f33f10cd"
+  resolved "https://registry.npmjs.org/ts-api-utils/-/ts-api-utils-2.0.1.tgz"
   integrity sha512-dnlgjFSVetynI8nzgJ+qF62efpglpWRk8isUEWZGWlJYySCTD6aKvbUDu+zbPeDakk3bg5H4XpitHukgfL1m9w==
 
 ts-essentials@^10.0.2:

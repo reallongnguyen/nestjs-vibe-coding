@@ -10,6 +10,7 @@ import { ContentModule } from 'src/content/content.module';
 import { UserFollowModule } from 'src/user-follow/user-follow.module';
 import { RecommendationModule } from 'src/recommendation/recommendation.module';
 import { FeedModule } from 'src/feed/feed.module';
+import { InvitationModule } from './invitation/invitation.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { FeedModule } from 'src/feed/feed.module';
     UserFollowModule,
     RecommendationModule,
     FeedModule,
+    InvitationModule,
   ],
   controllers: [AppController],
 })
