@@ -30,7 +30,7 @@
     "@keyv/redis": "^4.2.0",
     "@liaoliaots/nestjs-redis": "^10.0.0",
     "@nestjs/axios": "^4.0.0",
-    "@nestjs/bull": "^11.0.1",
+    "@nestjs/bull": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.0.11",
     "@nestjs/config": "^4.0.0",
