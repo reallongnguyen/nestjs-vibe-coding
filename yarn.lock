@@ -1155,10 +1155,10 @@
   resolved "https://registry.npmjs.org/@nestjs/cqrs/-/cqrs-11.0.0.tgz"
   integrity sha512-AD4WblJaXVm9n6x1Dy9S/eltqM64U8JqJLgouxyB60cbM+bgWbljKJIS9YLr72V5FhiM6A/IrfbV0YCxsQykpA==
 
-"@nestjs/event-emitter@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@nestjs/event-emitter/-/event-emitter-3.0.0.tgz"
-  integrity sha512-WbvzQQ9BGnj27onh2qSLND2+4iA6Pfp4K+HLlqunB0Uz0614O8lGMtcveSss2IOxsox8EhSI54WAvuAsDrX1hA==
+"@nestjs/event-emitter@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@nestjs/event-emitter/-/event-emitter-3.0.1.tgz#6c286f3b46a3d22093397a35015de427972bacfb"
+  integrity sha512-0Ln/x+7xkU6AJFOcQI9tIhUMXVF7D5itiaQGOyJbXtlAfAIt8gzDdJm+Im7cFzKoWkiW5nCXCPh6GSvdQd/3Dw==
   dependencies:
     eventemitter2 "6.4.9"
 
