@@ -605,16 +605,16 @@ Implement a daily content challenge system that encourages users to create speci
 - Consider community challenges in future iterations
 - Plan integration with content discovery to feature challenge content
 
-### TWE-001: Implement Tweet Feature
+### INV-001: User Invitation System Implementation
 
   **Metadata**:
     Type: Feature
     Component: Backend
     Priority: High
     Risk Level: Medium
-    Story Points: 8
+    Story Points: 13
     Sprint: TBD
-    Change Type: Enhancement
+    Change Type: New
 
   **Time Tracking**:
     Estimated Hours: 40
@@ -627,118 +627,113 @@ Implement a daily content challenge system that encourages users to create speci
     Labels: [Integration-Heavy]
 
   **Integration Analysis**:
-    Integration Type: Extends Existing
+    Integration Type: New Feature
     Affected Systems:
-      - Content module
-      - Feed module
-      - Storage module
-      - Comment system
-      - Notification system
+      - User Management
+      - Social Graph (User Following)
+      - Notification System
+      - Analytics
     Current Implementation:
-      - Content is managed through PublishedPost and DraftPost models
-      - Feed system uses FeedContentType enum to differentiate content
-      - Storage system handles file uploads with pre-signed URLs
-      - Comment functionality supports various content types
+      - User registration in identity module
+      - UserFollow system in user-follow module
+      - Notification system for user events
     Integration Points:
-      - Feed service for tweet discovery
-      - Storage service for image attachments
-      - Comment system for tweet responses
-      - Notification service for engagement alerts
+      - Registration flow in identity module
+      - UserFollowService for creating follow relationships
+      - Event system for sending notifications
+      - Analytics for tracking invitations
     Breaking Changes:
-      - New FeedContentType enum value
-      - Feed service will need to handle the new content type
+      - None
 
   **Quick Start**:
-    Similar Feature: src/content/entities/published-post.entity.ts
-    Example Test: src/content/test/content.service.spec.ts
+    Similar Feature: src/user-follow
+    Example Test: test/user-follow
     Key Files:
-      - prisma/schema.prisma: Database schema definition
-      - src/feed/entities/feed.types.ts: Feed content type definitions
-      - src/storage/file.service.ts: File upload handling
-      - src/content/content.module.ts: Content module configuration
+      - src/user-follow/services/user-follow.service.ts: Follow relationship management
+      - src/identity/services/user.service.ts: User management
+      - src/notification/services/notification.service.ts: User notifications
     Setup Steps:
-      1. Review current content and feed implementations
-      2. Understand the storage service for image handling
-      3. Analyze the comment system integration
+      1. Review current implementation of user registration flow
+      2. Review user-follow module implementation
+      3. Identify integration points in registration process
+      4. Set up test data for invitation testing
     Required Reading:
       - Architecture: `docs/architecture.mermaid`
       - Module Structure: `docs/module-structure.md`
       - Technical Guidelines: `docs/technical.md`
-      - Technical Design: `docs/technical/tweet-feature.md`
-      - Business Requirements: `docs/business.md` (Tweet Feature section)
+      - User Follow Implementation: `src/user-follow`
 
   **Pre-Implementation Checklist**:
     Code Analysis:
-      - [ ] Review similar content type implementations
-      - [ ] Understand current feed architecture
-      - [ ] Identify storage integration points
-      - [ ] Review existing comment system
-      - [ ] Check for breaking changes in feed system
+      - [ ] Review user registration process
+      - [ ] Understand current follow system
+      - [ ] Identify notification integration points
+      - [ ] Review existing tests for related functionality
+      - [ ] Verify no breaking changes
     Design Review:
-      - [ ] Architecture alignment with existing patterns
-      - [ ] Pattern consistency across content types
-      - [ ] Performance impact of new content type
-      - [ ] Security considerations for image uploads
+      - [ ] Architecture alignment
+      - [ ] Pattern consistency
+      - [ ] Performance impact
+      - [ ] Security considerations
     Integration Planning:
-      - [ ] Map feed integration flow
-      - [ ] Identify all affected modules
-      - [ ] Plan database migrations
-      - [ ] Define rollback procedure for schema changes
+      - [ ] Map event flow
+      - [ ] Identify affected modules
+      - [ ] Ensure proper error handling
+      - [ ] Define rollback procedure
 
   **Dependencies**:
     Blocks: []
     Blocked By: []
     Related: []
     Integration Dependencies:
-      - Feed module
-      - Storage module
-      - Comment system
+      - identity module for user registration
+      - user-follow module for social connection
+      - notification module for invitation alerts
 
   **Description**:
-    Implement a Twitter-like tweet feature that allows users to create short-form content with text and images. Tweets should appear in user feeds and support engagement through likes and comments.
+    Implement a system that allows existing users to invite friends to join the platform. When new users sign up through an invitation, they should automatically follow the user who invited them. The system should include invitation generation, tracking, and notification components.
 
   **Context**:
-    Feature Goal: Enable short-form content creation to increase user engagement
-    Similar Features: Published posts, but with simpler structure and image attachments
-    Code Patterns: Repository pattern, module-based architecture
-    Common Pitfalls: Feed performance with mixed content types, image validation
-    Current Limitations: No existing short-form content type
-    Integration Concerns: Feed system needs to handle mixed content types
+    Feature Goal: Increase user acquisition through social invitations while strengthening connections
+    Similar Features: User Follow system
+    Code Patterns: Repository pattern, Event-driven architecture
+    Common Pitfalls: Race conditions in attribution, security vulnerabilities in invitation handling
+    Current Limitations: No way to track user acquisition source
+    Integration Concerns: Maintaining clean separation of concerns while integrating across modules
 
   **Implementation Guide**:
-    Architecture Pattern: Module-based NestJS architecture
-    Code Style: Follow TypeScript guidelines in docs/technical.md
+    Architecture Pattern: Event-driven microservices
+    Code Style: Follow TypeScript guidelines in technical.md
     Integration Requirements:
-      - Feed service to support tweet content type
-      - Storage service for tweet image handling
-      - Comment system integration for tweet responses
+      - Event handling for invitation acceptance
+      - Service integration with user management
+      - Data flow for attribution tracking
     Performance Requirements:
-      - Tweet creation response time: <1 second
-      - Feed loading with tweets: <2 seconds for 20 items
-      - Image optimization for faster loading
+      - Invitation generation: < 1s response time
+      - Attribution tracking: real-time
+      - Scalability: Handle high-volume invitation periods
 
   **Tasks**:
     1. [ ] Analysis Phase
-       - Review existing content and feed implementations
-       - Document integration points for all affected modules
-       - Plan database schema changes
+       - Review existing user registration flow
+       - Document integration points
+       - Design database schema changes
     2. [ ] Development Phase
-       - Implement Tweet database model
-       - Create tweet module structure
-       - Implement tweet service and controller
-       - Integrate with storage for images
-       - Update feed system for tweet support
+       - Create invitation module
+       - Implement invitation generation and tracking
+       - Integrate with user registration
+       - Implement automatic follow relationship
+       - Add notification for invitation acceptance
     3. [ ] Testing Phase
-       - Unit tests for tweet entity and service
-       - Integration tests for feed with tweets
-       - Performance tests for tweet feed loading
-       - E2E tests for tweet creation flow
+       - Unit tests for invitation service
+       - Integration tests for user registration with invitation
+       - End-to-end tests for full invitation flow
 
   **Technical Notes**:
-    - Tweet content should be stored as plain text, unlike posts which use JSON
-    - Images should be stored as string arrays containing URLs
-    - Feed system needs to handle the new content type in ranking and filtering
-    - Consider future extensions like hashtags and mentions
+    - Consider unique invitation codes or parameterized URLs
+    - Ensure proper attribution even if user signs up later
+    - Implement rate limiting for invitation generation
+    - Design for multi-channel invitation delivery
 
   **Quality Checklist**:
     Code Quality:
@@ -747,39 +742,37 @@ Implement a daily content challenge system that encourages users to create speci
       - [ ] Uses proper dependency injection
       - [ ] Follows SOLID principles
     Integration Quality:
-      - [ ] Feed system properly handles tweets
-      - [ ] Storage service correctly manages tweet images
-      - [ ] Comment system works with tweets
-      - [ ] Notification system handles tweet engagement
+      - [ ] Event handlers implemented correctly
+      - [ ] Service boundaries respected
+      - [ ] Proper error propagation
+      - [ ] Consistent data flow
     Testing Quality:
-      - [ ] Unit tests cover core tweet logic
-      - [ ] Integration tests verify feed with tweets
-      - [ ] E2E tests validate tweet creation and viewing
-      - [ ] Performance tests for feed loading
+      - [ ] Unit tests cover core logic
+      - [ ] Integration tests verify flow
+      - [ ] E2E tests validate features
+      - [ ] Performance tests pass
     Documentation Quality:
-      - [ ] API documentation for tweet endpoints
-      - [ ] Integration points documented in technical design
+      - [ ] API documentation complete
+      - [ ] Integration points documented
       - [ ] Database schema changes documented
-      - [ ] Module interactions clearly defined
+      - [ ] Usage examples provided
 
   **Acceptance Criteria**:
     Functional Requirements:
-      1. Users can create tweets with text up to 280 characters
-      2. Users can attach up to 4 images per tweet
-      3. Tweets appear in user feeds based on following relationships
-      4. Users can like and comment on tweets
-      5. Users can view all tweets from a specific user
+      1. Users can generate unique invitation links
+      2. System tracks which users joined via invitations
+      3. New users automatically follow their inviters
+      4. Inviters receive notifications when invitations are accepted
     Integration Requirements:
-      1. Feed system properly displays tweets alongside other content
-      2. Storage system handles tweet image uploads
-      3. Comment system allows responses to tweets
-      4. Notification system alerts on tweet engagement
+      1. Proper integration with user registration flow
+      2. Correct creation of follow relationships
+      3. Notification delivery for invitation events
     Performance Requirements:
-      1. Tweet creation completes in <1 second
-      2. Feed loads with tweets in <2 seconds
-      3. Images are optimized for performance
+      1. Invitation generation completes within 1 second
+      2. System handles high volume of concurrent invitations
+      3. No degradation of registration performance
 
   **Notes**:
-    - Consider implementing in phases, starting with text-only tweets
-    - Plan for future extensions like hashtags and mentions
-    - Ensure proper content moderation for tweet text and images
+    - Consider future extensions for invitation rewards or gamification
+    - Ensure GDPR compliance for handling invitee data
+    - Design for internationalization of invitation messages

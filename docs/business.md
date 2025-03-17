@@ -1025,3 +1025,89 @@ The recommendation system listens for these events and updates its item database
 - Increased time spent on platform
 - Click-through rate on recommended tweets
 - Diversity of content consumed by users
+
+## User Invitation System
+
+### 1. Overview
+
+The User Invitation system allows existing users to invite friends to join the platform, creating a viral growth mechanism while strengthening social connections within the app.
+
+### 2. Business Value
+
+- **User Acquisition**: Leverages existing users' social networks to bring new users onto the platform
+- **Retention**: Creates immediate social connection for new users, increasing their likelihood of becoming active users
+- **Engagement**: Strengthens the social graph by connecting users who know each other outside the platform
+- **Network Effect**: Accelerates platform growth through trusted personal recommendations
+
+### 3. User Stories
+
+#### As an existing user
+
+- I want to invite friends to join the application so they can experience the benefits I enjoy
+- I want a simple way to share the invitation via multiple channels (email, SMS, social media)
+- I want to see which of my invitations have been accepted
+- I want to be recognized for helping grow the community
+
+#### As a new user
+
+- I want to see who invited me to the platform
+- I want to easily connect with the person who invited me
+- I want a personalized onboarding experience that acknowledges the invitation
+
+### 4. Feature Requirements
+
+#### 4.1 Invitation Generation
+
+- Users can generate personalized invitation links/codes
+- Invitations should be trackable to the inviting user
+- Invitations may include a personal message (optional)
+- Invitations should work across all supported devices
+
+#### 4.2 Invitation Delivery
+
+- Support for sharing invitations via:
+  - Email
+  - SMS/messaging apps
+  - Social media platforms
+  - Direct link sharing
+- Predefined invitation templates with customization options
+
+#### 4.3 Invitation Acceptance
+
+- New users arriving via invitation links should be attributed to the inviter
+- New users should be prompted to create an account with minimal friction
+- Upon signup, new users automatically follow the user who invited them
+- Clear indication of the invitation relationship during onboarding
+
+#### 4.4 Post-Invitation Experience
+
+- Inviters receive notification when invitations are accepted
+- Inviters can view a list of users who joined via their invitations
+- Optional gamification elements for successful invitations (badges, achievements)
+
+### 5. Integration Points
+
+- **User Management**: Integration with user registration and account creation
+- **Social Graph**: Automatic follow relationship creation between inviter and invitee
+- **Notification System**: Alerts for invitation acceptance
+- **Analytics**: Tracking of invitation funnel and conversion rates
+
+### 6. Security Considerations
+
+- Protection against invitation spam
+- Rate limiting of invitations per user
+- Validation of invitation sources and destinations
+- Privacy controls for user data in invitations
+
+### 7. Performance Requirements
+
+- Invitations should be generated within 1 second
+- Invitation acceptance should be tracked in real-time
+- System should handle high volumes during viral growth periods
+
+### 8. Success Metrics
+
+- Invitation send rate per active user
+- Invitation acceptance rate
+- New user retention rate from invitations vs. organic signups
+- Network growth velocity through invitations
