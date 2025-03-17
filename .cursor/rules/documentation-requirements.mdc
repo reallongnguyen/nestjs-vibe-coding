@@ -1,0 +1,133 @@
+---
+description: Documentation requirements for changes
+globs: 
+alwaysApply: false
+---
+# Documentation Requirements
+
+After generating or modifying features, task descriptions, or code, I will automatically document these changes comprehensively. This ensures knowledge transfer, maintainability, and clarity for all team members.
+
+## Types of Documentation Required
+
+### Feature Documentation
+
+After defining a new feature or updating an existing one:
+
+1. Update the relevant feature section in `docs/business.md`
+2. Include:
+   - Business value and purpose
+   - User stories or use cases
+   - Integration points with existing features
+   - Success metrics and acceptance criteria
+   - Any constraints or limitations
+3. For significant features, generate a focused Repomix summary of only the changed files:
+   ```bash
+   # Get list of files changed for this feature
+   git diff --name-only $(git merge-base HEAD main) HEAD > feature-changed-files.txt
+   
+   # Generate summary of only the changed files
+   repomix --include-from-file feature-changed-files.txt --style markdown --output docs/summaries/changes/feature-name-changes-YYYY-MM-DD.md
+   ```
+
+### Task Documentation
+
+After creating or modifying task descriptions:
+
+1. Ensure the task is properly recorded in `tasks/sprint-current-tasks.md` with:
+   - Clear metadata (type, priority, risk level)
+   - Integration analysis details
+   - Dependencies on other tasks
+   - Acceptance criteria
+   - Technical notes
+2. Update `tasks/sprint-current-status.md` with the new task status
+3. For completed tasks, generate a Repomix summary of the files changed for the task:
+   ```bash
+   # For task-specific changes, use the task branch or commits
+   git diff --name-only $(git rev-list --max-count=1 --grep="TASK-ID" HEAD) HEAD~1 > task-changed-files.txt
+   
+   # Generate summary of only the changed files for this task
+   repomix --include-from-file task-changed-files.txt --style markdown --output docs/summaries/changes/task-id-changes-YYYY-MM-DD.md
+   ```
+
+### Implementation Documentation
+
+After generating or modifying code:
+
+1. Add appropriate JSDoc comments to:
+   - Classes, interfaces, and types
+   - Public methods and functions
+   - Complex algorithms or business logic
+2. Update relevant technical documentation:
+   - API documentation if endpoints changed
+   - `docs/technical.md` for significant technical decisions
+   - Architecture diagrams in `docs/architecture.mermaid` if structure changed
+3. Add inline comments for complex sections or non-obvious decisions
+4. Update task status in `tasks/sprint-current-tasks.md`
+5. For major code changes or refactoring, generate a before/after Repomix diff:
+   ```bash
+   # Capture the before state of specific files that will be changed
+   git show HEAD~1:path/to/file.ts > before-file.ts
+   repomix --include "before-file.ts" --style markdown --output before-changes.md
+   
+   # Capture the after state
+   repomix --include "path/to/file.ts" --style markdown --output after-changes.md
+   
+   # Combine into a change summary
+   echo "# Before-After Changes" > docs/summaries/changes/refactor-component-YYYY-MM-DD.md
+   echo "## Before" >> docs/summaries/changes/refactor-component-YYYY-MM-DD.md
+   cat before-changes.md >> docs/summaries/changes/refactor-component-YYYY-MM-DD.md
+   echo "## After" >> docs/summaries/changes/refactor-component-YYYY-MM-DD.md
+   cat after-changes.md >> docs/summaries/changes/refactor-component-YYYY-MM-DD.md
+   ```
+
+### Sprint Completion Documentation
+
+At the end of each sprint:
+
+1. Generate a focused Repomix summary of all changes made during the sprint:
+   ```bash
+   # Get list of files changed during the sprint period
+   git diff --name-only $(git rev-list -1 --before="$(date -d '2 weeks ago' +'%Y-%m-%d')" HEAD) HEAD > sprint-changed-files.txt
+   
+   # Generate summary of only the sprint's changed files
+   repomix --include-from-file sprint-changed-files.txt --style markdown --output docs/summaries/changes/sprint-N-changes-YYYY-MM-DD.md
+   ```
+2. Add a sprint cover note with:
+   - Summary of completed stories/tasks
+   - Key technical decisions made
+   - Challenges encountered and solutions implemented
+   - Items moved to future sprints
+
+## Documentation Format Standards
+
+1. **Consistency**: Follow established documentation patterns in existing files
+2. **Clarity**: Write in clear, concise language
+3. **Completeness**: Cover all significant aspects of the change
+4. **Context**: Explain why changes were made, not just what changed
+5. **References**: Link to related documentation or code where helpful
+6. **Focus**: Include only changed code/content in Repomix summaries to keep them concise and relevant
+
+## Documentation Responsibilities
+
+Different SCRUM roles have specific documentation responsibilities:
+
+1. **Product Owner**: Business documentation, acceptance criteria, feature specifications
+2. **Scrum Master**: Sprint status, process documentation, change summary coordination
+3. **Solution Architect**: Architecture documentation, system design changes, technical decisions
+4. **Technical Leader**: API documentation, code standards, identifying relevant changes to document
+5. **Developer**: Code-level documentation, identifying files changed by implementation
+6. **Test Leader**: Test plans, test cases, quality metrics
+
+## Documentation Checklist
+
+Before considering any feature, task, or code change complete, I will:
+
+- [ ] Create or update business documentation
+- [ ] Create or update technical documentation
+- [ ] Create or update task tracking documentation
+- [ ] Add appropriate code-level documentation
+- [ ] Verify documentation follows format standards
+- [ ] Generate focused Repomix summaries of only the changed content
+- [ ] Share documentation with relevant team members
+
+I will proactively mention documentation I've created or updated after completing major changes, and suggest additional documentation if needed for clarity. I will always focus on documenting only what has changed to keep documentation concise and relevant.

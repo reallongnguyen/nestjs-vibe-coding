@@ -1,0 +1,230 @@
+---
+description: Task format specifications
+globs: 
+alwaysApply: false
+---
+## Task Format Specification
+
+### Task Template Structure
+
+```markdown
+### {TASK-ID}: {Task Name}
+
+  **Metadata**:
+    Type: Feature | Bug | Technical Debt | Infrastructure
+    Component: Backend | Frontend | Infrastructure | Documentation
+    Priority: Low | Medium | High
+    Risk Level: Low | Medium | High
+    Story Points: N
+    Sprint: NNN
+    Change Type: New | Enhancement | Integration | Refactoring
+
+  **Time Tracking**:
+    Estimated Hours: N
+    Start Date: YYYY-MM-DD
+    Due Date: YYYY-MM-DD
+
+  **Status**:
+    State: Backlog | In Progress | Review | Done
+    Phase: Analysis | Development | Testing | Review | Done
+    Labels: [Blocked, High-Risk, Need-Review, Integration-Heavy]
+
+  **Integration Analysis**:
+    Integration Type: New Feature | Extends Existing | Modifies Existing
+    Affected Systems:
+      - List affected modules and services
+    Current Implementation:
+      - Key files and their responsibilities
+      - Current behavior/logic
+      - Design patterns in use
+    Integration Points:
+      - Event handlers and producers
+      - Service dependencies
+      - Data flow paths
+    Breaking Changes:
+      - List any breaking changes
+      - Migration requirements
+      - Backward compatibility notes
+
+  **Quick Start**:
+    Similar Feature: path/to/similar/feature
+    Example Test: path/to/example/test
+    Key Files:
+      - path/to/file1: Purpose and key responsibilities
+      - path/to/file2: Purpose and key responsibilities
+    Setup Steps:
+      1. Review current implementation
+      2. Set up development environment
+      3. Configure test data
+    Required Reading:
+      - Architecture: `docs/architecture.mermaid`
+      - Module Structure: `docs/module-structure.md`
+      - Technical Guidelines: `docs/technical.md`
+      - Current Implementation
+
+  **Pre-Implementation Checklist**:
+    Code Analysis:
+      - [ ] Review similar implementations
+      - [ ] Understand current architecture
+      - [ ] Identify integration points
+      - [ ] Review existing tests
+      - [ ] Check for breaking changes
+    Design Review:
+      - [ ] Architecture alignment
+      - [ ] Pattern consistency
+      - [ ] Performance impact
+      - [ ] Security considerations
+    Integration Planning:
+      - [ ] Map event flow
+      - [ ] Identify affected modules
+      - [ ] Plan data migrations
+      - [ ] Define rollback procedure
+
+  **Dependencies**:
+    Blocks: [Task-IDs]
+    Blocked By: [Task-IDs]
+    Related: [Task-IDs]
+    Integration Dependencies:
+      - List systems/services to coordinate with
+      - External team dependencies
+
+  **Description**:
+    {Clear description of what needs to be done}
+
+  **Context**:
+    Feature Goal: {One-line business goal}
+    Similar Features: {List similar implementations}
+    Code Patterns: {Link to relevant patterns}
+    Common Pitfalls: {List of things to watch out for}
+    Current Limitations: {Current system limitations}
+    Integration Concerns: {Specific integration challenges}
+
+  **Implementation Guide**:
+    Architecture Pattern: {pattern name}
+    Code Style: {link to style guide}
+    Integration Requirements:
+      - Event handling patterns
+      - Service integration patterns
+      - Data flow patterns
+    Performance Requirements:
+      - Metric 1: target
+      - Metric 2: target
+
+  **Tasks**:
+    1. [ ] Analysis Phase
+       - Review existing implementation
+       - Document integration points
+       - Identify potential conflicts
+    2. [ ] Development Phase
+       - Implement new functionality
+       - Integrate with existing code
+       - Update affected components
+    3. [ ] Testing Phase
+       - Unit tests
+       - Integration tests
+       - Migration tests
+
+  **Technical Notes**:
+    - Technical consideration 1
+    - Technical consideration 2
+    - Integration notes
+    - Migration considerations
+
+  **Quality Checklist**:
+    Code Quality:
+      - [ ] Follows TypeScript guidelines
+      - [ ] Implements proper error handling
+      - [ ] Uses proper dependency injection
+      - [ ] Follows SOLID principles
+    Integration Quality:
+      - [ ] Event handlers implemented correctly
+      - [ ] Service boundaries respected
+      - [ ] Proper error propagation
+      - [ ] Consistent data flow
+    Testing Quality:
+      - [ ] Unit tests cover core logic
+      - [ ] Integration tests verify flow
+      - [ ] E2E tests validate features
+      - [ ] Performance tests pass
+    Documentation Quality:
+      - [ ] API documentation complete
+      - [ ] Integration points documented
+      - [ ] Breaking changes noted
+      - [ ] Migration guide provided
+
+  **Acceptance Criteria**:
+    Functional Requirements:
+      1. Feature works as specified
+      2. Handles edge cases properly
+      3. Proper error handling
+    Integration Requirements:
+      1. Proper event handling
+      2. Correct service integration
+      3. No breaking changes
+    Performance Requirements:
+      1. Meets latency targets
+      2. Efficient resource usage
+      3. Proper scaling behavior
+
+  **Notes**:
+    - Additional considerations
+    - Integration notes
+    - Migration notes
+```
+
+### Task Validation Rules
+
+task.validation:
+  required_sections:
+    - metadata
+    - integration_analysis
+    - quick_start
+    - pre_implementation_checklist
+    - implementation_guide
+    - quality_checklist
+  
+  integration_analysis:
+    required_fields:
+      - integration_type
+      - affected_systems
+      - current_implementation
+      - integration_points
+
+  quick_start:
+    required_fields:
+      - similar_feature
+      - key_files
+      - required_reading
+
+  quality_checklist:
+    required_checks:
+      - code_quality
+      - integration_quality
+      - testing_quality
+      - documentation_quality
+
+### Task State Transitions
+
+task.state_transitions:
+  analysis_complete:
+    required:
+      - integration_analysis_complete
+      - pre_implementation_checklist_complete
+  
+  development_ready:
+    required:
+      - design_review_complete
+      - integration_plan_complete
+
+  testing_ready:
+    required:
+      - implementation_complete
+      - unit_tests_complete
+      - integration_tests_complete
+
+  review_ready:
+    required:
+      - all_tests_passing
+      - documentation_complete
+      - quality_checklist_complete
+  

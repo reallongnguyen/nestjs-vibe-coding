@@ -8,6 +8,7 @@ import { ContentEventsHandler } from './presentation/handlers/content-events.han
 import { UserEventsHandler } from './presentation/handlers/user-events.hander';
 import { ContentDistributionService } from './services/content-distribution.service';
 import { RecommendationHandler } from './presentation/handlers/recommendation.handler';
+import { ContentSyncHandler } from './presentation/handlers/content-sync.handler';
 
 @Module({
   imports: [ConfigModule.forFeature(moduleConfig)],
@@ -19,7 +20,8 @@ import { RecommendationHandler } from './presentation/handlers/recommendation.ha
     UserEventsHandler,
     ContentDistributionService,
     RecommendationHandler,
+    ContentSyncHandler,
   ],
-  exports: [ContentDistributionService],
+  exports: [ContentDistributionService, GorseSyncService],
 })
 export class RecommendationModule {}

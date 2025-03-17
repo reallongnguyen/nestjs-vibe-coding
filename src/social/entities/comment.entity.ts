@@ -4,6 +4,7 @@ export class Comment implements CommentPrisma {
   id: string;
   content: string;
   postId: string;
+  tweetId: string | null;
   parentId: string | null;
   userId: string;
   createdAt: Date;

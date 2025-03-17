@@ -120,7 +120,129 @@ model Notification {
 }
 ```
 
-### 4. Gamification Module
+### 4. Tweet Module
+
+The Tweet Module provides functionality for users to create, retrieve, update, and delete tweets. Tweets are short-form content that can include text and images. The module follows an event-driven architecture for integration with the recommendation system.
+
+#### Data Model
+
+```plaintext
+// prisma/schema.prisma
+model Tweet {
+  id          String    @id @default(uuid())
+  content     String    @db.Text
+  images      String[]
+  userId      String    @map("user_id")
+  isArchived  Boolean   @default(false) @map("is_archived")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user        User      @relation("UserTweets", fields: [userId], references: [id], onDelete: Cascade)
+  feeds       Feed[]
+  comments    Comment[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isArchived])
+  @@map("tweets")
+}
+```
+
+#### Core Components
+
+1. **Entities**
+   - `Tweet`: Domain entity representing a tweet
+   - Events: `TweetCreatedEvent`, `TweetUpdatedEvent`, `TweetDeletedEvent`, `TweetViewedEvent`
+
+2. **Repositories**
+   - `TweetRepository`: Interface for tweet data access
+   - `PrismaTweetRepository`: Implementation using Prisma
+
+3. **Services**
+   - `TweetService`: Core business logic for tweet operations
+
+4. **Controllers**
+   - `TweetController`: REST API for tweet operations
+
+#### Event-Driven Integration
+
+The Tweet Module uses an event-driven approach for integration with the recommendation system:
+
+```typescript
+// Event publishing in TweetService
+private async publishTweetCreatedEvent(tweet: Tweet): Promise<void> {
+  try {
+    const event = new TweetCreatedEvent({
+      tweetId: tweet.id,
+      userId: tweet.userId,
+      content: tweet.content,
+      images: tweet.images,
+    });
+
+    await this.eventBus.publish(event);
+  } catch (error) {
+    console.error('Failed to publish tweet created event:', error);
+  }
+}
+```
+
+```typescript
+// Event handling in recommendation module
+@OnEvent(ContentEventSchemas.TWEET_CREATED.eventName)
+async handleTweetCreated(payload: typeof ContentEventSchemas.TWEET_CREATED.schema): Promise<void> {
+  try {
+    this.logger.debug(`Handling tweet created event for tweet ${payload.tweetId}`);
+    
+    // Sync the tweet to Gorse recommendation system
+    await this.gorseSyncService.publishItemSync(
+      payload.tweetId,
+      [],
+      SyncOperation.CREATE,
+      ['tweet'],
+      false,
+    );
+    
+    this.logger.debug(`Successfully synced tweet ${payload.tweetId} to Gorse`);
+  } catch (error) {
+    this.logger.error(`Failed to sync tweet ${payload.tweetId} to Gorse: ${error.message}`, error.stack);
+  }
+}
+```
+
+#### API Endpoints
+
+```typescript
+// Tweet REST API
+@Controller({
+  path: 'tweets',
+  version: '1',
+})
+export class TweetController {
+  // Create tweet
+  @Post()
+  @RequireAnyRoles(Role.USER)
+
+  // Get tweet by ID
+  @Get(':id')
+  @RequireAnyRoles(Role.USER)
+
+  // Get tweets by user
+  @Get()
+  @RequireAnyRoles(Role.USER)
+  @PaginatedResponse(TweetResponseDto)
+
+  // Update tweet
+  @Put(':id')
+  @RequireAnyRoles(Role.USER)
+
+  // Delete tweet
+  @Delete(':id')
+  @RequireAnyRoles(Role.USER)
+}
+```
+
+### 5. Gamification Module
 
 ```plaintext
 // prisma/schema.prisma

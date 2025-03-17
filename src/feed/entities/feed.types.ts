@@ -5,15 +5,22 @@ export enum FeedType {
   LATEST = 'latest',
 }
 
+export enum FeedContentType {
+  POST = 'POST',
+  USER_EMOTION = 'USER_EMOTION',
+  TWEET = 'TWEET',
+}
+
 export interface FeedContent {
   id: string;
   type: string;
   title?: string;
-  content: string;
+  content: string | object;
   authorId: string;
   score?: number;
   emotion?: string;
   intensity?: number;
+  images?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

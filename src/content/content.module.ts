@@ -1,47 +1,14 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
-import { DraftPostController } from './presentation/draft-post.controller';
-import { PublishedPostController } from './presentation/published-post.controller';
-import { DraftPostService } from './services/draft-post.service';
-import { PublishedPostService } from './services/published-post.service';
-import { ContentService } from './services/content.service';
-import { SocialEngagementHandler } from './presentation/handlers/social-engagement.handler';
-import { DraftPostRepository } from './repositories/draft-post.repository';
-import { TopicRepository } from './repositories/topic.repository';
-import { ContentEvents } from './services/content.events';
-import { PublishedPostRepository } from './repositories/published-post.repository';
 import { GetContentsHandler } from './presentation/handlers/get-contents.handler';
+import { TweetModule } from './tweet/tweet.module';
+import { PostModule } from './post/post.module';
 
-const CommandHandlers = [GetContentsHandler];
+const handlers = [GetContentsHandler];
 
 @Module({
-  imports: [EventManagerModule, CqrsModule],
-  controllers: [DraftPostController, PublishedPostController],
-  providers: [
-    DraftPostService,
-    PublishedPostService,
-    {
-      provide: 'IPublishedPostService',
-      useClass: PublishedPostService,
-    },
-    SocialEngagementHandler,
-    ContentService,
-    {
-      provide: 'IDraftPostRepository',
-      useClass: DraftPostRepository,
-    },
-    {
-      provide: 'IPublishedPostRepository',
-      useClass: PublishedPostRepository,
-    },
-    {
-      provide: 'ITopicRepository',
-      useClass: TopicRepository,
-    },
-    ContentEvents,
-    ...CommandHandlers,
-  ],
-  exports: [DraftPostService, ContentService],
+  imports: [CqrsModule, TweetModule, PostModule],
+  providers: [...handlers],
+  exports: [...handlers],
 })
 export class ContentModule {}

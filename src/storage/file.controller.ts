@@ -17,6 +17,7 @@ import {
 
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';
+import { GetTweetImageUploadUrlDto } from './dto/tweet-image-upload.dto';
 
 @Controller({
   path: 'files',
@@ -43,6 +44,28 @@ export class FileController {
   ): Promise<UploadUrlDto> {
     const data = await this.assetService.generateUploadAvatarUrl(
       user.id,
+      query.mimeType,
+      query.size,
+    );
+
+    return data;
+  }
+
+  @Get('tweets/upload-url')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({
+    description: 'Get the upload url to upload tweet image to storage',
+    summary: 'Get the upload tweet image url',
+  })
+  @OkResponse(UploadUrlDto)
+  @ErrorResponse({})
+  async getUploadTweetImageUrl(
+    @Query() query: GetTweetImageUploadUrlDto,
+    @AuthContextUser() user: User,
+  ): Promise<UploadUrlDto> {
+    const data = await this.assetService.generateUploadTweetImageUrl(
+      user.id,
+      query.tweetId,
       query.mimeType,
       query.size,
     );

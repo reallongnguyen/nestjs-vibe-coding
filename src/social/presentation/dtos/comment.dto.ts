@@ -40,8 +40,8 @@ export class CommentDto implements CommentOutput {
   @ApiProperty()
   content: string;
 
-  @ApiProperty()
-  postId: string;
+  @ApiProperty({ nullable: true })
+  postId: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   parentId: string | null;
@@ -70,8 +70,11 @@ export class CommentDto implements CommentOutput {
   @ApiPropertyOptional()
   botAuthor?: BotAuthorDto;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ nullable: true })
   emotionId: string | null;
+
+  @ApiProperty({ nullable: true })
+  tweetId: string | null;
 
   static fromDomain(domain: CommentOutput): CommentDto {
     return { ...domain };
