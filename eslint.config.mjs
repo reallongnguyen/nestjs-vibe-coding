@@ -85,5 +85,7 @@ export default [{
         "prettier/prettier": ["error", {
             endOfLine: "auto",
         }],
+
+        "no-underscore-dangle": ["warn", { allow: ["__ENV"] }],
     },
 }];

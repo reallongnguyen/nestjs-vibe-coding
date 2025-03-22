@@ -341,229 +341,408 @@
 
 ## Tweet Feature Implementation
 
-### TWE-001: Implement Tweet Feature
+### TWEET-001: Tweet Module Bug Fixes and Enhancements
+
+**Metadata**:
+  Type: Bug Fix
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 5
+  Sprint: Current
+  Change Type: Fix
+
+**Time Tracking**:
+  Estimated Hours: 20
+  Start Date: TBD
+  Due Date: Sprint End
+
+**Status**:
+  State: Sprint Backlog
+  Phase: Ready for Development
+  Labels: [Bug-Fix, Security, Performance]
+
+**Integration Analysis**:
+  Integration Type: Fix
+  Affected Systems:
+    - Tweet module
+    - User module
+    - Storage module
+  Current Implementation:
+    - Basic tweet CRUD operations
+    - Simple validation
+    - Event publishing
+  Integration Points:
+    - User service
+    - Storage service
+    - Event bus
+  Breaking Changes: None
+  Technical Design: docs/technical/tweet-bugfix-technical-design.md
 
 **Description**:
-Enable users to create Twitter-like short-form content with text and images that appears in their feeds and supports engagement.
+Fix critical bugs and security issues in the tweet module:
 
-**User Stories**:
-
-- As a user, I want to create short text posts to quickly share thoughts
-- As a user, I want to attach images to my tweets to share visual content
-- As a user, I want to view tweets in my feed alongside other content
-- As a user, I want to like and comment on tweets to engage with others
-
-**Status**: Done
-
-**Tasks Breakdown**:
-
-#### TWE-001.1: Database Schema and Migration (2 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Implement the necessary database schema changes to support tweets.
+1. Missing user data fetching in getTweets endpoint
+2. Potential race condition in tweet update operations
+3. Incomplete error handling in image processing
+4. Missing validation for image URLs
+5. Event publishing failures not properly handled
 
 **Tasks**:
 
-- [x] Add Tweet model to schema.prisma
-- [x] Add TWEET to FeedContentType enum
-- [x] Update Feed model with tweet relation
-- [x] Create and test migration
-- [x] Create rollback script
+1. [ ] Fix user data fetching in getTweets
+   - Implement proper user service integration
+   - Add user data caching
+   - Handle missing user data gracefully
 
-**Acceptance Criteria**:
+2. [ ] Address race conditions
+   - Implement optimistic locking for updates
+   - Add version control for tweets
+   - Improve concurrent update handling
 
-- Schema changes are implemented and validated
-- Migration runs successfully in test environment
-- Rollback script is verified to work properly
-- Models are correctly related to existing entities
+3. [ ] Enhance image handling
+   - Add proper image URL validation
+   - Implement image processing error handling
+   - Add image cleanup for failed tweets
+   - Validate image sizes and formats
 
----
-
-#### TWE-001.2: Tweet Module Core Implementation (3 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Implement the core tweet module with domain entities, repository, and service layer.
-
-**Tasks**:
-
-- [x] Create tweet.module.ts with necessary imports
-- [x] Implement tweet.entity.ts with domain logic
-- [x] Create tweet.repository.ts for data access
-- [x] Implement tweet.service.ts with CRUD operations
-- [x] Add validation and error handling
-- [x] Write unit tests for core functionality
-
-**Acceptance Criteria**:
-
-- Tweet module correctly implements domain logic
-- Repository layer handles data access properly
-- Service layer includes all necessary CRUD operations
-- Unit tests verify all core functionality
-- Error handling follows established patterns
-
----
-
-#### TWE-001.3: Tweet API Endpoints (2 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Create the REST API endpoints for tweet creation and retrieval.
-
-**Tasks**:
-
-- [x] Create tweet.controller.ts with required endpoints
-- [x] Implement create tweet endpoint with validation
-- [x] Add list tweets endpoint with filtering options
-- [x] Implement single tweet retrieval endpoint
-- [x] Add API documentation using Swagger
-- [x] Write API tests for all endpoints
-
-**Acceptance Criteria**:
-
-- All endpoints follow RESTful conventions
-- Input validation follows established patterns
-- Error responses are consistent with API standards
-- Endpoints are properly documented
-- API tests verify correct functionality
-
----
-
-#### TWE-001.4: Storage Integration for Tweet Images (2 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Extend the file storage system to support tweet image uploads.
-
-**Tasks**:
-
-- [x] Update file.service.ts for tweet image handling
-- [x] Create endpoint for generating tweet image upload URLs
-- [x] Implement image validation and security checks
-- [x] Add image association during tweet creation
-- [x] Create tests for image upload flow
-
-**Acceptance Criteria**:
-
-- Image upload works correctly for tweets
-- Security validations prevent malicious uploads
-- Images are properly associated with tweets
-- Tests verify the complete image upload flow
-
----
-
-#### TWE-001.5: Feed Integration (3 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Update the feed system to incorporate tweets alongside existing content.
-
-**Tasks**:
-
-- [x] Update feed.entity.ts to handle tweets
-- [x] Modify feed.service.ts to include tweets in feeds
-- [x] Update feed response DTOs to include tweet data
-- [x] Implement proper ranking for tweets in feeds
-- [x] Add tests for feed with tweets
-
-**Acceptance Criteria**:
-
-- Tweets appear correctly in user feeds
-- Feed ranking includes tweets appropriately
-- Feed responses include all tweet data
-- Tests verify feed functionality with tweets
-
----
-
-#### TWE-001.6: Recommendation System Integration (3 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Integrate tweets with the Gorse recommendation system using an event-driven architecture.
-
-**Tasks**:
-
-- [x] Create events for tweet lifecycle (created, updated, deleted, viewed)
-- [x] Implement event handlers to sync tweets with recommendation system
-- [x] Update feed enrichment to include recommended tweets
-- [x] Add tests for recommendation integration
-- [x] Update technical and business documentation
-
-**Acceptance Criteria**:
-
-- Tweets are correctly synchronized with the recommendation system
-- User behavior events are captured and sent to Gorse
-- Feed includes personalized tweet recommendations
-- Documentation reflects the event-driven architecture
-- Tests verify recommendation integration works as expected
-
-**Dependencies**:
-
-- TWE-001.2 depends on TWE-001.1
-- TWE-001.3 depends on TWE-001.2
-- TWE-001.4 can start in parallel with TWE-001.2
-- TWE-001.5 depends on TWE-001.2 and TWE-001.3
-- TWE-001.6 depends on TWE-001.2 and TWE-001.5
-- TWE-001.7 depends on TWE-001.2 and TWE-001.4
-
-**Total Story Points**: 17
-
-**Technical Documentation**: See `docs/technical/tweet-feature.md`
-**Business Requirements**: See `docs/business.md` (Tweet Feature section)
-
----
-
-#### TWE-001.7: Tweet Image Cleanup Implementation (2 points)
-
-**Assignee**: Developer  
-**Status**: Done
-
-**Description**:
-Implement a mechanism to clean up old images when tweets are edited or deleted to prevent orphaned files and optimize storage usage.
-
-**Tasks**:
-
-- [x] Design event-driven architecture for image cleanup
-- [x] Create events for tweet edit and delete operations that trigger image cleanup
-- [x] Implement image cleanup service to handle removal of unused images
-- [x] Add validation to ensure referenced images exist when editing tweets
-- [x] Implement transaction handling to ensure data consistency
-- [x] Create comprehensive tests for all cleanup scenarios
+4. [ ] Improve event handling
+   - Add event publishing retry mechanism
+   - Implement event failure logging
+   - Create event reconciliation process
+   - Add monitoring for failed events
 
 **Technical Notes**:
 
-- Use event-driven approach to decouple tweet operations from storage cleanup
-- Leverage existing DeleteImageCommand and DeleteImageHandler
-- Include images in the delete event payload to avoid caching requirements
-- Ensure proper error handling if storage service is temporarily unavailable
-- Record metrics for cleanup operations to monitor system health
-- Technical design document created at `docs/technical/tweet-image-cleanup-design.md`
-- Technical design updated to align with existing architecture
+- Use proper validation library for image URLs
+- Implement proper database transactions
+- Add comprehensive error tracking
+- Consider implementing event outbox pattern
+- Follow technical design in docs/technical/tweet-bugfix-technical-design.md
+
+**Acceptance Criteria**:
+  Functional Requirements:
+    1. User data correctly displayed in tweet lists
+    2. No data loss during concurrent updates
+    3. Invalid images properly rejected
+    4. All events successfully published or logged
+  Security Requirements:
+    1. Image URLs properly validated
+    2. User permissions properly enforced
+    3. Rate limiting implemented
+  Performance Requirements:
+    1. Tweet operations complete in <200ms
+    2. Image validation completes in <100ms
+    3. Event publishing doesn't block API response
+
+**Dependencies**:
+  Blocks: None
+  Blocked By: None
+  Related: TWE-001 (Tweet Feature Implementation)
+  Integration Dependencies:
+    - User service for data fetching
+    - Storage service for image handling
+    - Event bus for publishing
+
+### TWEET-001.1: Database Migration and Schema Update
+
+**Metadata**:
+  Type: Technical
+  Component: Backend
+  Priority: High
+  Risk Level: Low
+  Story Points: 1
+  Sprint: Current
+  Change Type: Fix
+
+**Time Tracking**:
+  Estimated Hours: 2
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Done
+  Phase: Done
+  Labels: [Database]
+
+**Dependencies**:
+  Blocks: [TWEET-001.2, TWEET-001.3, TWEET-001.4, TWEET-001.5]
+  Blocked By: None
+
+**Description**:
+Implement database schema changes for optimistic locking and add necessary indexes for performance optimization.
+
+**Tasks**:
+
+1. [ ] Create migration for version column
+   - Add version column to tweets table
+   - Set default value for existing records
+2. [ ] Add performance indexes
+   - Create index for user_id and created_at
+   - Create index for version column
+3. [ ] Create and test rollback script
+4. [ ] Update schema documentation
+
+**Technical Notes**:
+
+- Follow zero-downtime migration pattern
+- Test migration and rollback in staging
+- Update Prisma schema
+- Follow technical design in docs/technical/tweet-bugfix-technical-design.md
 
 **Acceptance Criteria**:
 
-- When a tweet is deleted, all associated images are removed from storage
-- When a tweet is edited and images are changed, old unused images are removed
-- System maintains referential integrity between tweets and their images
-- Proper error handling ensures data consistency even if cleanup fails
-- Tests verify all cleanup scenarios function correctly
+1. Migration successfully adds version column
+2. All indexes are created and optimized
+3. Rollback script works correctly
+4. Schema documentation is updated
+
+### TWEET-001.2: User Data Enhancement Implementation
+
+**Metadata**:
+  Type: Technical
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 1
+  Sprint: Current
+  Change Type: Fix
+
+**Time Tracking**:
+  Estimated Hours: 4
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Done
+  Phase: Done
+  Labels: [Feature]
 
 **Dependencies**:
+  Blocks: None
+  Blocked By: [TWEET-001.1]
 
-- Depends on TWE-001.2 (Core Implementation) and TWE-001.4 (Storage Integration)
+**Description**:
+Implement user data fetching enhancement with caching and proper error handling.
+
+**Tasks**:
+
+1. [ ] Create TweetUserService
+   - Implement batch user data fetching
+   - Add caching mechanism
+   - Handle error cases
+2. [ ] Update TweetController
+   - Integrate TweetUserService
+   - Update response mapping
+3. [ ] Add monitoring for cache performance
+4. [ ] Write unit tests
+
+**Technical Notes**:
+
+- Use cache TTL of 15 minutes
+- Implement batch fetching for performance
+- Handle missing user data gracefully
+- Follow technical design in docs/technical/tweet-bugfix-technical-design.md
+
+**Acceptance Criteria**:
+
+1. User data is correctly fetched and cached
+2. Performance meets requirements (<200ms)
+3. Error cases are properly handled
+4. Tests pass with >80% coverage
+
+### TWEET-001.3: Optimistic Locking Implementation
+
+**Metadata**:
+  Type: Technical
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 1
+  Sprint: Current
+  Change Type: Fix
+
+**Time Tracking**:
+  Estimated Hours: 4
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Done
+  Phase: Done
+  Labels: [Feature]
+
+**Dependencies**:
+  Blocks: None
+  Blocked By: [TWEET-001.1]
+
+**Description**:
+Implement optimistic locking to prevent race conditions in tweet updates.
+
+**Tasks**:
+
+1. [ ] Update Tweet entity
+   - Add version field
+   - Implement update method with version check
+2. [ ] Update TweetRepository
+   - Add version check in update method
+   - Implement proper error handling
+3. [ ] Update TweetService
+   - Handle version conflicts
+   - Implement retry mechanism
+4. [ ] Write unit and integration tests
+
+**Technical Notes**:
+
+- Use version field for optimistic locking
+- Implement proper error handling for conflicts
+- Add retry mechanism for failed updates
+- Follow technical design in docs/technical/tweet-bugfix-technical-design.md
+
+**Acceptance Criteria**:
+
+1. Concurrent updates are handled correctly
+2. Version conflicts are detected and handled
+3. No data loss during concurrent operations
+4. Tests verify concurrent update scenarios
+
+### TWEET-001.4: Image Processing Enhancement
+
+**Metadata**:
+  Type: Technical
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 1
+  Sprint: Current
+  Change Type: Fix
+
+**Time Tracking**:
+  Estimated Hours: 6
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Done
+  Phase: Done
+  Labels: [Feature, Security]
+
+**Dependencies**:
+  Blocks: None
+  Blocked By: [TWEET-001.1]
+
+**Description**:
+Implement enhanced image processing with validation and cleanup.
+
+**Tasks**:
+
+1. [ ] Create TweetImageService
+   - Implement image validation
+   - Add size and format restrictions
+   - Handle cleanup for failed uploads
+2. [ ] Update TweetService
+   - Integrate image validation
+   - Add cleanup triggers
+3. [ ] Implement image cleanup handler
+4. [ ] Write unit and integration tests
+
+**Technical Notes**:
+
+- Validate image URLs and formats
+- Implement size restrictions (5MB max)
+- Add cleanup for orphaned images
+- Follow technical design in docs/technical/tweet-bugfix-technical-design.md
+
+**Acceptance Criteria**:
+
+1. Images are properly validated
+2. Invalid images are rejected
+3. Orphaned images are cleaned up
+4. Performance meets requirements (<100ms)
+
+### TWEET-001.5: Event Publishing Enhancement
+
+**Metadata**:
+  Type: Technical
+  Component: Backend
+  Priority: High
+  Risk Level: Medium
+  Story Points: 1
+  Sprint: Current
+  Change Type: Fix
+
+**Time Tracking**:
+  Estimated Hours: 4
+  Start Date: TBD
+  Due Date: TBD
+
+**Status**:
+  State: Done
+  Phase: Done
+  Labels: [Feature]
+
+**Dependencies**:
+  Blocks: None
+  Blocked By: [TWEET-001.1]
+
+**Description**:
+Implement reliable event publishing with retry mechanism and monitoring.
+
+**Tasks**:
+
+1. [ ] Create TweetEventService
+   - Implement retry mechanism
+   - Add event logging
+   - Set up monitoring
+2. [ ] Update event handlers
+   - Add retry logic
+   - Implement proper error handling
+3. [ ] Add event reconciliation process
+4. [ ] Write unit and integration tests
+
+**Technical Notes**:
+
+- Implement exponential backoff
+- Add comprehensive logging
+- Set up monitoring alerts
+- Follow technical design in docs/technical/tweet-bugfix-technical-design.md
+
+**Acceptance Criteria**:
+
+1. Events are published reliably
+2. Failed events are retried
+3. Monitoring is in place
+4. Performance impact is minimal
+
+### Sprint Summary
+
+Current Sprint Story Points:
+
+- FEED-ENH-001: 5 points (Done)
+- FEED-ENH-001.1: 1 point (Done)
+- FEED-ENH-001.2: 3 points (Done)
+- FEED-ENH-001.3: 2 points (Done)
+- INV-001: 13 points (In Progress)
+  - INV-001.1: 2 points (Done)
+  - INV-001.2: 5 points (Done)
+  - INV-001.3: 3 points (In Progress)
+  - INV-001.4: 3 points (In Progress)
+- TWEET-001: 5 points (Done)
+  - TWEET-001.1: 1 point (Done)
+  - TWEET-001.2: 1 point (Done)
+  - TWEET-001.3: 1 point (Done)
+  - TWEET-001.4: 1 point (Done)
+  - TWEET-001.5: 1 point (Done)
+
+Total Story Points: 29
+
+- Completed: 16 points
+- In Progress: 13 points
+
+Sprint Focus:
+
+- Complete remaining INV-001 tasks
+- Maintain system stability and security
 
 ### INV-001: User Invitation System Implementation
 

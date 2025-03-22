@@ -29,6 +29,7 @@ export class PrismaTweetRepository implements TweetRepository {
       images: createdTweet.images,
       userId: createdTweet.userId,
       isArchived: createdTweet.isArchived,
+      version: createdTweet.version,
       createdAt: createdTweet.createdAt,
       updatedAt: createdTweet.updatedAt,
     });
@@ -49,6 +50,7 @@ export class PrismaTweetRepository implements TweetRepository {
       images: tweet.images,
       userId: tweet.userId,
       isArchived: tweet.isArchived,
+      version: tweet.version,
       createdAt: tweet.createdAt,
       updatedAt: tweet.updatedAt,
     });
@@ -83,6 +85,7 @@ export class PrismaTweetRepository implements TweetRepository {
         images: tweet.images,
         userId: tweet.userId,
         isArchived: tweet.isArchived,
+        version: tweet.version,
         createdAt: tweet.createdAt,
         updatedAt: tweet.updatedAt,
       }),
@@ -90,32 +93,42 @@ export class PrismaTweetRepository implements TweetRepository {
   }
 
   async update(tweet: Tweet): Promise<Tweet> {
-    const updatedTweet = await this.prisma.tweet.update({
-      where: { id: tweet.id },
-      data: {
-        content: tweet.content,
-        images: tweet.images,
-        isArchived: tweet.isArchived,
-        updatedAt: tweet.updatedAt,
-      },
-    });
+    try {
+      const updatedTweet = await this.prisma.tweet.update({
+        where: {
+          id: tweet.id,
+          version: tweet.version,
+        },
+        data: {
+          content: tweet.content,
+          images: tweet.images,
+          isArchived: tweet.isArchived,
+          version: tweet.version + 1,
+          updatedAt: tweet.updatedAt,
+        },
+      });
 
-    return Tweet.create({
-      id: updatedTweet.id,
-      content: updatedTweet.content,
-      images: updatedTweet.images,
-      userId: updatedTweet.userId,
-      isArchived: updatedTweet.isArchived,
-      createdAt: updatedTweet.createdAt,
-      updatedAt: updatedTweet.updatedAt,
-    });
+      return Tweet.create({
+        id: updatedTweet.id,
+        content: updatedTweet.content,
+        images: updatedTweet.images,
+        userId: updatedTweet.userId,
+        isArchived: updatedTweet.isArchived,
+        version: updatedTweet.version,
+        createdAt: updatedTweet.createdAt,
+        updatedAt: updatedTweet.updatedAt,
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new Error('Concurrent update detected. Please try again.');
+      }
+      throw error;
+    }
   }
 
   async delete(id: string, tx?: Prisma.TransactionClient): Promise<void> {
-    // If a transaction is provided, use it; otherwise use the default prisma instance
-    const prisma = tx || this.prisma;
-
-    await prisma.tweet.delete({
+    const client = tx || this.prisma;
+    await client.tweet.delete({
       where: { id },
     });
   }

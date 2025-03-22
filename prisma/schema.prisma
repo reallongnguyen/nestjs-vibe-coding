@@ -632,6 +632,7 @@ model Tweet {
   images      String[]
   userId      String    @map("user_id")
   isArchived  Boolean   @default(false) @map("is_archived")
+  version     Int       @default(0)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -643,6 +644,8 @@ model Tweet {
   @@index([userId])
   @@index([createdAt])
   @@index([isArchived])
+  @@index([version])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("tweets")
 }
 

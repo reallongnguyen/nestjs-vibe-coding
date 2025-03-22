@@ -5,6 +5,7 @@ export class Tweet {
     readonly images: string[],
     readonly userId: string,
     readonly isArchived: boolean,
+    readonly version: number,
     readonly createdAt: Date,
     readonly updatedAt: Date,
   ) {}
@@ -15,6 +16,7 @@ export class Tweet {
     images: string[];
     userId: string;
     isArchived?: boolean;
+    version?: number;
     createdAt: Date;
     updatedAt: Date;
   }): Tweet {
@@ -24,6 +26,7 @@ export class Tweet {
       images,
       userId,
       isArchived = false,
+      version = 0,
       createdAt,
       updatedAt,
     } = params;
@@ -34,8 +37,22 @@ export class Tweet {
       images,
       userId,
       isArchived,
+      version,
       createdAt,
       updatedAt,
+    );
+  }
+
+  update(content: string, images: string[]): Tweet {
+    return new Tweet(
+      this.id,
+      content,
+      images,
+      this.userId,
+      this.isArchived,
+      this.version + 1,
+      this.createdAt,
+      new Date(),
     );
   }
 
@@ -46,6 +63,7 @@ export class Tweet {
       this.images,
       this.userId,
       true,
+      this.version + 1,
       this.createdAt,
       new Date(),
     );

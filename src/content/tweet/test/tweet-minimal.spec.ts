@@ -1,8 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { EventBus } from '@nestjs/cqrs';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { TweetService } from '../services/tweet.service';
 import { TWEET_REPOSITORY } from '../repositories/tweet.repository';
+import { TweetUserService } from '../services/tweet-user.service';
+import { TweetImageService } from '../services/tweet-image.service';
+import { TweetEventService } from '../services/tweet-event.service';
 
 describe('TweetService Validation', () => {
   let tweetService: TweetService;
@@ -13,6 +17,18 @@ describe('TweetService Validation', () => {
     publish: jest.fn(),
   };
   const mockPrismaService = {};
+  const mockTweetUserService = {
+    enrichTweetWithUser: jest.fn(),
+    enrichTweetsWithUsers: jest.fn(),
+  };
+  const mockTweetImageService = {
+    validateImages: jest.fn(),
+  };
+  const mockTweetEventService = {
+    publishTweetCreated: jest.fn(),
+    publishTweetUpdated: jest.fn(),
+    publishTweetDeleted: jest.fn(),
+  };
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,12 +39,24 @@ describe('TweetService Validation', () => {
           useValue: mockTweetRepository,
         },
         {
-          provide: 'IEventBus',
+          provide: EventBus,
           useValue: mockEventBus,
         },
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: TweetUserService,
+          useValue: mockTweetUserService,
+        },
+        {
+          provide: TweetImageService,
+          useValue: mockTweetImageService,
+        },
+        {
+          provide: TweetEventService,
+          useValue: mockTweetEventService,
         },
       ],
     }).compile();

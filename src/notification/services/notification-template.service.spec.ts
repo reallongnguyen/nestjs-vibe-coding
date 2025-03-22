@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { IEventBus } from 'src/common';
+import { IEventBus } from 'src/common/event-manager';
 import { AppError } from 'src/common/models';
 import { NotificationTemplateService } from './notification-template.service';
 import { INotificationTemplateRepository } from './interfaces/notification-template-repository.interface';

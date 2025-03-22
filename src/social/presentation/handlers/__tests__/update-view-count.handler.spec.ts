@@ -16,8 +16,21 @@ describe('UpdateViewCountHandler', () => {
     batchInsertView: jest.fn(),
   };
 
+  const mockRedis = {
+    llen: jest.fn().mockResolvedValue(0),
+    rpush: jest.fn().mockResolvedValue(1),
+    lrange: jest.fn().mockResolvedValue([]),
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    del: jest.fn().mockResolvedValue(1),
+    multi: jest.fn().mockReturnValue({
+      del: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([]),
+    }),
+  };
+
   const mockRedisService = {
-    getOrThrow: jest.fn(),
+    getOrThrow: jest.fn().mockReturnValue(mockRedis),
   };
 
   beforeEach(async () => {
@@ -39,14 +52,8 @@ describe('UpdateViewCountHandler', () => {
     handler = module.get<UpdateViewCountHandler>(UpdateViewCountHandler);
     viewRepository = module.get<IViewRepository>('IViewRepository');
 
-    // Setup Redis mock
-    mockRedisService.getOrThrow.mockReturnValue({
-      llen: jest.fn().mockResolvedValue(0),
-      rpush: jest.fn().mockResolvedValue(1),
-      multi: jest.fn().mockReturnValue({
-        exec: jest.fn().mockResolvedValue([]),
-      }),
-    });
+    // Reset all mocks before each test
+    jest.clearAllMocks();
 
     // Initialize viewProcessor
     await handler.onModuleInit();
@@ -78,7 +85,7 @@ describe('UpdateViewCountHandler', () => {
       await handler.handleContentViewed(mockEvent);
 
       expect(mockRedisService.getOrThrow).toHaveBeenCalled();
-      expect(mockRedisService.getOrThrow().rpush).toHaveBeenCalled();
+      expect(mockRedis.rpush).toHaveBeenCalled();
     });
 
     it('should handle anonymous views', async () => {
@@ -93,16 +100,26 @@ describe('UpdateViewCountHandler', () => {
       await handler.handleContentViewed(anonymousEvent);
 
       expect(mockRedisService.getOrThrow).toHaveBeenCalled();
-      expect(mockRedisService.getOrThrow().rpush).toHaveBeenCalled();
+      expect(mockRedis.rpush).toHaveBeenCalled();
     });
 
     it('should process batch when full', async () => {
-      mockRedisService.getOrThrow().llen.mockResolvedValueOnce(100);
+      mockRedis.llen.mockResolvedValueOnce(100);
+      mockRedis.lrange.mockResolvedValueOnce([
+        JSON.stringify({
+          contentId: 'test-content-id',
+          contentType: ContentType.POST,
+          viewerHash: 'test-hash',
+          viewerId: 'test-viewer-id',
+        }),
+      ]);
 
       await handler.handleContentViewed(mockEvent);
 
       expect(mockRedisService.getOrThrow).toHaveBeenCalled();
-      expect(mockRedisService.getOrThrow().rpush).toHaveBeenCalled();
+      expect(mockRedis.rpush).toHaveBeenCalled();
+      expect(mockRedis.lrange).toHaveBeenCalled();
+      expect(mockRedis.multi).toHaveBeenCalled();
       expect(viewRepository.batchInsertView).toHaveBeenCalled();
     });
   });
