@@ -14,8 +14,8 @@ This guide explains how to set up the development infrastructure using Docker.
 
 ```bash
 rm -rf api-service \
-&& git clone https://github.com/reallongnguyen/base-api-service.git \
-&& mv base-api-service api-service
+&& git clone https://github.com/reallongnguyen/nestjs-vibe-coding \
+&& mv nestjs-vibe-coding api-service
 ```
 
 ### 2. Configure Environment
