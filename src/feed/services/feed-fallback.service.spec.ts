@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { Redis } from 'ioredis';
-import { AppError, PageOptionsDto } from 'src/common';
+import { PageOptionsDto } from 'src/common';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { FeedFallbackService } from './feed-fallback.service';
 import { FeedType } from '../entities/feed.types';
+import { FeedGenerationError } from '../errors';
 
 describe('FeedFallbackService', () => {
   let service: FeedFallbackService;
@@ -19,6 +21,10 @@ describe('FeedFallbackService', () => {
   const mockLogger = {
     debug: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    fatal: jest.fn(),
   };
 
   const mockRedisService = {
@@ -34,7 +40,7 @@ describe('FeedFallbackService', () => {
           useValue: mockRedisService,
         },
         {
-          provide: Logger,
+          provide: LOGGER_TOKEN,
           useValue: mockLogger,
         },
       ],
@@ -42,7 +48,7 @@ describe('FeedFallbackService', () => {
 
     service = module.get<FeedFallbackService>(FeedFallbackService);
     redis = module.get(RedisService).getOrThrow();
-    logger = module.get(Logger);
+    logger = module.get(LOGGER_TOKEN);
 
     // Reset all mocks before each test
     jest.clearAllMocks();
@@ -134,12 +140,12 @@ describe('FeedFallbackService', () => {
       expect(redis.zrevrange).toHaveBeenCalledTimes(2);
     });
 
-    it('should throw AppError on Redis error', async () => {
+    it('should throw FeedGenerationError on Redis error', async () => {
       mockRedis.zrevrange.mockRejectedValue(new Error('Redis error'));
 
       await expect(
         service.getFallbackFeed(userId, pagination, FeedType.TRENDING),
-      ).rejects.toThrow(AppError);
+      ).rejects.toThrow(FeedGenerationError);
       expect(logger.error).toHaveBeenCalled();
     });
   });
@@ -179,13 +185,13 @@ describe('FeedFallbackService', () => {
       );
     });
 
-    it('should throw AppError on Redis error', async () => {
+    it('should throw FeedGenerationError on Redis error', async () => {
       const multiChain = mockRedis.multi();
       multiChain.exec.mockRejectedValue(new Error('Redis error'));
 
       await expect(
         service.addToFallback(contentId, score, timestamp, metadata),
-      ).rejects.toThrow(AppError);
+      ).rejects.toThrow(FeedGenerationError);
       expect(logger.error).toHaveBeenCalled();
     });
   });

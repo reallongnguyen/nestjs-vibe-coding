@@ -1,39 +1,20 @@
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { IEventBus } from 'src/common/event-manager';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
+import { Retry } from 'src/common/decorators/retry.decorator';
+import { CreateTweetDto } from '../dtos/create-tweet.dto';
+import { UpdateTweetDto } from '../dtos/update-tweet.dto';
+import { TweetDto } from '../dtos/tweet.dto';
+import { Tweet } from '../models/tweet.model';
 import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
-import { IEventBus, InjectEventBus } from 'src/common/event-manager';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { Tweet } from '../entities/tweet.entity';
-import {
-  TWEET_REPOSITORY,
+  FindTweetsOptions,
   TweetRepository,
 } from '../repositories/tweet.repository';
-import {
-  TweetCreatedEvent,
-  TweetUpdatedEvent,
-  TweetDeletedEvent,
-} from '../entities/events/tweet.events';
-
-export interface CreateTweetDto {
-  content: string;
-  images: string[];
-  userId: string;
-}
-
-export interface UpdateTweetDto {
-  content?: string;
-  images?: string[];
-}
-
-export interface FindTweetsOptions {
-  limit?: number;
-  offset?: number;
-  includeArchived?: boolean;
-}
+import { TWEET_REPOSITORY } from '../tweet.constants';
+import { TweetUserService } from './tweet-user.service';
+import { TweetImageService } from './tweet-image.service';
+import { TweetEventService } from './tweet-event.service';
+import { TweetErrorFactory } from '../entities/errors';
 
 @Injectable()
 export class TweetService {
@@ -42,27 +23,27 @@ export class TweetService {
   constructor(
     @Inject(TWEET_REPOSITORY)
     private readonly tweetRepository: TweetRepository,
-    @InjectEventBus() private readonly eventBus: IEventBus,
-    private readonly prismaService: PrismaService,
+    @Inject(EVENT_BUS_TOKEN) private readonly eventBus: IEventBus,
+    private readonly tweetUserService: TweetUserService,
+    private readonly tweetImageService: TweetImageService,
+    private readonly tweetEventService: TweetEventService,
   ) {}
 
-  async createTweet(createTweetDto: CreateTweetDto): Promise<Tweet> {
+  async createTweet(createTweetDto: CreateTweetDto): Promise<TweetDto> {
     const { content, images, userId } = createTweetDto;
 
     // Validate tweet content
     if (!content || content.trim().length === 0) {
-      throw new BadRequestException('Tweet content cannot be empty');
+      throw TweetErrorFactory.contentEmpty();
     }
 
     if (content.length > 280) {
-      throw new BadRequestException(
-        'Tweet content cannot exceed 280 characters',
-      );
+      throw TweetErrorFactory.contentTooLong();
     }
 
     // Validate images
-    if (images && images.length > 4) {
-      throw new BadRequestException('Tweet cannot have more than 4 images');
+    if (images && images.length > 0) {
+      await this.tweetImageService.validateImages(images, userId);
     }
 
     const tweet = await this.tweetRepository.create({
@@ -71,35 +52,18 @@ export class TweetService {
       userId,
     });
 
-    // Publish tweet created event instead of directly syncing with Gorse
+    // Publish tweet created event
     await this.publishTweetCreatedEvent(tweet);
 
-    return tweet;
-  }
-
-  private async publishTweetCreatedEvent(tweet: Tweet): Promise<void> {
-    try {
-      const event = new TweetCreatedEvent({
-        tweetId: tweet.id,
-        userId: tweet.userId,
-        content: tweet.content,
-        images: tweet.images,
-      });
-
-      await this.eventBus.publish(event);
-    } catch (error) {
-      this.logger.error(
-        `Failed to publish tweet created event: ${error.message}`,
-        error.stack,
-      );
-    }
+    // Enrich with user data
+    return this.enrichTweetWithUser(tweet);
   }
 
   async getTweetById(id: string): Promise<Tweet> {
     const tweet = await this.tweetRepository.findById(id);
 
     if (!tweet) {
-      throw new NotFoundException(`Tweet with ID ${id} not found`);
+      throw TweetErrorFactory.tweetNotFound(id);
     }
 
     return tweet;
@@ -108,8 +72,61 @@ export class TweetService {
   async getTweetsByUserId(
     userId: string,
     options?: FindTweetsOptions,
-  ): Promise<Tweet[]> {
-    return this.tweetRepository.findByUserId(userId, options);
+  ): Promise<TweetDto[]> {
+    const tweets = await this.tweetRepository.findByUserId(userId, options);
+    return this.enrichTweetsWithUsers(tweets);
+  }
+
+  private async enrichTweetWithUser(tweet: Tweet): Promise<TweetDto> {
+    const userData = await this.tweetUserService.getUserData(tweet.userId);
+
+    return {
+      id: tweet.id,
+      content: tweet.content,
+      images: tweet.images,
+      userId: tweet.userId,
+      isArchived: tweet.isArchived,
+      version: tweet.version,
+      createdAt: tweet.createdAt,
+      updatedAt: tweet.updatedAt,
+      author: userData
+        ? {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            avatar: userData.avatar,
+          }
+        : undefined,
+    };
+  }
+
+  private async enrichTweetsWithUsers(tweets: Tweet[]): Promise<TweetDto[]> {
+    if (tweets.length === 0) {
+      return [];
+    }
+
+    const userIds = [...new Set(tweets.map((tweet) => tweet.userId))];
+    const usersData = await this.tweetUserService.getUsersData(userIds);
+
+    return tweets.map((tweet) => {
+      const userData = usersData.get(tweet.userId);
+      return {
+        id: tweet.id,
+        content: tweet.content,
+        images: tweet.images,
+        userId: tweet.userId,
+        isArchived: tweet.isArchived,
+        version: tweet.version,
+        createdAt: tweet.createdAt,
+        updatedAt: tweet.updatedAt,
+        author: userData
+          ? {
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              avatar: userData.avatar,
+            }
+          : undefined,
+      };
+    });
   }
 
   async countTweetsByUserId(
@@ -119,18 +136,22 @@ export class TweetService {
     return this.tweetRepository.countByUserId(userId, includeArchived);
   }
 
+  @Retry({
+    maxAttempts: 3,
+    backoffMs: 100,
+    exponential: true,
+    retryableErrors: [Error],
+  })
   async updateTweet(
     id: string,
     userId: string,
     updateTweetDto: UpdateTweetDto,
-  ): Promise<Tweet> {
+  ): Promise<TweetDto> {
     const tweet = await this.getTweetById(id);
 
     // Check if the user owns the tweet
     if (!tweet.isOwner(userId)) {
-      throw new BadRequestException(
-        'You are not authorized to update this tweet',
-      );
+      throw TweetErrorFactory.unauthorized('update');
     }
 
     const { content, images } = updateTweetDto;
@@ -138,29 +159,27 @@ export class TweetService {
     // Validate tweet content if provided
     if (content !== undefined) {
       if (content.trim().length === 0) {
-        throw new BadRequestException('Tweet content cannot be empty');
+        throw TweetErrorFactory.contentEmpty();
       }
 
       if (content.length > 280) {
-        throw new BadRequestException(
-          'Tweet content cannot exceed 280 characters',
-        );
+        throw TweetErrorFactory.contentTooLong();
       }
     }
 
     // Validate images if provided
-    if (images !== undefined && images.length > 4) {
-      throw new BadRequestException('Tweet cannot have more than 4 images');
+    if (images !== undefined) {
+      await this.tweetImageService.validateImages(images, userId);
     }
 
-    const updatedTweet = new Tweet(
-      tweet.id,
+    // If images are being updated, trigger cleanup for old images
+    if (images !== undefined && tweet.images.length > 0) {
+      await this.tweetImageService.triggerCleanup(tweet.images, tweet.id);
+    }
+
+    const updatedTweet = tweet.update(
       content ?? tweet.content,
       images ?? tweet.images,
-      tweet.userId,
-      tweet.isArchived,
-      tweet.createdAt,
-      new Date(),
     );
 
     const savedTweet = await this.tweetRepository.update(updatedTweet);
@@ -168,44 +187,30 @@ export class TweetService {
     // Publish tweet updated event
     await this.publishTweetUpdatedEvent(savedTweet);
 
-    return savedTweet;
+    return this.enrichTweetWithUser(savedTweet);
   }
 
-  private async publishTweetUpdatedEvent(tweet: Tweet): Promise<void> {
-    try {
-      const event = new TweetUpdatedEvent({
-        tweetId: tweet.id,
-        userId: tweet.userId,
-        content: tweet.content,
-        images: tweet.images,
-      });
-
-      await this.eventBus.publish(event);
-    } catch (error) {
-      this.logger.error(
-        `Failed to publish tweet updated event: ${error.message}`,
-        error.stack,
-      );
-    }
-  }
-
-  async archiveTweet(id: string, userId: string): Promise<Tweet> {
+  @Retry({
+    maxAttempts: 3,
+    backoffMs: 100,
+    exponential: true,
+    retryableErrors: [Error],
+  })
+  async archiveTweet(id: string, userId: string): Promise<TweetDto> {
     const tweet = await this.getTweetById(id);
 
     // Check if the user owns the tweet
     if (!tweet.isOwner(userId)) {
-      throw new BadRequestException(
-        'You are not authorized to archive this tweet',
-      );
+      throw TweetErrorFactory.unauthorized('archive');
     }
 
     const archivedTweet = tweet.archive();
     const savedTweet = await this.tweetRepository.update(archivedTweet);
 
-    // Publish tweet updated event (with isArchived = true in the model)
+    // Publish tweet updated event
     await this.publishTweetUpdatedEvent(savedTweet);
 
-    return savedTweet;
+    return this.enrichTweetWithUser(savedTweet);
   }
 
   async deleteTweet(id: string, userId: string): Promise<void> {
@@ -213,44 +218,41 @@ export class TweetService {
 
     // Check if the user owns the tweet
     if (!tweet.isOwner(userId)) {
-      throw new BadRequestException(
-        'You are not authorized to delete this tweet',
-      );
+      throw TweetErrorFactory.unauthorized('delete');
     }
 
-    // Store images before deletion for cleanup
-    const images = tweet.images || [];
+    // Trigger cleanup for tweet images
+    if (tweet.images.length > 0) {
+      await this.tweetImageService.triggerCleanup(tweet.images, tweet.id);
+    }
 
-    // Use a database transaction to ensure consistency between
-    // tweet deletion and event publishing
-    await this.prismaService.$transaction(async (prisma) => {
-      // Delete the tweet (repository should be updated to accept tx)
-      await this.tweetRepository.delete(id, prisma);
+    await this.tweetRepository.delete(id);
 
-      // Publish tweet deleted event with images for cleanup
-      // This ensures the event is only published if the tweet is deleted successfully
-      await this.publishTweetDeletedEvent(id, userId, images);
-    });
+    // Publish tweet deleted event
+    await this.publishTweetDeletedEvent(tweet);
   }
 
-  private async publishTweetDeletedEvent(
-    tweetId: string,
-    userId: string,
-    images: string[] = [],
-  ): Promise<void> {
+  private async publishTweetCreatedEvent(tweet: Tweet): Promise<void> {
     try {
-      const event = new TweetDeletedEvent({
-        tweetId,
-        userId,
-        images, // Include images in the payload for cleanup
-      });
-
-      await this.eventBus.publish(event);
+      await this.tweetEventService.publishTweetCreatedEvent(tweet);
     } catch (error) {
-      // Log the error but don't rethrow it
-      this.logger.error(
-        `Failed to publish tweet deleted event: ${error.message}`,
-      );
+      this.logger.error('Failed to publish tweet created event:', error);
+    }
+  }
+
+  private async publishTweetUpdatedEvent(tweet: Tweet): Promise<void> {
+    try {
+      await this.tweetEventService.publishTweetUpdatedEvent(tweet);
+    } catch (error) {
+      this.logger.error('Failed to publish tweet updated event:', error);
+    }
+  }
+
+  private async publishTweetDeletedEvent(tweet: Tweet): Promise<void> {
+    try {
+      await this.tweetEventService.publishTweetDeletedEvent(tweet);
+    } catch (error) {
+      this.logger.error('Failed to publish tweet deleted event:', error);
     }
   }
 }

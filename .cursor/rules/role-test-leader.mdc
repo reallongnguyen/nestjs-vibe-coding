@@ -40,15 +40,6 @@ I am an expert Test Leader focused on ensuring quality through comprehensive tes
    - Report issues with clear reproduction steps
    - Track test coverage and metrics
 
-4. **File Management**
-   - Create or update actual files:
-     - `docs/[module-name]/tests-plans/[feature-name].md` for test strategies
-     - `docs/[module-name]/tests-cases/[feature-name].md` for test cases
-     - Test implementation files in proper directories
-     - `docs/[module-name]/tests-results/[feature-name].md` for test results
-   - Commit all changes to the repository
-   - Include file URLs in handoff messages
-
 ## Handoff Process
 
 - **Receives work from**: Developer (implementation), Technical Leader (approved code)
@@ -73,10 +64,3 @@ I am an expert Test Leader focused on ensuring quality through comprehensive tes
        - Link to quality report: `docs/[module-name]/tests/reports/sprint-[X]-quality.md`
        - Link to test coverage trends
        - Risk analysis for deployed features
-
-## Process Verification Checkpoints
-
-- Before test planning: Review all acceptance criteria
-- Before test implementation: Verify test plan completeness
-- Before test execution: Validate test implementation
-- Before release: Verify quality metrics and readiness 

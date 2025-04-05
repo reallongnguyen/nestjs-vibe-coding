@@ -1,15 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { Logger } from 'nestjs-pino';
+import { Redis } from 'ioredis';
 import { performance } from 'perf_hooks';
 import { PageOptionsDto } from 'src/common';
+import { Logger } from 'nestjs-pino';
 import { FeedCacheManagerService } from '../../services/feed-cache-manager.service';
 import { FeedItem } from '../../entities/feed.entity';
 import { FeedType } from '../../entities/feed.types';
 
 describe('FeedCacheManagerService Performance', () => {
   let service: FeedCacheManagerService;
-  let mockRedis: any;
+  let redisService: jest.Mocked<RedisService>;
+  let configService: jest.Mocked<ConfigService>;
+  let logger: jest.Mocked<Logger>;
+  let redis: jest.Mocked<Redis>;
 
   const mockFeedItems: FeedItem[] = [
     {
@@ -45,50 +50,55 @@ describe('FeedCacheManagerService Performance', () => {
   ];
 
   beforeEach(async () => {
-    mockRedis = {
+    redis = {
       get: jest.fn(),
       setex: jest.fn(),
       keys: jest.fn(),
       del: jest.fn(),
       hgetall: jest.fn(),
-      multi: jest.fn(),
-    };
+      multi: jest.fn().mockReturnValue({
+        hincrby: jest.fn().mockReturnThis(),
+        expire: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      }),
+    } as any;
 
-    mockRedis.multi.mockReturnValue({
-      hincrby: jest.fn().mockReturnThis(),
-      expire: jest.fn().mockReturnThis(),
-      exec: jest.fn().mockResolvedValue([]),
-    });
+    redisService = {
+      getOrThrow: jest.fn().mockReturnValue(redis),
+    } as any;
+
+    configService = {
+      get: jest.fn().mockImplementation((key: string) => {
+        if (key === 'feed.cache.disabled') return false;
+        if (key === 'feed.cache.ttl') return 300;
+        return undefined;
+      }),
+    } as any;
+
+    logger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+    } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FeedCacheManagerService,
         {
           provide: RedisService,
-          useValue: {
-            getOrThrow: () => mockRedis,
-          },
+          useValue: redisService,
+        },
+        {
+          provide: ConfigService,
+          useValue: configService,
         },
         {
           provide: Logger,
-          useValue: {
-            debug: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            log: jest.fn(),
-            verbose: jest.fn(),
-            fatal: jest.fn(),
-            trace: jest.fn(),
-            logger: {
-              debug: jest.fn(),
-              error: jest.fn(),
-              warn: jest.fn(),
-              log: jest.fn(),
-              verbose: jest.fn(),
-              fatal: jest.fn(),
-              trace: jest.fn(),
-            },
-          },
+          useValue: logger,
         },
       ],
     }).compile();
@@ -98,86 +108,110 @@ describe('FeedCacheManagerService Performance', () => {
 
   describe('Performance Requirements', () => {
     it('should get feed from cache within 5ms', async () => {
-      mockRedis.get.mockResolvedValue(JSON.stringify(mockFeedItems));
+      redis.get.mockResolvedValue(JSON.stringify(mockFeedItems));
 
       const start = performance.now();
       await service.getFeed(
         'user1',
-        new PageOptionsDto(0, 10),
-        FeedType.TRENDING,
+        new PageOptionsDto(),
+        FeedType.PERSONALIZED,
       );
       const end = performance.now();
 
       expect(end - start).toBeLessThan(5);
+      expect(redis.get).toHaveBeenCalled();
     });
 
     it('should cache feed within 5ms', async () => {
-      mockRedis.setex.mockResolvedValue('OK');
+      redis.setex.mockResolvedValue('OK');
 
       const start = performance.now();
       await service.cacheFeed(
         'user1',
-        new PageOptionsDto(0, 10),
-        FeedType.TRENDING,
+        new PageOptionsDto(),
+        FeedType.PERSONALIZED,
         mockFeedItems,
       );
       const end = performance.now();
 
       expect(end - start).toBeLessThan(5);
+      expect(redis.setex).toHaveBeenCalled();
     });
 
     it('should handle high volume of concurrent requests', async () => {
-      mockRedis.get.mockResolvedValue(JSON.stringify(mockFeedItems));
+      redis.get.mockResolvedValue(JSON.stringify(mockFeedItems));
 
       const concurrentRequests = 100;
-      const requests = Array(concurrentRequests)
-        .fill(null)
-        .map(() =>
-          service.getFeed(
-            'user1',
-            new PageOptionsDto(0, 10),
-            FeedType.TRENDING,
-          ),
-        );
+      const requests = Array.from({ length: concurrentRequests }, () =>
+        service.getFeed('user1', new PageOptionsDto(), FeedType.PERSONALIZED),
+      );
 
       const start = performance.now();
       await Promise.all(requests);
       const end = performance.now();
 
-      const averageTime = (end - start) / concurrentRequests;
-      expect(averageTime).toBeLessThan(1); // Average time per request should be less than 1ms
+      expect(end - start).toBeLessThan(100); // Less than 1ms per request
+      expect(redis.get).toHaveBeenCalledTimes(concurrentRequests);
     });
 
-    it('should maintain performance with large feed items', async () => {
-      const largeMockFeedItems: FeedItem[] = Array(100)
-        .fill(null)
-        .map((_, index) => ({
-          id: index.toString(),
-          type: 'post',
-          score: Math.random(),
-          content: {
-            id: `content${index}`,
-            type: 'post',
-            content: `Test Content ${index}`,
-            authorId: `author${index}`,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
+    it('should handle large feed items efficiently', async () => {
+      const largeMockFeedItems = Array.from({ length: 1000 }, (_, i) => ({
+        ...mockFeedItems[0],
+        id: `item-${i}`,
+        content: {
+          ...mockFeedItems[0].content,
+          id: `content-${i}`,
+          content: `Test Content ${i}`,
+        },
+      }));
 
-      mockRedis.get.mockResolvedValue(JSON.stringify(largeMockFeedItems));
+      redis.get.mockResolvedValue(JSON.stringify(largeMockFeedItems));
 
       const start = performance.now();
       await service.getFeed(
         'user1',
-        new PageOptionsDto(0, 100),
-        FeedType.TRENDING,
+        new PageOptionsDto(),
+        FeedType.PERSONALIZED,
       );
       const end = performance.now();
 
       expect(end - start).toBeLessThan(10); // Should handle large feed items within 10ms
+      expect(redis.get).toHaveBeenCalled();
+    });
+
+    it('should invalidate user feed efficiently', async () => {
+      redis.keys.mockResolvedValue(['feed:cache:user1:personalized:1:20']);
+      redis.del.mockResolvedValue(1);
+
+      const start = performance.now();
+      await service.invalidateUserFeed('user1', FeedType.PERSONALIZED);
+      const end = performance.now();
+
+      expect(end - start).toBeLessThan(5); // Should invalidate within 5ms
+      expect(redis.keys).toHaveBeenCalled();
+      expect(redis.del).toHaveBeenCalled();
+    });
+
+    it('should get cache stats efficiently', async () => {
+      redis.hgetall.mockResolvedValue({
+        hits: '100',
+        misses: '20',
+        writes: '50',
+        invalidations: '10',
+      });
+
+      const start = performance.now();
+      const stats = await service.getCacheStats('user1', FeedType.PERSONALIZED);
+      const end = performance.now();
+
+      expect(end - start).toBeLessThan(5); // Should get stats within 5ms
+      expect(stats).toEqual({
+        hits: 100,
+        misses: 20,
+        writes: 50,
+        invalidations: 10,
+      });
+      expect(redis.hgetall).toHaveBeenCalled();
     });
   });
 });

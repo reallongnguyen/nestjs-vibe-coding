@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { PrismaService } from 'src/common';
 import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { UserFollowService } from '../services/user-follow.service';
 import { UserFollowedEvent } from '../entities/events/user-followed.event';
 import { UserUnfollowedEvent } from '../entities/events/user-unfollowed.event';
@@ -13,6 +14,7 @@ describe('UserFollowService with event-manager', () => {
   let service: UserFollowService;
   let eventBus: any;
   let repository: any;
+  let mockLogger: jest.Mocked<any>;
 
   beforeEach(async () => {
     // Create mock repository
@@ -38,6 +40,15 @@ describe('UserFollowService with event-manager', () => {
       })),
     };
 
+    mockLogger = {
+      debug: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+    };
+
     const module = await Test.createTestingModule({
       imports: [EventManagerModule],
       providers: [
@@ -53,6 +64,10 @@ describe('UserFollowService with event-manager', () => {
               findUnique: jest.fn(),
             },
           },
+        },
+        {
+          provide: LOGGER_TOKEN,
+          useValue: mockLogger,
         },
       ],
     }).compile();

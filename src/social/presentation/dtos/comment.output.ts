@@ -57,6 +57,9 @@ export class CommentDto implements Comment {
   @ApiProperty({ description: 'ID of the tweet if comment is on a tweet' })
   tweetId: string | null;
 
+  @ApiProperty({ description: 'ID of the story if comment is on a story' })
+  storyId: string | null;
+
   static fromApplication(comment: CommentOutput): CommentDto {
     return {
       ...comment,

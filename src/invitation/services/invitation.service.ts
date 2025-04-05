@@ -2,8 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InvitationStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PagedResult, PageOptionsDto } from 'src/common';
-import { IEventBus, InjectEventBus } from 'src/common/event-manager';
+import { IEventBus } from 'src/common/event-manager';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { AppError } from 'src/common/errors/app.error';
+import { Logger } from 'nestjs-pino';
 import { InvitationErrorCode, INVITATION_ERRORS } from '../entities/errors';
 import { InvitationCreatedEvent } from '../entities/events/invitation-created.event';
 import { InvitationAcceptedEvent } from '../entities/events/invitation-accepted.event';
@@ -21,9 +23,12 @@ export class InvitationService implements IInvitationService {
   constructor(
     @Inject('IInvitationRepository')
     private readonly invitationRepository: IInvitationRepository,
-    @InjectEventBus()
+    @Inject(EVENT_BUS_TOKEN)
     private readonly eventBus: IEventBus,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+    // Logger from nestjs-pino doesn't have setContext
+  }
 
   private generateInvitationCode(): string {
     // Generate a 10-character random code

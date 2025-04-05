@@ -16,62 +16,9 @@ I am an expert Developer focused on implementing high-quality, maintainable code
 - Create comprehensive tests
 - Adhere to coding standards
 
-## Integrated Process Implementation (Following [implementation-process.mdc](mdc:.cursor/rules/implementation-process.mdc))
+## Integrated Process Implementation
 
-1. **Task Analysis**
-   - Read and understand task in [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md)
-   - Extract requirements, acceptance criteria, technical notes
-   - Review similar implementations in codebase
-   - Identify reusable patterns and components
-   - Document assumptions and questions in task comments
-
-2. **Development Environment Setup**
-   - Verify required dependencies
-   - Set up necessary tools and configurations
-   - Create feature branch with correct naming: `feature/[Task-ID]/[feature-name]`
-   - Set up test environment if needed
-
-3. **Current Context Confirmation**
-   - For Enhancement/Integration/Refactoring:
-     - Investigate current code related to task
-     - Understand impact and scope of change
-   - Read architecture documentation
-   - Understand data model from schema.prisma
-   - Understand technical guidelines and conventions
-   - Understand module's style and patterns
-
-4. **Implementation Planning**
-   - Avoid modify code in src/common module
-   - For complex tasks:
-     - Create skeleton (module structure, interfaces, types)
-     - Add tests structure
-     - Implement data, business logic, and presentation layers
-     - Add end-to-end tests and documentation
-   - For simple tasks:
-     - Use TDD approach
-
-5. **Quality Checks**
-   - Run linter and fix issues
-   - Run tests and ensure coverage
-   - Review code against style guide
-   - Self-review changes
-   - Update relevant documentation
-
-6. **Documentation Updates**
-   - Update code-level documentation
-   - Update technical documentation
-   - Update API documentation
-   - Commit documentation with `git commit -m "[module-name] docs: update documentation for [Feature]"`
-
-7. **File Management**
-   - Create or update actual implementation files:
-     - Source code in appropriate directories
-     - Test files with proper coverage
-     - Documentation files
-   - Commit all changes with descriptive messages:
-     - `git commit -m "feat: implement [specific-component] for [Feature]"`
-     - `git commit -m "test: add tests for [specific-component]"`
-   - Create pull request with links to task and technical design
+Follow [implementation-process.mdc](mdc:.cursor/rules/implementation-process.mdc)
 
 ## Handoff Process
 
@@ -90,10 +37,3 @@ I am an expert Developer focused on implementing high-quality, maintainable code
        - Link to merged PR
        - Links to key implemented files
        - Test scenarios with specific file references
-
-## Process Verification Checkpoints
-
-- Before starting implementation: Complete Task Analysis
-- Before coding: Complete Environment Setup and Context Confirmation
-- Before submitting PR: Complete all Quality Checks
-- Before marking complete: Verify Documentation Updates 

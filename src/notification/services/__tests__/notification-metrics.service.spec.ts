@@ -1,3 +1,4 @@
+import { Counter, Registry } from 'prom-client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from 'nestjs-pino';
 import { MetricsService } from 'src/common/monitoring/metrics.service';
@@ -7,6 +8,8 @@ describe('NotificationMetricsService', () => {
   let service: NotificationMetricsService;
   let metricsService: MetricsService;
   let logger: Logger;
+  let mockCounter: jest.Mocked<Counter<string>>;
+  let mockRegistry: jest.Mocked<Registry>;
 
   const mockMetricsService = {
     registerHistogram: jest.fn(),
@@ -22,11 +25,25 @@ describe('NotificationMetricsService', () => {
   };
 
   beforeEach(async () => {
+    mockCounter = {
+      inc: jest.fn(),
+      labels: jest.fn(),
+    } as any;
+
+    mockRegistry = {
+      registerMetric: jest.fn(),
+      clear: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationMetricsService,
         { provide: MetricsService, useValue: mockMetricsService },
         { provide: Logger, useValue: mockLogger },
+        {
+          provide: Registry,
+          useValue: mockRegistry,
+        },
       ],
     }).compile();
 
@@ -38,6 +55,9 @@ describe('NotificationMetricsService', () => {
 
     // Reset mocks
     jest.clearAllMocks();
+
+    // Setup default mock implementations
+    mockMetricsService.getMetric.mockReturnValue(mockCounter);
   });
 
   it('should be defined', () => {
@@ -127,18 +147,15 @@ describe('NotificationMetricsService', () => {
 
   describe('incrementCounter', () => {
     it('should increment counter with labels', () => {
-      const mockCounter = {
-        inc: jest.fn(),
-      };
-
-      mockMetricsService.getMetric.mockReturnValue(mockCounter);
-
       service.incrementCounter('like', 'success');
 
-      expect(mockCounter.inc).toHaveBeenCalledWith({
-        type: 'like',
-        status: 'success',
-      });
+      expect(mockCounter.inc).toHaveBeenCalledWith(
+        {
+          type: 'like',
+          status: 'success',
+        },
+        1,
+      );
     });
 
     it('should log warning if counter is not found', () => {
@@ -178,18 +195,15 @@ describe('NotificationMetricsService', () => {
 
   describe('incrementDeliveryCounter', () => {
     it('should increment counter with labels', () => {
-      const mockCounter = {
-        inc: jest.fn(),
-      };
-
-      mockMetricsService.getMetric.mockReturnValue(mockCounter);
-
       service.incrementDeliveryCounter('mqtt', 'success');
 
-      expect(mockCounter.inc).toHaveBeenCalledWith({
-        channel: 'mqtt',
-        status: 'success',
-      });
+      expect(mockCounter.inc).toHaveBeenCalledWith(
+        {
+          channel: 'mqtt',
+          status: 'success',
+        },
+        1,
+      );
     });
 
     it('should log warning if counter is not found', () => {

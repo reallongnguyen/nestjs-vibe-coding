@@ -1,15 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { AppError } from 'src/common/errors/app.error';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InvitationEventSchemas } from 'src/common/event-manager/entities/events/schemas/invitation.events';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
+import { Logger } from 'nestjs-pino';
 import { USER_FOLLOW_ERRORS } from '../../entities/user-follow.errors';
 import { UserFollowService } from '../../services/user-follow.service';
 
 @Injectable()
 export class InvitationAcceptedHandler {
-  private readonly logger = new Logger(InvitationAcceptedHandler.name);
-
-  constructor(private readonly userFollowService: UserFollowService) {}
+  constructor(
+    private readonly userFollowService: UserFollowService,
+    @Inject(LOGGER_TOKEN) private readonly logger: Logger,
+  ) {}
 
   /**
    * Handles invitation acceptance events by creating bidirectional follow relationships

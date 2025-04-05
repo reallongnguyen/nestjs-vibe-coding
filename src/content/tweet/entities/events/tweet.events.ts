@@ -89,6 +89,27 @@ export class TweetViewedEvent extends BaseEvent<
 }
 
 /**
+ * Event emitted to trigger cleanup of a tweet image
+ */
+export class TweetImageCleanupEvent extends BaseEvent<
+  typeof ContentEventSchemas.DELETE_IMAGE.schema
+> {
+  private readonly eventPayload: typeof ContentEventSchemas.DELETE_IMAGE.schema;
+
+  constructor(
+    imageUrl: string,
+    params?: Omit<EventMetadata, 'version' | 'timestamp'>,
+  ) {
+    super(ContentEventSchemas.DELETE_IMAGE, params);
+    this.eventPayload = { imageUrl };
+  }
+
+  toJSON() {
+    return this.eventPayload;
+  }
+}
+
+/**
  * Re-export event schemas for convenience
  */
 export { ContentEventSchemas as TWEET_EVENTS } from 'src/common/event-manager/entities/events/schemas/content.events';

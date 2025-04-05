@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { IEventBus, InjectEventBus } from 'src/common/event-manager';
+import { IEventBus } from 'src/common/event-manager';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { ContentEventSchemas } from 'src/common/event-manager/entities/events/schemas';
 import { DeleteImageCommand } from 'src/common/event-manager/entities/events/commands/delete-image.command';
 import {
@@ -17,7 +18,7 @@ export class TweetImageCleanupHandler {
   private readonly logger = new Logger(TweetImageCleanupHandler.name);
 
   constructor(
-    @InjectEventBus() private readonly eventBus: IEventBus,
+    @Inject(EVENT_BUS_TOKEN) private readonly eventBus: IEventBus,
     @Inject(TWEET_REPOSITORY) private readonly tweetRepository: TweetRepository,
   ) {}
 

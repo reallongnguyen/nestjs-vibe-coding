@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { GetEngagementMetricsHandler } from './get-engagement-metrics.handler';
 import { SocialEngagementService } from '../../services/social-engagement.service';
 import { GetEngagementMetricsCommand } from '../../../feed/entities/commands/get-engagement-metrics.command';
+import { ContentType } from '../../../common/event-manager/entities/events/schemas/social.events';
 
 describe('GetEngagementMetricsHandler', () => {
   let handler: GetEngagementMetricsHandler;
@@ -86,11 +87,11 @@ describe('GetEngagementMetricsHandler', () => {
       );
       expect(socialEngagementService.getEngagementStats).toHaveBeenCalledWith(
         'content1',
-        'ARTICLE',
+        ContentType.POST,
       );
       expect(socialEngagementService.getEngagementStats).toHaveBeenCalledWith(
         'content2',
-        'ARTICLE',
+        ContentType.POST,
       );
     });
 

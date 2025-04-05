@@ -14,13 +14,7 @@ import {
   UserActivatedEvent,
   UserDeletedEvent,
 } from '../entities/events/user.events';
-
-class AppError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AppError';
-  }
-}
+import { IdentityErrorFactory } from '../entities/errors';
 
 interface EventBusPort {
   publish(event: any): Promise<void>;
@@ -150,11 +144,11 @@ describe('UserService', () => {
       );
     });
 
-    it('should throw error when user not found', async () => {
+    it('should throw UserNotFoundError when user not found', async () => {
       userRepository.findUnique.mockResolvedValue(null);
 
       await expect(service.updateProfile(userId, input)).rejects.toThrow(
-        AppError,
+        IdentityErrorFactory.userNotFound(userId),
       );
     });
   });

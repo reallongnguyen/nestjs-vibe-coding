@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
+import { LOGGER_TOKEN } from '../../../src/common/logger/logger.token';
 import { InvitationAcceptedHandler } from '../../../src/user-follow/presentation/handlers/invitation-accepted.handler';
 import { UserFollowService } from '../../../src/user-follow/services/user-follow.service';
 import { InvitationAcceptedEvent } from '../../../src/invitation/entities/events/invitation-accepted.event';
@@ -14,14 +14,21 @@ describe('InvitationAcceptedHandler Integration Tests', () => {
   let module: TestingModule;
   let handler: InvitationAcceptedHandler;
   let mockUserFollowService: jest.Mocked<UserFollowService>;
-  let loggerSpy: jest.SpyInstance;
+  let mockLogger: jest.Mocked<any>;
 
   beforeEach(async () => {
     mockUserFollowService = {
       followUser: jest.fn(),
     } as any;
 
-    loggerSpy = jest.spyOn(Logger.prototype, 'debug');
+    mockLogger = {
+      debug: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+    };
 
     module = await Test.createTestingModule({
       providers: [
@@ -29,6 +36,10 @@ describe('InvitationAcceptedHandler Integration Tests', () => {
         {
           provide: UserFollowService,
           useValue: mockUserFollowService,
+        },
+        {
+          provide: LOGGER_TOKEN,
+          useValue: mockLogger,
         },
         EventEmitter2,
       ],
@@ -149,13 +160,13 @@ describe('InvitationAcceptedHandler Integration Tests', () => {
       await handler.handle(testEvent);
 
       // Assert
-      expect(loggerSpy).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Processing invitation acceptance'),
       );
-      expect(loggerSpy).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Created follow relationship'),
       );
-      expect(loggerSpy).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining(
           'Successfully created bidirectional follow relationship',
         ),
@@ -164,7 +175,7 @@ describe('InvitationAcceptedHandler Integration Tests', () => {
 
     it('should log errors appropriately', async () => {
       // Arrange
-      const loggerErrorSpy = jest.spyOn(Logger.prototype, 'error');
+      const loggerErrorSpy = jest.spyOn(mockLogger, 'error');
       const error = new Error('Test error');
       mockUserFollowService.followUser.mockRejectedValue(error);
 

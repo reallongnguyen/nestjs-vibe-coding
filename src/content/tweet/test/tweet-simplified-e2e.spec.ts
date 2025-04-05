@@ -5,9 +5,13 @@ import * as request from 'supertest';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { AuthGuard, RolesGuard } from 'src/common/auth';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { TweetController } from '../presentation/tweet.controller';
 import { TweetService } from '../services/tweet.service';
 import { TWEET_REPOSITORY } from '../repositories/tweet.repository';
+import { TweetUserService } from '../services/tweet-user.service';
+import { TweetImageService } from '../services/tweet-image.service';
+import { TweetEventService } from '../services/tweet-event.service';
 
 describe('Tweet Creation (simplified e2e)', () => {
   let app: INestApplication;
@@ -53,6 +57,21 @@ describe('Tweet Creation (simplified e2e)', () => {
       }),
     };
 
+    const mockTweetUserService = {
+      enrichTweetWithUser: jest.fn(),
+      enrichTweetsWithUsers: jest.fn(),
+    };
+
+    const mockTweetImageService = {
+      validateImages: jest.fn(),
+    };
+
+    const mockTweetEventService = {
+      publishTweetCreated: jest.fn(),
+      publishTweetUpdated: jest.fn(),
+      publishTweetDeleted: jest.fn(),
+    };
+
     const moduleRef = await Test.createTestingModule({
       controllers: [TweetController],
       providers: [
@@ -62,7 +81,7 @@ describe('Tweet Creation (simplified e2e)', () => {
           useValue: mockTweetRepository,
         },
         {
-          provide: 'IEventBus',
+          provide: EVENT_BUS_TOKEN,
           useValue: mockEventBus,
         },
         {
@@ -70,6 +89,18 @@ describe('Tweet Creation (simplified e2e)', () => {
           useValue: {
             $transaction: jest.fn((fn) => fn()),
           },
+        },
+        {
+          provide: TweetUserService,
+          useValue: mockTweetUserService,
+        },
+        {
+          provide: TweetImageService,
+          useValue: mockTweetImageService,
+        },
+        {
+          provide: TweetEventService,
+          useValue: mockTweetEventService,
         },
       ],
     })

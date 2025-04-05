@@ -16,9 +16,6 @@ alwaysApply: false
 - Review similar implementations in codebase
 - Identify reusable patterns and components
 - List potential technical challenges
-- Document assumptions and questions
-- If task is not clear, ask for clarification
-- If dependencies task is not completed, ask for clarification
 
 ### STEP 2: Development Environment Setup
 
@@ -42,24 +39,12 @@ alwaysApply: false
   - Validate any changes against architectural constraints
   - Ensure new code maintains defined separation of concerns
 - Read the file: [schema.prisma](mdc:prisma/schema.prisma)
-  - Understand the data model
-  - Understand the constraints
 - Read the file: [technical.md](mdc:docs/technical.md)
-  - Understand folder structure
-  - Understand code conventions
-- Understand the module's style:
-  - Clear separation of entities, repositories, services, and presentation layers follow module structure [module-structure.md](mdc:docs/module-structure.md)
-  - Specific error classes for better error handling
-  - Consistent DTO patterns with fromDomain static methods
-  - Proper use of decorators for API documentation
-  - Consistent error mapping
-  - Proper use of dependency injection
+- Understand the module's style in [module-structure.md](mdc:docs/module-structure.md)
 
 ### STEP 4: Implementation Planning
 
 If this task is complex or high risk or integration-heavy, consider to perform Dependency Analysis and Planning first. You can create sub folder in `tasks/work/` to store analysis files.
-
-Complex task implementation steps:
 
 1. Create skeleton:
    - Module structure following patterns
@@ -93,28 +78,11 @@ Complex task implementation steps:
    - Technical documentation
    - Update architecture diagrams
 
-Simple task implementation steps:
-
-1. Add tests structure:
-   - Unit test files
-   - Integration points if needed
-2. Implement with TDD approach:
-   - Write failing test
-   - Implement feature
-   - Refactor
-3. Add documentation:
-   - Update relevant docs
-   - Add code comments
-
 ### STEP 5: Quality Checks
 
 - Run linter and fix issues
 - Run tests and ensure coverage
-- Review code against style guide
-- Self-review changes
-- Update relevant documentation
 
 ### STEP 6: Keep documentation updated
 
-- Follow Documentation Requirements (Section: Implementation Documentation)
 

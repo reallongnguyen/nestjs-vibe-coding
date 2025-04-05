@@ -1,16 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventBus } from '@nestjs/cqrs';
 import { PrismaService } from 'src/common';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { AppError } from 'src/common/errors/app.error';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { InvitationAcceptedEvent } from 'src/invitation/entities/events/invitation-accepted.event';
 import { USER_FOLLOW_ERRORS } from '../../entities/user-follow.errors';
 import { InvitationAcceptedHandler } from '../../presentation/handlers/invitation-accepted.handler';
 import { UserFollowRepository } from '../../repositories/user-follow.repository';
 import { UserFollowService } from '../../services/user-follow.service';
+import { USER_FOLLOW_REPOSITORY_TOKEN } from '../../services/interfaces/tokens';
 
 describe('InvitationAcceptedHandler', () => {
   let handler: InvitationAcceptedHandler;
   let userFollowService: UserFollowService;
+
+  const mockLogger = {
+    debug: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    fatal: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,11 +29,31 @@ describe('InvitationAcceptedHandler', () => {
         InvitationAcceptedHandler,
         UserFollowService,
         {
-          provide: 'IUserFollowRepository',
+          provide: USER_FOLLOW_REPOSITORY_TOKEN,
           useClass: UserFollowRepository,
         },
-        PrismaService,
-        EventBus,
+        {
+          provide: PrismaService,
+          useValue: {
+            userFollow: {
+              findUnique: jest.fn(),
+              create: jest.fn(),
+            },
+            user: {
+              findUnique: jest.fn(),
+            },
+          },
+        },
+        {
+          provide: EVENT_BUS_TOKEN,
+          useValue: {
+            publish: jest.fn(),
+          },
+        },
+        {
+          provide: LOGGER_TOKEN,
+          useValue: mockLogger,
+        },
       ],
     }).compile();
 

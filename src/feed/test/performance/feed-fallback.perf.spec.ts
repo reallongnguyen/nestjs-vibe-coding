@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { Logger } from 'nestjs-pino';
 import { performance } from 'perf_hooks';
 import { PageOptionsDto } from 'src/common';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { FeedFallbackService } from '../../services/feed-fallback.service';
 import { FeedType } from '../../entities/feed.types';
 
@@ -17,6 +17,10 @@ describe('FeedFallbackService Performance', () => {
   const mockLogger = {
     debug: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    fatal: jest.fn(),
   };
 
   const mockRedisService = {
@@ -32,7 +36,7 @@ describe('FeedFallbackService Performance', () => {
           useValue: mockRedisService,
         },
         {
-          provide: Logger,
+          provide: LOGGER_TOKEN,
           useValue: mockLogger,
         },
       ],

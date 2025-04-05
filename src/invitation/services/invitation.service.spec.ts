@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InvitationStatus } from '@prisma/client';
 import { EventBusAdapter } from 'src/common/event-manager/services/event-bus.adapter';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { AppError } from 'src/common/errors/app.error';
 import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';
+import { Logger } from 'nestjs-pino';
 import { Invitation } from '../entities/invitation.entity';
-import { INVITATION_ERRORS } from '../entities/invitation.errors';
+import { INVITATION_ERRORS } from '../entities/errors';
 import { InvitationService } from './invitation.service';
 import { IInvitationRepository } from './interfaces/invitation-repository.interface';
 
@@ -44,6 +46,15 @@ describe('InvitationService', () => {
       publish: jest.fn(),
     };
 
+    const loggerMock = {
+      setContext: jest.fn(),
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InvitationService,
@@ -52,8 +63,12 @@ describe('InvitationService', () => {
           useValue: repositoryMock,
         },
         {
-          provide: 'EVENT_BUS_TOKEN',
+          provide: EVENT_BUS_TOKEN,
           useValue: eventBusMock,
+        },
+        {
+          provide: Logger,
+          useValue: loggerMock,
         },
       ],
     }).compile();
@@ -62,7 +77,7 @@ describe('InvitationService', () => {
     repository = module.get(
       'IInvitationRepository',
     ) as jest.Mocked<IInvitationRepository>;
-    eventBus = module.get('EVENT_BUS_TOKEN') as jest.Mocked<EventBusAdapter>;
+    eventBus = module.get(EVENT_BUS_TOKEN) as jest.Mocked<EventBusAdapter>;
   });
 
   it('should be defined', () => {

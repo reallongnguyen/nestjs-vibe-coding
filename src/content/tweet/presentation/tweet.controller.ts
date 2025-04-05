@@ -10,6 +10,7 @@ import {
   UseFilters,
   UseGuards,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -31,7 +32,9 @@ import {
   User,
 } from 'src/common';
 import { GlobalErrorFilter, ErrorResponse } from 'src/common/errors';
-import { IEventBus, InjectEventBus } from 'src/common/event-manager';
+import { IEventBus } from 'src/common/event-manager';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { TweetService } from '../services/tweet.service';
 import { CreateTweetDto, UpdateTweetDto } from './dto/tweet.dto';
 import { TweetResponseDto } from './dto/tweet-response.dto';
@@ -46,11 +49,10 @@ import { TweetViewedEvent } from '../entities/events/tweet.events';
 @ApiTags('tweets')
 @ErrorResponse({})
 export class TweetController {
-  private readonly logger = new Logger(TweetController.name);
-
   constructor(
     private readonly tweetService: TweetService,
-    @InjectEventBus() private readonly eventBus: IEventBus,
+    @Inject(EVENT_BUS_TOKEN) private readonly eventBus: IEventBus,
+    @Inject(LOGGER_TOKEN) private readonly logger: Logger,
   ) {}
 
   @Post()

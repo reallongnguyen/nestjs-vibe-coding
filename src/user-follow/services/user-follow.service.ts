@@ -1,10 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PagedResult, PageOptionsDto, PrismaService } from 'src/common';
 import { IEventBus } from 'src/common/event-manager';
-import { InjectEventBus } from 'src/common/event-manager/presentation/decorators/inject-event-bus.decorator';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { AppError } from 'src/common/errors/app.error';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
+import { Logger } from 'nestjs-pino';
 import { UserFollow } from '../entities/user-follow.entity';
 import { IUserFollowRepository } from './interfaces/user-follow-repository.interface';
+import { USER_FOLLOW_REPOSITORY_TOKEN } from './interfaces/tokens';
 import { IUserFollowService } from './interfaces/user-follow-service.interface';
 import { FollowerDto } from './dtos/follower.dto';
 import { FollowCountsDto } from './dtos/follow-counts.dto';
@@ -15,18 +18,24 @@ import { UserUnfollowedEvent } from '../entities/events/user-unfollowed.event';
 @Injectable()
 export class UserFollowService implements IUserFollowService {
   constructor(
-    @Inject('IUserFollowRepository')
+    @Inject(USER_FOLLOW_REPOSITORY_TOKEN)
     private readonly userFollowRepository: IUserFollowRepository,
-    @InjectEventBus() private readonly eventBus: IEventBus,
+    @Inject(EVENT_BUS_TOKEN) private readonly eventBus: IEventBus,
     private readonly prisma: PrismaService,
+    @Inject(LOGGER_TOKEN) private readonly logger: Logger,
   ) {}
 
   async followUser(
     followerId: string,
     followingId: string,
   ): Promise<UserFollow> {
+    this.logger.debug(
+      `User ${followerId} attempting to follow user ${followingId}`,
+    );
+
     // Validate that users are not the same
     if (followerId === followingId) {
+      this.logger.warn(`User ${followerId} attempted to follow themselves`);
       throw new AppError('self-follow', USER_FOLLOW_ERRORS['self-follow'], {
         params: { userId: followerId },
       });
@@ -39,6 +48,9 @@ export class UserFollowService implements IUserFollowService {
     );
 
     if (isFollowing) {
+      this.logger.debug(
+        `User ${followerId} is already following user ${followingId}`,
+      );
       // Since findOne doesn't exist in the interface, we'll query directly
       return this.prisma.userFollow.findUnique({
         where: {
@@ -55,6 +67,7 @@ export class UserFollowService implements IUserFollowService {
       await this.userFollowRepository.getFollowerDetails(followerId);
 
     if (!followerDetails) {
+      this.logger.error(`Follower user ${followerId} not found`);
       throw new AppError(
         'user-not-found',
         USER_FOLLOW_ERRORS['user-not-found'],
@@ -71,6 +84,9 @@ export class UserFollowService implements IUserFollowService {
     );
 
     if (!follow) {
+      this.logger.error(
+        `Failed to create follow relationship between ${followerId} and ${followingId}`,
+      );
       throw new AppError('follow-failed', USER_FOLLOW_ERRORS['follow-failed'], {
         params: { followerId, followingId },
       });
@@ -81,6 +97,7 @@ export class UserFollowService implements IUserFollowService {
       await this.userFollowRepository.getFollowerDetails(followingId);
 
     if (!followingDetails) {
+      this.logger.error(`Following user ${followingId} not found`);
       throw new AppError(
         'user-not-found',
         USER_FOLLOW_ERRORS['user-not-found'],
@@ -105,6 +122,9 @@ export class UserFollowService implements IUserFollowService {
     );
 
     await this.eventBus.publish(event);
+    this.logger.debug(
+      `Successfully created follow relationship: ${followerId} -> ${followingId}`,
+    );
 
     return follow;
   }
@@ -113,6 +133,10 @@ export class UserFollowService implements IUserFollowService {
     followerId: string,
     followingId: string,
   ): Promise<UserFollow> {
+    this.logger.debug(
+      `User ${followerId} attempting to unfollow user ${followingId}`,
+    );
+
     // Check if following exists
     const isFollowing = await this.userFollowRepository.exists(
       followerId,
@@ -120,6 +144,9 @@ export class UserFollowService implements IUserFollowService {
     );
 
     if (!isFollowing) {
+      this.logger.warn(
+        `Follow relationship not found between ${followerId} and ${followingId}`,
+      );
       throw new AppError(
         'follow-not-found',
         USER_FOLLOW_ERRORS['follow-not-found'],
@@ -137,9 +164,11 @@ export class UserFollowService implements IUserFollowService {
 
     // Publish event
     const event = new UserUnfollowedEvent(followerId, followingId, new Date());
-
     await this.eventBus.publish(event);
 
+    this.logger.debug(
+      `Successfully deleted follow relationship: ${followerId} -> ${followingId}`,
+    );
     return follow;
   }
 
