@@ -7,6 +7,7 @@ import {
   Inject,
   Logger,
   Param,
+  Get,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -31,6 +32,7 @@ import {
   CreateStoryDto,
   ForkStoryDto,
   StoryResponseDto,
+  ChainResponseDto,
 } from './dto';
 
 @Controller({
@@ -165,6 +167,50 @@ export class StoryController {
         lastName: user.lastName,
         avatar: user.avatar,
       },
+    };
+  }
+
+  @Get(':rootId/chain')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({
+    description: 'Get a complete story chain by its root ID',
+    summary: 'Get story chain',
+  })
+  @ApiParam({
+    name: 'rootId',
+    description: 'ID of the root story of the chain',
+    type: String,
+  })
+  @OkResponse(ChainResponseDto)
+  async getStoryChain(
+    @Param('rootId') rootId: string,
+    @AuthContextUser() user: User,
+  ): Promise<ChainResponseDto> {
+    const chain = await this.storyService.getStoryChain(rootId);
+
+    // Transform the chain data to include author information
+    const transformNode = (node: any): any => ({
+      id: node.id,
+      content: node.content,
+      images: node.images,
+      parentId: node.parentId,
+      rootId: node.rootId,
+      chainPosition: node.chainPosition,
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+      author: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+      },
+      children: node.children.map(transformNode),
+    });
+
+    return {
+      root: transformNode(chain.root),
+      totalStories: chain.totalStories,
+      maxDepth: chain.maxDepth,
     };
   }
 }

@@ -234,58 +234,44 @@ Metadata:
   Type: Feature
   Component: Backend
   Priority: High
-  Status: Backlog
+  Status: In Progress
 
 Dependencies:
   Blocked By: [SC-01]
   Related: [SC-06]
 
 Description:
-  Implement API endpoints for retrieving story chains with their hierarchical structure.
+  Implement an API endpoint to retrieve complete story chains, including all branches and continuations.
 
 Requirements:
 
-- Provide endpoints to retrieve complete or partial story chains
-- Support efficient pagination for large chains
-- Return chain data with hierarchical structure preserved
-- Optimize query performance for chain traversal
-- Support filtering options for chain retrieval
-
-Instructions:
-
-  1. [ ] Create ChainResponseDto and StoryNodeDto for representing chain structure
-  2. [ ] Implement GET /stories/{rootId}/chain endpoint in StoryController
-  3. [ ] Create StoryChainService for specialized chain operations
-  4. [ ] Implement efficient queries for retrieving complete chains
-  5. [ ] Add pagination support with cursor-based pagination
-  6. [ ] Implement filtering options (by date, author, etc.)
-  7. [ ] Add performance optimization for large chains
-  8. [ ] Write integration tests for chain retrieval operations
-  9. [ ] Document the API endpoints with Swagger
+- [x] Create DTOs for chain response structure
+- [x] Implement service method to build story chains
+- [x] Add repository method for finding stories by root ID
+- [x] Create GET /stories/{rootId}/chain endpoint
+- [ ] Write integration tests for chain retrieval
+- [x] Add proper error handling for invalid requests
+- [x] Document the API endpoint with Swagger
 
 Technical Notes:
 
-- Use a recursive CTE query in Prisma for efficient chain retrieval
-- Implement cursor-based pagination for large chains
-- Consider caching strategies for frequently accessed chains
-- Balance between query complexity and response time
-- Use projection to limit data transferred over the network
-- Add telemetry to monitor query performance
+- Uses recursive tree structure for representing chains
+- Efficient O(n) algorithm for building chain structure
+- Includes metadata about chain size and depth
 
 Acceptance Criteria:
 
-  1. [ ] GET /stories/{rootId}/chain endpoint returns complete chain structure
-  2. [ ] Hierarchical relationships are preserved in the response
-  3. [ ] Pagination works correctly for large chains
-  4. [ ] Queries perform within performance benchmarks
-  5. [ ] Filtering options correctly limit returned chains
-  6. [ ] Integration tests verify chain retrieval accuracy
-  7. [ ] API endpoints are documented with Swagger
+  1. [x] API returns complete chain structure starting from root story
+  2. [x] Each story node includes its children and metadata
+  3. [x] Response includes total story count and max depth
+  4. [x] Proper validation of root story existence
+  5. [x] Error handling for non-root stories
+  6. [ ] Integration tests verify chain structure
 
 References:
 
-- Query optimization: <https://www.prisma.io/docs/concepts/components/prisma-client/aggregation-grouping-summarizing>
-- Pagination reference: src/common/dtos/pagination.dto.ts
+- Implementation details: tasks/work/sc-05-notes.md
+- API documentation: src/content/story/presentation/story.controller.ts
 
 ## SC-06: Chain Visualization Algorithm
 

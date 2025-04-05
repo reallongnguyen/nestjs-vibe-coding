@@ -11,6 +11,7 @@ export enum StoryErrorCode {
   CANNOT_CONTINUE_ARCHIVED = 'CANNOT_CONTINUE_ARCHIVED_STORY',
   NOT_AUTHORIZED = 'NOT_AUTHORIZED_FOR_STORY',
   CONCURRENT_UPDATE = 'CONCURRENT_UPDATE_DETECTED',
+  NOT_CHAIN_ROOT = 'NOT_CHAIN_ROOT_STORY',
 }
 
 export class StoryErrorFactory {
@@ -87,5 +88,16 @@ export class StoryErrorFactory {
       message: 'Concurrent update detected. Please try again.',
       status: HttpStatus.CONFLICT,
     });
+  }
+
+  static notChainRoot(storyId: string): AppError {
+    return new AppError(
+      StoryErrorCode.NOT_CHAIN_ROOT,
+      {
+        message: `Story with ID ${storyId} is not a root story of a chain`,
+        status: HttpStatus.BAD_REQUEST,
+      },
+      { params: { storyId } },
+    );
   }
 }
