@@ -1,11 +1,7 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
-import { EventBus } from '@nestjs/cqrs';
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { IEventBus } from 'src/common/event-manager';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
+import { Retry } from 'src/common/decorators/retry.decorator';
 import { CreateTweetDto } from '../dtos/create-tweet.dto';
 import { UpdateTweetDto } from '../dtos/update-tweet.dto';
 import { TweetDto } from '../dtos/tweet.dto';
@@ -18,64 +14,36 @@ import { TWEET_REPOSITORY } from '../tweet.constants';
 import { TweetUserService } from './tweet-user.service';
 import { TweetImageService } from './tweet-image.service';
 import { TweetEventService } from './tweet-event.service';
+import { TweetErrorFactory } from '../entities/errors';
 
 @Injectable()
 export class TweetService {
   private readonly logger = new Logger(TweetService.name);
-  private static readonly MAX_RETRIES = 3;
-  private static readonly RETRY_DELAY = 100; // 100ms
 
   constructor(
     @Inject(TWEET_REPOSITORY)
     private readonly tweetRepository: TweetRepository,
-    private readonly eventBus: EventBus,
+    @Inject(EVENT_BUS_TOKEN) private readonly eventBus: IEventBus,
     private readonly tweetUserService: TweetUserService,
     private readonly tweetImageService: TweetImageService,
     private readonly tweetEventService: TweetEventService,
   ) {}
-
-  private async retryOperation<T>(operation: () => Promise<T>): Promise<T> {
-    const delay = (ms: number): Promise<void> =>
-      new Promise((resolve) => {
-        setTimeout(resolve, ms);
-      });
-
-    const executeAttempt = async (attempt: number): Promise<T> => {
-      try {
-        return await operation();
-      } catch (error) {
-        if (
-          error.message === 'Concurrent update detected. Please try again.' &&
-          attempt < TweetService.MAX_RETRIES - 1
-        ) {
-          const delayTime = TweetService.RETRY_DELAY * (attempt + 1);
-          await delay(delayTime);
-          return executeAttempt(attempt + 1);
-        }
-        throw error;
-      }
-    };
-
-    return executeAttempt(0);
-  }
 
   async createTweet(createTweetDto: CreateTweetDto): Promise<TweetDto> {
     const { content, images, userId } = createTweetDto;
 
     // Validate tweet content
     if (!content || content.trim().length === 0) {
-      throw new BadRequestException('Tweet content cannot be empty');
+      throw TweetErrorFactory.contentEmpty();
     }
 
     if (content.length > 280) {
-      throw new BadRequestException(
-        'Tweet content cannot exceed 280 characters',
-      );
+      throw TweetErrorFactory.contentTooLong();
     }
 
     // Validate images
     if (images && images.length > 0) {
-      await this.tweetImageService.validateImages(images);
+      await this.tweetImageService.validateImages(images, userId);
     }
 
     const tweet = await this.tweetRepository.create({
@@ -95,7 +63,7 @@ export class TweetService {
     const tweet = await this.tweetRepository.findById(id);
 
     if (!tweet) {
-      throw new NotFoundException(`Tweet with ID ${id} not found`);
+      throw TweetErrorFactory.tweetNotFound(id);
     }
 
     return tweet;
@@ -168,79 +136,81 @@ export class TweetService {
     return this.tweetRepository.countByUserId(userId, includeArchived);
   }
 
+  @Retry({
+    maxAttempts: 3,
+    backoffMs: 100,
+    exponential: true,
+    retryableErrors: [Error],
+  })
   async updateTweet(
     id: string,
     userId: string,
     updateTweetDto: UpdateTweetDto,
   ): Promise<TweetDto> {
-    return this.retryOperation(async () => {
-      const tweet = await this.getTweetById(id);
+    const tweet = await this.getTweetById(id);
 
-      // Check if the user owns the tweet
-      if (!tweet.isOwner(userId)) {
-        throw new BadRequestException(
-          'You are not authorized to update this tweet',
-        );
+    // Check if the user owns the tweet
+    if (!tweet.isOwner(userId)) {
+      throw TweetErrorFactory.unauthorized('update');
+    }
+
+    const { content, images } = updateTweetDto;
+
+    // Validate tweet content if provided
+    if (content !== undefined) {
+      if (content.trim().length === 0) {
+        throw TweetErrorFactory.contentEmpty();
       }
 
-      const { content, images } = updateTweetDto;
-
-      // Validate tweet content if provided
-      if (content !== undefined) {
-        if (content.trim().length === 0) {
-          throw new BadRequestException('Tweet content cannot be empty');
-        }
-
-        if (content.length > 280) {
-          throw new BadRequestException(
-            'Tweet content cannot exceed 280 characters',
-          );
-        }
+      if (content.length > 280) {
+        throw TweetErrorFactory.contentTooLong();
       }
+    }
 
-      // Validate images if provided
-      if (images !== undefined) {
-        await this.tweetImageService.validateImages(images);
-      }
+    // Validate images if provided
+    if (images !== undefined) {
+      await this.tweetImageService.validateImages(images, userId);
+    }
 
-      // If images are being updated, trigger cleanup for old images
-      if (images !== undefined && tweet.images.length > 0) {
-        await this.tweetImageService.triggerCleanup(tweet.images, tweet.id);
-      }
+    // If images are being updated, trigger cleanup for old images
+    if (images !== undefined && tweet.images.length > 0) {
+      await this.tweetImageService.triggerCleanup(tweet.images, tweet.id);
+    }
 
-      const updatedTweet = tweet.update(
-        content ?? tweet.content,
-        images ?? tweet.images,
-      );
+    const updatedTweet = tweet.update(
+      content ?? tweet.content,
+      images ?? tweet.images,
+    );
 
-      const savedTweet = await this.tweetRepository.update(updatedTweet);
+    const savedTweet = await this.tweetRepository.update(updatedTweet);
 
-      // Publish tweet updated event
-      await this.publishTweetUpdatedEvent(savedTweet);
+    // Publish tweet updated event
+    await this.publishTweetUpdatedEvent(savedTweet);
 
-      return this.enrichTweetWithUser(savedTweet);
-    });
+    return this.enrichTweetWithUser(savedTweet);
   }
 
+  @Retry({
+    maxAttempts: 3,
+    backoffMs: 100,
+    exponential: true,
+    retryableErrors: [Error],
+  })
   async archiveTweet(id: string, userId: string): Promise<TweetDto> {
-    return this.retryOperation(async () => {
-      const tweet = await this.getTweetById(id);
+    const tweet = await this.getTweetById(id);
 
-      // Check if the user owns the tweet
-      if (!tweet.isOwner(userId)) {
-        throw new BadRequestException(
-          'You are not authorized to archive this tweet',
-        );
-      }
+    // Check if the user owns the tweet
+    if (!tweet.isOwner(userId)) {
+      throw TweetErrorFactory.unauthorized('archive');
+    }
 
-      const archivedTweet = tweet.archive();
-      const savedTweet = await this.tweetRepository.update(archivedTweet);
+    const archivedTweet = tweet.archive();
+    const savedTweet = await this.tweetRepository.update(archivedTweet);
 
-      // Publish tweet updated event
-      await this.publishTweetUpdatedEvent(savedTweet);
+    // Publish tweet updated event
+    await this.publishTweetUpdatedEvent(savedTweet);
 
-      return this.enrichTweetWithUser(savedTweet);
-    });
+    return this.enrichTweetWithUser(savedTweet);
   }
 
   async deleteTweet(id: string, userId: string): Promise<void> {
@@ -248,9 +218,7 @@ export class TweetService {
 
     // Check if the user owns the tweet
     if (!tweet.isOwner(userId)) {
-      throw new BadRequestException(
-        'You are not authorized to delete this tweet',
-      );
+      throw TweetErrorFactory.unauthorized('delete');
     }
 
     // Trigger cleanup for tweet images

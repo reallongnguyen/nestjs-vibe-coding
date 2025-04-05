@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CqrsModule } from '@nestjs/cqrs';
+import { LoggerModule } from 'src/common/logger/logger.module';
 import { TweetService } from './services/tweet.service';
 import { TweetUserService } from './services/tweet-user.service';
 import { TweetImageService } from './services/tweet-image.service';
@@ -13,6 +14,7 @@ import { TweetController } from './presentation/tweet.controller';
 @Module({
   imports: [
     CqrsModule,
+    LoggerModule,
     CacheModule.register({
       ttl: 900, // 15 minutes in seconds
       max: 100, // maximum number of items in cache

@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { Logger } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { performance } from 'perf_hooks';
 import { PageOptionsDto } from 'src/common';
+import { Logger } from 'nestjs-pino';
 import { FeedCacheManagerService } from '../../services/feed-cache-manager.service';
 import { FeedItem } from '../../entities/feed.entity';
 import { FeedType } from '../../entities/feed.types';
@@ -80,6 +80,9 @@ describe('FeedCacheManagerService Performance', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

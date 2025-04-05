@@ -3,6 +3,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Logger } from 'nestjs-pino';
 import { Redis } from 'ioredis';
 import { PageOptionsDto } from 'src/common';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { FeedFallbackService } from './feed-fallback.service';
 import { FeedType } from '../entities/feed.types';
 import { FeedGenerationError } from '../errors';
@@ -20,6 +21,10 @@ describe('FeedFallbackService', () => {
   const mockLogger = {
     debug: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    fatal: jest.fn(),
   };
 
   const mockRedisService = {
@@ -35,7 +40,7 @@ describe('FeedFallbackService', () => {
           useValue: mockRedisService,
         },
         {
-          provide: Logger,
+          provide: LOGGER_TOKEN,
           useValue: mockLogger,
         },
       ],
@@ -43,7 +48,7 @@ describe('FeedFallbackService', () => {
 
     service = module.get<FeedFallbackService>(FeedFallbackService);
     redis = module.get(RedisService).getOrThrow();
-    logger = module.get(Logger);
+    logger = module.get(LOGGER_TOKEN);
 
     // Reset all mocks before each test
     jest.clearAllMocks();

@@ -1,9 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventBus, EventsHandler, IEventHandler } from '@nestjs/cqrs';
+import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
+import { Logger } from 'nestjs-pino';
 import { TweetEventService } from '../../services/tweet-event.service';
-import { TweetCreatedEvent } from '../../events/tweet-created.event';
-import { TweetUpdatedEvent } from '../../events/tweet-updated.event';
-import { TweetDeletedEvent } from '../../events/tweet-deleted.event';
+import {
+  TweetCreatedEvent,
+  TweetDeletedEvent,
+  TweetUpdatedEvent,
+} from '../../entities/events/tweet.events';
 import { Tweet } from '../../models/tweet.model';
 
 // Mock event handlers to simulate downstream services
@@ -97,12 +101,25 @@ describe('TweetEventService Integration', () => {
       }),
     };
 
+    const mockLogger = {
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+    };
+
     module = await Test.createTestingModule({
       providers: [
         TweetEventService,
         {
-          provide: EventBus,
+          provide: EVENT_BUS_TOKEN,
           useValue: mockEventBus,
+        },
+        {
+          provide: Logger,
+          useValue: mockLogger,
         },
       ],
     }).compile();

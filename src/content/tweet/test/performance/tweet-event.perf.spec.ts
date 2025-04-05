@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventBus, CommandBus, UnhandledExceptionBus } from '@nestjs/cqrs';
 import { ModuleRef } from '@nestjs/core';
 import { TweetEventMonitor } from './tweet-event-monitor';
-import { TweetCreatedEvent } from '../../events/tweet-created.event';
-import { TweetUpdatedEvent } from '../../events/tweet-updated.event';
-import { TweetDeletedEvent } from '../../events/tweet-deleted.event';
+import {
+  TweetCreatedEvent,
+  TweetDeletedEvent,
+  TweetUpdatedEvent,
+} from '../../entities/events/tweet.events';
 import { Tweet } from '../../models/tweet.model';
 
 describe('Tweet Event Performance Tests', () => {

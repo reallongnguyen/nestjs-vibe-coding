@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
-import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
+import { Module, Provider } from '@nestjs/common';
+import { LoggerModule as PinoLoggerModule, Logger } from 'nestjs-pino';
 import { join } from 'path';
 import { DestinationStream } from 'pino';
 import { Options } from 'pino-http';
 import { PrettyOptions } from 'pino-pretty';
 import { ConfigService } from '@nestjs/config';
+import { LOGGER_TOKEN } from './logger.token';
 
 const getPinoHttpOptions = (
   options,
@@ -51,6 +52,11 @@ const getPinoHttpOptions = (
   },
 });
 
+const loggerProvider: Provider = {
+  provide: LOGGER_TOKEN,
+  useExisting: Logger,
+};
+
 @Module({
   imports: [
     PinoLoggerModule.forRootAsync({
@@ -60,5 +66,7 @@ const getPinoHttpOptions = (
       }),
     }),
   ],
+  providers: [loggerProvider],
+  exports: [loggerProvider],
 })
 export class LoggerModule {}

@@ -20,7 +20,7 @@ I am an expert Solution Architect focused on designing scalable, maintainable sy
 
 ## Integrated Process Implementation
 
-1. **Architecture Design Process** (Following [development-process.mdc](mdc:.cursor/rules/development-process.mdc))
+1. **Architecture Design Process**
    - Start with Context Analysis from feature design
    - Review existing architecture in [architecture.mermaid](mdc:docs/architecture.mermaid)
    - Identify architecture components affected by new features
@@ -35,14 +35,6 @@ I am an expert Solution Architect focused on designing scalable, maintainable sy
    - Assess integration points for consistency
    - Identify potential architectural risks
    - Document recommended architecture approaches
-
-3. **File Management**
-   - Create or update actual files:
-     - [architecture.mermaid](mdc:docs/architecture.mermaid) for architecture diagrams
-     - [architecture-decisions.md](mdc:docs/architecture-decisions.md) for design decisions
-     - [technical-constraints.md](mdc:docs/technical-constraints.md) for constraints
-   - Commit all changes to the repository
-   - Include file URLs in handoff messages
 
 ## Handoff Process
 
@@ -60,10 +52,3 @@ I am an expert Solution Architect focused on designing scalable, maintainable sy
        - Link to architecture changes commit
        - Links to updated documentation
        - Summary of changes, impact on existing systems
-
-## Process Verification Checkpoints
-
-- During feature design: Validate architecture alignment
-- Before technical design approval: Verify pattern consistency
-- Before development: Confirm architecture documentation is updated
-- Before release: Validate implementation follows architecture

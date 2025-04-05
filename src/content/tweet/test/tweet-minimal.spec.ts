@@ -1,37 +1,51 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { EventBus } from '@nestjs/cqrs';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { TweetService } from '../services/tweet.service';
-import { TWEET_REPOSITORY } from '../repositories/tweet.repository';
 import { TweetUserService } from '../services/tweet-user.service';
 import { TweetImageService } from '../services/tweet-image.service';
 import { TweetEventService } from '../services/tweet-event.service';
+import { TWEET_REPOSITORY } from '../tweet.constants';
 
 describe('TweetService Validation', () => {
   let tweetService: TweetService;
-  const mockTweetRepository = {
-    create: jest.fn(),
-  };
-  const mockEventBus = {
-    publish: jest.fn(),
-  };
-  const mockPrismaService = {};
-  const mockTweetUserService = {
-    enrichTweetWithUser: jest.fn(),
-    enrichTweetsWithUsers: jest.fn(),
-  };
-  const mockTweetImageService = {
-    validateImages: jest.fn(),
-  };
-  const mockTweetEventService = {
-    publishTweetCreated: jest.fn(),
-    publishTweetUpdated: jest.fn(),
-    publishTweetDeleted: jest.fn(),
-  };
+  let mockTweetRepository;
+  let mockEventBus;
+  let mockTweetUserService;
+  let mockTweetImageService;
+  let mockTweetEventService;
 
   beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
+    mockTweetRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findByUserId: jest.fn(),
+      countByUserId: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    mockEventBus = {
+      publish: jest.fn(),
+    };
+
+    mockTweetUserService = {
+      getUserData: jest.fn(),
+      getUsersData: jest.fn(),
+    };
+
+    mockTweetImageService = {
+      validateImages: jest.fn(),
+      triggerCleanup: jest.fn(),
+    };
+
+    mockTweetEventService = {
+      publishTweetCreatedEvent: jest.fn(),
+      publishTweetUpdatedEvent: jest.fn(),
+      publishTweetDeletedEvent: jest.fn(),
+    };
+
+    const module = await Test.createTestingModule({
       providers: [
         TweetService,
         {
@@ -39,12 +53,8 @@ describe('TweetService Validation', () => {
           useValue: mockTweetRepository,
         },
         {
-          provide: EventBus,
+          provide: EVENT_BUS_TOKEN,
           useValue: mockEventBus,
-        },
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService,
         },
         {
           provide: TweetUserService,
@@ -61,7 +71,7 @@ describe('TweetService Validation', () => {
       ],
     }).compile();
 
-    tweetService = moduleRef.get<TweetService>(TweetService);
+    tweetService = module.get<TweetService>(TweetService);
   });
 
   afterEach(() => {

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IEventBus } from 'src/common/event-manager';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { AppError } from 'src/common/models';
 import { NotificationTemplateService } from './notification-template.service';
 import { INotificationTemplateRepository } from './interfaces/notification-template-repository.interface';
@@ -55,7 +56,7 @@ describe('NotificationTemplateService', () => {
           useValue: mockTemplateRepository,
         },
         {
-          provide: 'EventBusPort',
+          provide: EVENT_BUS_TOKEN,
           useValue: mockEventBus,
         },
       ],

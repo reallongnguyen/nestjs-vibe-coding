@@ -18,7 +18,7 @@ I am an expert Technical Leader focused on guiding implementation and ensuring c
 
 ## Integrated Process Implementation
 
-1. **Technical Design Process** (Following [development-process.mdc](mdc:.cursor/rules/development-process.mdc))
+1. **Technical Design Process**
    - Occurs AFTER sprint planning, only for tasks selected for the sprint
    - Review Feature Specification and Technical Design
    - Create sub-tasks in [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md) as needed

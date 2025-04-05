@@ -18,6 +18,9 @@ describe('SocialEngagementRedisService', () => {
       lrange: jest.fn(),
       llen: jest.fn(),
       rpush: jest.fn(),
+      rename: jest.fn(),
+      expire: jest.fn(),
+      del: jest.fn(),
       pipeline: jest.fn().mockReturnValue({
         pfadd: jest.fn().mockReturnThis(),
         pfcount: jest.fn().mockReturnThis(),

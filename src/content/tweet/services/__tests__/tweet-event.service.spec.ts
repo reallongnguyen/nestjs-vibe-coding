@@ -1,24 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventBus } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
 import { TweetEventService } from '../tweet-event.service';
-import { TweetCreatedEvent } from '../../events/tweet-created.event';
-import { TweetUpdatedEvent } from '../../events/tweet-updated.event';
-import { TweetDeletedEvent } from '../../events/tweet-deleted.event';
+import {
+  TweetCreatedEvent,
+  TweetDeletedEvent,
+  TweetUpdatedEvent,
+} from '../../entities/events/tweet.events';
 import { Tweet } from '../../models/tweet.model';
-
-jest.mock('@nestjs/common', () => ({
-  ...jest.requireActual('@nestjs/common'),
-  Logger: jest.fn().mockImplementation(() => ({
-    warn: jest.fn(),
-    error: jest.fn(),
-  })),
-}));
+import { EVENT_BUS_TOKEN } from '../../../../common/event-manager/entities/tokens';
+import { LOGGER_TOKEN } from '../../../../common/logger/logger.token';
 
 describe('TweetEventService', () => {
   let service: TweetEventService;
-  let eventBus: jest.Mocked<EventBus>;
-  let logger: jest.Mocked<Logger>;
+  let eventBus: jest.Mocked<any>;
+  let logger: jest.Mocked<any>;
 
   const mockTweet = new Tweet(
     '1',
@@ -37,19 +31,33 @@ describe('TweetEventService', () => {
       publish: jest.fn(),
     };
 
+    const mockLogger = {
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+      setContext: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TweetEventService,
         {
-          provide: EventBus,
+          provide: EVENT_BUS_TOKEN,
           useValue: mockEventBus,
+        },
+        {
+          provide: LOGGER_TOKEN,
+          useValue: mockLogger,
         },
       ],
     }).compile();
 
     service = module.get<TweetEventService>(TweetEventService);
-    eventBus = module.get(EventBus) as jest.Mocked<EventBus>;
-    logger = new Logger() as jest.Mocked<Logger>;
+    eventBus = module.get(EVENT_BUS_TOKEN);
+    logger = module.get(LOGGER_TOKEN);
   });
 
   afterEach(() => {

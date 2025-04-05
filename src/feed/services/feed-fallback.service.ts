@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
 import { PageOptionsDto } from 'src/common';
+import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { FeedType } from '../entities/feed.types';
 import { FeedItem } from '../entities/feed.entity';
 import { FeedErrorFactory } from '../errors';
@@ -22,7 +23,7 @@ export class FeedFallbackService {
 
   constructor(
     private readonly redisService: RedisService,
-    private readonly logger: Logger,
+    @Inject(LOGGER_TOKEN) private readonly logger: Logger,
   ) {
     this.redis = this.redisService.getOrThrow();
   }

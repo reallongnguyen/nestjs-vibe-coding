@@ -2,8 +2,8 @@ import {
   IsArray,
   IsString,
   IsUUID,
-  IsOptional,
   IsNumber,
+  IsBoolean,
 } from 'class-validator';
 import { EventSchema } from '../event.interface';
 
@@ -71,6 +71,9 @@ class TweetCreatedEventPayload {
   @IsArray()
   @IsString({ each: true })
   images: string[];
+
+  @IsNumber()
+  timestamp: number;
 }
 
 /**
@@ -84,13 +87,17 @@ class TweetUpdatedEventPayload {
   userId: string;
 
   @IsString()
-  @IsOptional()
-  content?: string;
+  content: string;
 
   @IsArray()
   @IsString({ each: true })
-  @IsOptional()
-  images?: string[];
+  images: string[];
+
+  @IsNumber()
+  timestamp: number;
+
+  @IsBoolean()
+  isArchived: boolean;
 }
 
 /**
@@ -103,10 +110,8 @@ class TweetDeletedEventPayload {
   @IsUUID()
   userId: string;
 
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  images?: string[];
+  @IsNumber()
+  timestamp: number;
 }
 
 /**

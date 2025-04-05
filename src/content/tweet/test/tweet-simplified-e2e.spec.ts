@@ -5,7 +5,7 @@ import * as request from 'supertest';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { AuthGuard, RolesGuard } from 'src/common/auth';
-import { EventBus } from '@nestjs/cqrs';
+import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { TweetController } from '../presentation/tweet.controller';
 import { TweetService } from '../services/tweet.service';
 import { TWEET_REPOSITORY } from '../repositories/tweet.repository';
@@ -81,7 +81,7 @@ describe('Tweet Creation (simplified e2e)', () => {
           useValue: mockTweetRepository,
         },
         {
-          provide: EventBus,
+          provide: EVENT_BUS_TOKEN,
           useValue: mockEventBus,
         },
         {
