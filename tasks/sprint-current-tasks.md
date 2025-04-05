@@ -120,7 +120,7 @@ Metadata:
   Type: Feature
   Component: Backend
   Priority: High
-  Status: Backlog
+  Status: In Progress
 
 Dependencies:
   Blocked By: [SC-01, SC-02]
@@ -139,14 +139,14 @@ Requirements:
 
 Instructions:
 
-  1. [ ] Create ContinueStoryDto with content, images, and parentId fields
-  2. [ ] Implement POST /stories/{parentId}/continue endpoint in StoryController
-  3. [ ] Add validation for parent story existence and status
-  4. [ ] Implement continuationAllowed validation logic
-  5. [ ] Create StoryService.continueStory method with chain position calculation
-  6. [ ] Add event emission for StoryContinuedEvent
+  1. [x] Create ContinueStoryDto with content, images, and parentId fields
+  2. [x] Implement POST /stories/{parentId}/continue endpoint in StoryController
+  3. [x] Add validation for parent story existence and status
+  4. [x] Implement continuationAllowed validation logic
+  5. [x] Create StoryService.continueStory method with chain position calculation
+  6. [x] Add event emission for StoryContinuedEvent
   7. [ ] Write integration tests for story continuation flows
-  8. [ ] Document the API endpoint with Swagger
+  8. [x] Document the API endpoint with Swagger
 
 Technical Notes:
 
@@ -159,13 +159,13 @@ Technical Notes:
 
 Acceptance Criteria:
 
-  1. [ ] POST /stories/{parentId}/continue endpoint successfully creates continuation stories
-  2. [ ] Parent-child relationships are correctly established
-  3. [ ] Chain position is accurately calculated and stored
-  4. [ ] Root story reference is preserved across the chain
-  5. [ ] StoryContinuedEvent is emitted with correct payload
+  1. [x] POST /stories/{parentId}/continue endpoint successfully creates continuation stories
+  2. [x] Parent-child relationships are correctly established
+  3. [x] Chain position is accurately calculated and stored
+  4. [x] Root story reference is preserved across the chain
+  5. [x] StoryContinuedEvent is emitted with correct payload
   6. [ ] Integration tests verify chain integrity after continuation
-  7. [ ] API endpoint is documented with Swagger
+  7. [x] API endpoint is documented with Swagger
 
 References:
 

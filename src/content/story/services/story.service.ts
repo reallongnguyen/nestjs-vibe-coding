@@ -3,7 +3,7 @@ import { IEventBus } from 'src/common/event-manager';
 import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { StoryErrorFactory } from '../entities/errors';
-import { StoryCreatedEvent } from '../entities/events';
+import { StoryCreatedEvent, StoryContinuedEvent } from '../entities/events';
 import { Story } from '../entities/story.entity';
 import {
   StoryRepository,
@@ -83,6 +83,64 @@ export class StoryService {
   }
 
   /**
+   * Continue an existing story
+   */
+  async continueStory(data: {
+    content: string;
+    images: string[];
+    userId: string;
+    parentId: string;
+  }) {
+    const { content, images, userId, parentId } = data;
+
+    // Validate content
+    if (!content || content.trim().length === 0) {
+      throw StoryErrorFactory.contentEmpty();
+    }
+
+    if (content.length > 5000) {
+      throw StoryErrorFactory.contentTooLong();
+    }
+
+    // Validate parent story
+    const parentStory = await this.storyRepository.findById(parentId);
+
+    if (!parentStory) {
+      throw StoryErrorFactory.parentStoryNotFound(parentId);
+    }
+
+    if (parentStory.isArchived) {
+      throw StoryErrorFactory.cannotContinueArchivedStory();
+    }
+
+    // Continue the chain from parent
+    const rootId = parentStory.rootId ?? parentStory.id;
+    const chainPosition = parentStory.chainPosition + 1;
+
+    // Create the continuation story
+    const story = await this.storyRepository.create({
+      content,
+      images: images || [],
+      userId,
+      parentId,
+      rootId,
+      chainPosition,
+    });
+
+    // Publish event
+    try {
+      await this.publishStoryContinuedEvent(story);
+    } catch (error) {
+      this.logger.error(
+        `Failed to publish story continued event: ${error.message}`,
+        error.stack,
+      );
+    }
+
+    return story;
+  }
+
+  /**
    * Publish event when a story is created
    */
   private async publishStoryCreatedEvent(story: Story) {
@@ -94,6 +152,24 @@ export class StoryService {
       parentId: story.parentId,
       rootId: story.rootId,
       chainPosition: story.chainPosition,
+      timestamp: Date.now(),
+    });
+
+    await this.eventBus.publish(event);
+  }
+
+  /**
+   * Publish event when a story is continued
+   */
+  private async publishStoryContinuedEvent(story: Story) {
+    const event = new StoryContinuedEvent({
+      storyId: story.id,
+      userId: story.userId,
+      parentId: story.parentId!,
+      rootId: story.rootId!,
+      chainPosition: story.chainPosition,
+      content: story.content,
+      images: story.images,
       timestamp: Date.now(),
     });
 
