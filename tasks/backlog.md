@@ -1,961 +1,122 @@
-# Backlog
+# Story Chain Feature Implementation
 
-## High Priority Tasks
+## Feature Overview
 
-### CNT-001: Content Bootstrapping Strategy
+The Story Chain feature allows users to create interconnected narratives where stories can be linked sequentially. Users can continue their own stories, contribute to others' stories, or fork existing story chains to create alternative narrative branches.
 
-**Metadata**:
-  Type: Feature
-  Component: Backend, Frontend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 21
-  Sprint: TBD
-  Change Type: New
+## User Stories
 
-**Time Tracking**:
-  Estimated Hours: 84
-  Start Date: TBD
-  Due Date: TBD
+1. As a user, I want to create an initial story that can become the starting point of a narrative chain.
+2. As a user, I want to continue my own story by adding a sequel to it.
+3. As a user, I want to contribute to another user's story chain by adding my own continuation.
+4. As a user, I want to fork an existing story to create an alternative narrative branch.
+5. As a user, I want to view a visual representation of story chains to understand the narrative flow.
+6. As a user, I want to discover popular story chains based on engagement metrics.
 
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [Content-Generation, User-Engagement, Growth]
+## Technical Tasks
 
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Content module
-    - User module
-    - Social module
-    - Media processing services
-  Current Implementation:
-    - Basic content creation tools
-    - Manual user content creation
-    - Limited content volume
-  Integration Points:
-    - Content ingestion pipelines
-    - Media processing service
-    - User achievement system
-    - Notification system
-  Breaking Changes: None
+### 1. Data Model Implementation
 
-**Quick Start**:
-  Similar Feature: src/content/
-  Example Test: src/content/tests/
-  Key Files:
-    - src/content/services/
-    - src/content/controllers/
-    - src/media/services/
-  Setup Steps:
-    1. Review content system documentation
-    2. Set up development environment with media processing capabilities
-    3. Configure test data and API endpoints
+**Priority:** High  
+**Estimated Effort:** 2 days  
+**Description:** Design and implement the Story model extending the existing Tweet model with chain relationship capabilities.  
+**Acceptance Criteria:**
 
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review similar implementations
-    - [ ] Understand current architecture
-    - [ ] Identify integration points
-    - [ ] Review existing tests
-    - [ ] Check for breaking changes
-  Design Review:
-    - [ ] Architecture alignment
-    - [ ] Pattern consistency
-    - [ ] Performance impact
-    - [ ] Security considerations
-  Integration Planning:
-    - [ ] Map event flow
-    - [ ] Identify affected modules
-    - [ ] Plan data migrations
-    - [ ] Define rollback procedure
+- Create a new Story model with parent-child relationships
+- Implement rootId to track the chain origin
+- Add chainPosition to track the sequence in a chain
+- Create database migrations for the new structure
+- Implement data access repositories
 
-**Dependencies**:
-  Blocks: None
-  Blocked By: None
-  Related: [NOT-004]
-  Integration Dependencies:
-    - Content moderation service
-    - Media processing service
+### 2. Core Story Service Implementation
 
-**Description**:
-Implement a comprehensive content bootstrapping strategy to increase content volume and quality, focusing on positive, meme, and chill emotional content. The strategy will include automated content sourcing, user-assisted content creation tools, and incentive systems for content contribution.
+**Priority:** High  
+**Estimated Effort:** 3 days  
+**Description:** Implement core business logic for story creation, continuation, and forking.  
+**Acceptance Criteria:**
 
-**Context**:
-  Feature Goal: Rapidly increase high-quality content volume while maintaining platform's emotional focus
-  Similar Features: Content creation tools from other platforms
-  Code Patterns: Repository pattern, Service pattern, Event-driven architecture
-  Common Pitfalls:
-    - Content quality control
-    - Copyright compliance
-    - Performance issues with media processing
-    - Storage costs for media content
-  Current Limitations:
-    - Small user base
-    - Limited content volume
-    - Manual content creation only
-  Integration Concerns:
-    - Content moderation integration
-    - Media processing scalability
-    - User notification volume
+- Create methods for initial story creation
+- Implement story continuation logic (with parent linking)
+- Implement story forking functionality
+- Add validation for chain integrity
+- Ensure proper event emission for integration with other modules
 
-**Implementation Guide**:
-  Architecture Pattern: Event-driven with modular services
-  Code Style: Follow content module patterns
-  Integration Requirements:
-    - Content event handling patterns
-    - Media processing integration
-    - User notification integration
-  Performance Requirements:
-    - Crawler processing < 5s per item
-    - Media generation < 3s per template
-    - Challenge notification < 1s
+### 3. API Endpoints Development
 
-**Development Guidelines**:
+**Priority:** High  
+**Estimated Effort:** 2 days  
+**Description:** Create RESTful API endpoints for story chain operations.  
+**Acceptance Criteria:**
 
-- Module Structure:
-  - Follow: src/content/
-  - Key patterns: Repository, Service, Controller
-- Error Handling:
-  - Use: ContentError classes
-  - Pattern: Early validation and graceful degradation
-- Testing Strategy:
-  - Unit: Service and repository logic
-  - Integration: API endpoints and event flow
-  - E2E: End-to-end content creation flow
-- Documentation:
-  - API: Swagger for all endpoints
-  - Technical: Content flow diagrams
+- Create endpoint for new story creation
+- Implement endpoint for continuing a story
+- Add endpoint for forking a story
+- Develop endpoints for retrieving story chains
+- Include endpoints for discovering popular chains
+- Document all endpoints with OpenAPI/Swagger
 
-**Technical Notes**:
+### 4. Story Chain Visualization Module
 
-- Consider content moderation requirements
-- Implement proper attribution for crawled content
-- Add comprehensive monitoring for media processing
-- Consider storage implications for increased content volume
-- Ensure proper error handling for external integrations
-- Implement rate limiting for content generation tools
+**Priority:** Medium  
+**Estimated Effort:** 3 days  
+**Description:** Develop a visualization component to display story chains in a tree-like structure.  
+**Acceptance Criteria:**
 
-**Quality Checklist**:
-  Code Quality:
-    - [ ] Follows TypeScript guidelines
-    - [ ] Implements proper error handling
-    - [ ] Uses proper dependency injection
-    - [ ] Follows SOLID principles
-  Integration Quality:
-    - [ ] Event handlers implemented correctly
-    - [ ] Service boundaries respected
-    - [ ] Proper error propagation
-    - [ ] Consistent data flow
-  Testing Quality:
-    - [ ] Unit tests cover core logic
-    - [ ] Integration tests verify flow
-    - [ ] E2E tests validate features
-    - [ ] Performance tests pass
-  Documentation Quality:
-    - [ ] API documentation complete
-    - [ ] Integration points documented
-    - [ ] Breaking changes noted
-    - [ ] Migration guide provided
+- Implement data transformation for hierarchical display
+- Create endpoints to retrieve chain structure data
+- Design algorithm for efficient chain traversal
+- Ensure performance for large story chains
 
-**Acceptance Criteria**:
-  Functional Requirements:
-    1. Content volume increases by 300% within one month
-    2. 90% of content maintains the platform's emotional focus
-    3. User engagement with content increases by 50%
-    4. Content creation by existing users increases by 40%
-  Integration Requirements:
-    1. Content crawler properly attributes sources
-    2. Meme template tool integrates with media processing service
-    3. Challenge system integrates with notification system
-    4. All features respect user preferences
-  Performance Requirements:
-    1. System handles 10x increase in content without performance degradation
-    2. Media processing remains under 3s per operation
-    3. Challenge notifications delivered within 1s
+### 5. Story Discovery and Recommendation
 
-#### CNT-001.1: Content Crawler System (5 points)
+**Priority:** Medium  
+**Estimated Effort:** 2 days  
+**Description:** Enhance the recommendation system to include story chains.  
+**Acceptance Criteria:**
 
-**Metadata**:
-  Type: Feature
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 5
-  Sprint: TBD
-  Change Type: New
+- Update event handlers for story creation/continuation events
+- Modify recommendation algorithms to consider chain relationships
+- Implement chain popularity metrics
+- Create specific recommendation endpoints for chains
 
-**Time Tracking**:
-  Estimated Hours: 20
-  Start Date: TBD
-  Due Date: TBD
+### 6. Integration Testing
 
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [Content-Generation, External-Integration]
+**Priority:** High  
+**Estimated Effort:** 2 days  
+**Description:** Develop comprehensive integration tests for the story chain feature.  
+**Acceptance Criteria:**
 
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Content module
-    - Media storage system
-    - Content moderation system
-  Current Implementation:
-    - Manual content creation only
-  Integration Points:
-    - Content ingestion pipeline
-    - Media storage service
-    - Content moderation service
-  Breaking Changes: None
+- Test creation, continuation, and forking flows
+- Ensure data integrity across complex chain operations
+- Validate event publishing and subscription
+- Test performance with large datasets
 
-**Quick Start**:
-  Similar Feature: None (new implementation)
-  Example Test: src/content/tests/content.service.spec.ts
-  Key Files:
-    - src/content/services/
-    - src/content/repositories/
-    - src/common/http/
-  Setup Steps:
-    1. Review content system architecture
-    2. Configure external API access
-    3. Set up test environment
+### 7. Story Chain Analytics
 
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review content module
-    - [ ] Understand media storage system
-    - [ ] Identify integration points
-    - [ ] Plan content attribution approach
-  Design Review:
-    - [ ] Architecture alignment
-    - [ ] Pattern consistency
-    - [ ] Performance impact
-    - [ ] Security considerations
-  Integration Planning:
-    - [ ] Map content flow
-    - [ ] Identify affected modules
-    - [ ] Plan storage requirements
-    - [ ] Define error handling approach
+**Priority:** Low  
+**Estimated Effort:** 2 days  
+**Description:** Implement analytics tracking for story chain engagement.  
+**Acceptance Criteria:**
 
-**Description**:
-Implement a content crawler system that sources positive, meme, and chill content from pre-approved external sources, processes it for platform compatibility, and adds proper attribution.
+- Track chain views, contributions, and forks
+- Create aggregation queries for chain popularity
+- Implement chain engagement reporting endpoints
+- Integrate with existing analytics dashboard
 
-**Context**:
-  Feature Goal: Rapidly increase content volume with high-quality external content
-  Similar Features: None in current system
-  Code Patterns: Repository pattern, HTTP client pattern
-  Common Pitfalls:
-    - Copyright issues
-    - Content quality control
-    - Rate limiting by external sources
-    - Media format incompatibilities
+## Dependencies
 
-**Implementation Guide**:
-  Architecture Pattern: Scheduled job with queue processing
-  Code Style: Follow content module patterns
-  Integration Requirements:
-    - HTTP client for external sources
-    - Content processing pipeline
-    - Media storage integration
-  Performance Requirements:
-    - Crawler processing < 5s per item
-    - Batch processing of 50+ items
+- The feature requires the existing Tweet module
+- Integration with the user authentication system
+- Integration with the recommendation service
+- Use of the existing image handling service
 
-**Tasks**:
+## Risks and Mitigations
 
-  1. [ ] Create crawler service architecture
-     - Design crawler service interfaces
-     - Implement source configuration system
-     - Create content processing pipeline
-     - Add attribution system
+- **Risk:** Performance degradation with very large story chains
+  **Mitigation:** Implement pagination and lazy loading for chain visualization
   
-  2. [ ] Implement source adapters
-     - Create Reddit adapter for positive subreddits
-     - Implement wholesome meme site adapters
-     - Add adapter for positive quote sources
-     - Implement content filtering by emotion
-  
-  3. [ ] Build content processing pipeline
-     - Create media download system
-     - Implement format conversion for compatibility
-     - Add metadata extraction and normalization
-     - Implement content deduplication
-  
-  4. [ ] Add scheduling and monitoring
-     - Create scheduled job system
-     - Implement monitoring and alerting
-     - Add performance metrics collection
-     - Create admin dashboard for crawler status
-
-**Technical Notes**:
-
-- Use NestJS scheduled tasks for job scheduling
-- Implement proper rate limiting for external sources
-- Add comprehensive logging for debugging
-- Consider content moderation before publishing
-- Implement content attribution system
-- Use queue system for asynchronous processing
-
-**Acceptance Criteria**:
-  Functional Requirements:
-    1. Crawler successfully retrieves content from at least 3 pre-approved sources
-    2. Retrieved content matches platform's emotional focus (positive, meme, chill)
-    3. All content includes proper attribution to original source
-    4. Content is properly formatted for platform display
-  Integration Requirements:
-    1. Content is stored in platform's content system
-    2. Media assets are properly processed and stored
-    3. Content passes through moderation system
-    4. Content appears in user feeds
-  Performance Requirements:
-    1. Crawler processes at least 50 items per hour
-    2. System handles increased storage requirements
-    3. Performance impact on other systems is minimal
-
-#### CNT-001.2: Meme Template Creation Tool (8 points)
-
-**Metadata**:
-  Type: Feature
-  Component: Backend, Frontend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 8
-  Sprint: TBD
-  Change Type: New
-
-**Time Tracking**:
-  Estimated Hours: 32
-  Start Date: TBD
-  Due Date: TBD
-
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [Content-Creation, User-Experience]
-
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - Content module
-    - Media processing service
-    - Frontend components
-  Current Implementation:
-    - Basic content creation
-    - No template-based creation
-  Integration Points:
-    - Media processing service
-    - Content creation flow
-    - User interface components
-  Breaking Changes: None
-
-**Quick Start**:
-  Similar Feature: src/content/creation
-  Example Test: src/content/tests/content-creation.service.spec.ts
-  Key Files:
-    - src/content/services/
-    - src/media/services/
-    - frontend/src/components/content-creation/
-  Setup Steps:
-    1. Review media processing capabilities
-    2. Set up development environment
-    3. Configure test templates
-
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review content creation flow
-    - [ ] Understand media processing capabilities
-    - [ ] Identify UI integration points
-    - [ ] Review existing tests
-  Design Review:
-    - [ ] Architecture alignment
-    - [ ] Pattern consistency
-    - [ ] Performance impact
-    - [ ] Security considerations
-  Integration Planning:
-    - [ ] Map content creation flow
-    - [ ] Identify affected components
-    - [ ] Plan template management
-    - [ ] Define user experience
-
-**Description**:
-Create a meme template creation tool that allows users to easily generate positive and chill memes using pre-defined templates with customizable text, enabling faster content creation with professional-looking results.
-
-**Context**:
-  Feature Goal: Lower barrier to content creation with template-based tools
-  Similar Features: Basic content creation
-  Code Patterns: Repository pattern, Service pattern, Component pattern
-  Common Pitfalls:
-    - Media processing performance
-    - Template management complexity
-    - User experience friction
-    - Mobile compatibility issues
-
-**Implementation Guide**:
-  Architecture Pattern: Service-based with frontend components
-  Code Style: Follow content creation patterns
-  Integration Requirements:
-    - Media processing service integration
-    - Frontend component integration
-    - Template management system
-  Performance Requirements:
-    - Template rendering < 3s
-    - UI response time < 500ms
-
-**Tasks**:
-
-  1. [ ] Create template management system
-     - Design template data model
-     - Implement template repository
-     - Create template management service
-     - Add template categorization system
-
-  2. [ ] Build media processing integration
-     - Create text overlay service
-     - Implement image composition system
-     - Add font and style management
-     - Implement preview generation
-
-  3. [ ] Develop frontend components
-     - Create template selection UI
-     - Implement text editing interface
-     - Add live preview functionality
-     - Create mobile-friendly interface
-
-  4. [ ] Implement content publishing flow
-     - Create template-to-content conversion
-     - Add metadata and attribution
-     - Implement publishing service
-     - Add to user content history
-
-**Technical Notes**:
-
-- Use Sharp.js for image processing
-- Consider using canvas-based preview generation
-- Implement proper error handling for media processing
-- Consider mobile performance implications
-- Add comprehensive logging for debugging
-- Consider template versioning system
-
-**Acceptance Criteria**:
-  Functional Requirements:
-    1. Users can select from at least 20 pre-defined meme templates
-    2. Templates can be customized with user-provided text
-    3. Live preview shows how the final meme will look
-    4. Completed memes can be published to the platform
-  Integration Requirements:
-    1. Templates are properly managed in the system
-    2. Media processing service handles image composition
-    3. Frontend components integrate with content creation flow
-    4. Published memes appear in user feeds
-  Performance Requirements:
-    1. Template rendering completes in under 3 seconds
-    2. UI remains responsive during template processing
-    3. System handles mobile device limitations
-
-#### CNT-001.3: Daily Content Challenge System (8 points)
-
-**Metadata**:
-  Type: Feature
-  Component: Backend, Frontend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 8
-  Sprint: TBD
-  Change Type: New
-
-**Time Tracking**:
-  Estimated Hours: 32
-  Start Date: TBD
-  Due Date: TBD
-
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [User-Engagement, Gamification]
-
-**Integration Analysis**:
-  Integration Type: New Feature
-  Affected Systems:
-    - User module
-    - Notification module
-    - Content module
-    - Achievement system
-  Current Implementation:
-    - Basic notification system
-    - User achievement skeleton
-  Integration Points:
-    - Notification service
-    - User achievement system
-    - Content creation flow
-    - User streak system
-  Breaking Changes: None
-
-**Quick Start**:
-  Similar Feature: src/user/achievements
-  Example Test: src/user/tests/user-streak.service.spec.ts
-  Key Files:
-    - src/user/services/
-    - src/notification/services/
-    - src/content/services/
-  Setup Steps:
-    1. Review achievement system architecture
-    2. Set up notification development environment
-    3. Configure test challenges
-
-**Pre-Implementation Checklist**:
-  Code Analysis:
-    - [ ] Review user achievement system
-    - [ ] Understand notification capabilities
-    - [ ] Identify content integration points
-    - [ ] Review existing tests
-  Design Review:
-    - [ ] Architecture alignment
-    - [ ] Pattern consistency
-    - [ ] Performance impact
-    - [ ] Security considerations
-  Integration Planning:
-    - [ ] Map challenge flow
-    - [ ] Identify affected modules
-    - [ ] Plan notification strategy
-    - [ ] Define user experience
-
-**Description**:
-Implement a daily content challenge system that encourages users to create specific types of positive content each day, with notifications, streaks, and rewards to incentivize consistent participation.
-
-**Context**:
-  Feature Goal: Increase user-generated content through gamified challenges
-  Similar Features: User achievement system
-  Code Patterns: Repository pattern, Service pattern, Event-driven
-  Common Pitfalls:
-    - Challenge diversity and freshness
-    - Notification fatigue
-    - Reward balance issues
-    - User experience complexity
-
-**Implementation Guide**:
-  Architecture Pattern: Event-driven with scheduled jobs
-  Code Style: Follow user and notification patterns
-  Integration Requirements:
-    - Challenge management system
-    - Notification service integration
-    - User achievement integration
-    - Content verification integration
-  Performance Requirements:
-    - Challenge assignment < 1s
-    - Notification delivery < 1s
-    - Achievement verification < 2s
-
-**Tasks**:
-
-  1. [ ] Create challenge management system
-     - Design challenge data model
-     - Implement challenge repository
-     - Create challenge template system
-     - Add challenge scheduling service
-
-  2. [ ] Build user challenge assignment
-     - Create challenge assignment service
-     - Implement user preference integration
-     - Add challenge state management
-     - Create challenge completion verification
-
-  3. [ ] Implement notification integration
-     - Create challenge notification templates
-     - Implement scheduled reminders
-     - Add completion celebration notifications
-     - Create streak milestone notifications
-
-  4. [ ] Develop reward and streak system
-     - Create user streak tracking
-     - Implement reward distribution
-     - Add achievement integration
-     - Create challenge history
-
-**Technical Notes**:
-
-- Use NestJS scheduled tasks for challenge rotation
-- Implement proper notification bundling to prevent fatigue
-- Consider user timezone for challenge scheduling
-- Add comprehensive logging for debugging
-- Consider challenge difficulty progression
-- Implement proper error handling for reward distribution
-
-**Acceptance Criteria**:
-  Functional Requirements:
-    1. System assigns daily challenges to users
-    2. Challenges focus on positive, meme, and chill content
-    3. Users receive notifications about challenges
-    4. Completion of challenges awards rewards and builds streaks
-  Integration Requirements:
-    1. Challenge system integrates with notification service
-    2. Rewards integrate with user achievement system
-    3. Challenges verify actual content creation
-    4. User preferences affect challenge assignments
-  Performance Requirements:
-    1. Challenge assignment completes in under 1 second
-    2. Notifications are delivered in under 1 second
-    3. System handles high volume of simultaneous completions
-
-**Notes**:
-
-- Consider future expansion to weekly and monthly challenges
-- Plan for seasonal or themed challenge campaigns
-- Consider community challenges in future iterations
-- Plan integration with content discovery to feature challenge content
-
-### INV-001: User Invitation System Implementation
-
-  **Metadata**:
-    Type: Feature
-    Component: Backend
-    Priority: High
-    Risk Level: Medium
-    Story Points: 13
-    Sprint: TBD
-    Change Type: New
-
-  **Time Tracking**:
-    Estimated Hours: 40
-    Start Date: TBD
-    Due Date: TBD
-
-  **Status**:
-    State: Backlog
-    Phase: Ready for Development
-    Labels: [Integration-Heavy, Architecture-Reviewed]
-
-  **Integration Analysis**:
-    Integration Type: New Feature
-    Affected Systems:
-      - User Management
-      - Social Graph (User Following)
-      - Notification System
-      - Analytics
-    Current Implementation:
-      - User registration in identity module
-      - UserFollow system in user-follow module
-      - Notification system for user events
-    Integration Points:
-      - Registration flow in identity module
-      - UserFollowService for creating follow relationships
-      - Event system for sending notifications
-      - Analytics for tracking invitations
-    Breaking Changes:
-      - None
-
-  **Quick Start**:
-    Similar Feature: src/user-follow
-    Example Test: test/user-follow
-    Key Files:
-      - src/user-follow/services/user-follow.service.ts: Follow relationship management
-      - src/identity/services/user.service.ts: User management
-      - src/notification/services/notification.service.ts: User notifications
-    Setup Steps:
-      1. Review current implementation of user registration flow
-      2. Review user-follow module implementation
-      3. Identify integration points in registration process
-      4. Set up test data for invitation testing
-    Required Reading:
-      - Architecture: `docs/architecture.mermaid`
-      - Module Structure: `docs/module-structure.md`
-      - Technical Guidelines: `docs/technical.md`
-      - User Follow Implementation: `src/user-follow`
-      - Technical Design: `docs/technical/invitation-system-architecture.md`
-
-  **Pre-Implementation Checklist**:
-    Code Analysis:
-      - [x] Review user registration process
-      - [x] Understand current follow system
-      - [x] Identify notification integration points
-      - [x] Review existing tests for related functionality
-      - [x] Verify no breaking changes
-    Design Review:
-      - [x] Architecture alignment
-      - [x] Pattern consistency
-      - [x] Performance impact
-      - [x] Security considerations
-    Integration Planning:
-      - [x] Map event flow
-      - [x] Identify affected modules
-      - [x] Ensure proper error handling
-      - [x] Define rollback procedure
-
-  **Dependencies**:
-    Blocks: []
-    Blocked By: []
-    Related: []
-    Integration Dependencies:
-      - identity module for user registration
-      - user-follow module for social connection
-      - notification module for invitation alerts
-
-  **Description**:
-    Implement a system that allows existing users to invite friends to join the platform. When new users sign up through an invitation, they should automatically follow the user who invited them. The system should include invitation generation, tracking, and notification components.
-
-  **Context**:
-    Feature Goal: Increase user acquisition through social invitations while strengthening connections
-    Similar Features: User Follow system
-    Code Patterns: Repository pattern, Event-driven architecture
-    Common Pitfalls: Race conditions in attribution, security vulnerabilities in invitation handling
-    Current Limitations: No way to track user acquisition source
-    Integration Concerns: Maintaining clean separation of concerns while integrating across modules
-
-  **Implementation Guide**:
-    Architecture Pattern: Event-driven microservices
-    Code Style: Follow TypeScript guidelines in technical.md
-    Integration Requirements:
-      - Event handling for invitation acceptance
-      - Service integration with user management
-      - Data flow for attribution tracking
-    Performance Requirements:
-      - Invitation generation: < 1s response time
-      - Attribution tracking: real-time
-      - Scalability: Handle high-volume invitation periods
-
-  **Tasks**:
-    1. [ ] Analysis Phase
-       - Review existing user registration flow
-       - Document integration points
-       - Design database schema changes
-    2. [ ] Development Phase
-       - Create invitation module
-       - Implement invitation generation and tracking
-       - Integrate with user registration
-       - Implement automatic follow relationship
-       - Add notification for invitation acceptance
-    3. [ ] Testing Phase
-       - Unit tests for invitation service
-       - Integration tests for user registration with invitation
-       - End-to-end tests for full invitation flow
-
-  **Technical Notes**:
-    - Consider unique invitation codes or parameterized URLs
-    - Ensure proper attribution even if user signs up later
-    - Implement rate limiting for invitation generation
-    - Design for multi-channel invitation delivery
-
-  **Quality Checklist**:
-    Code Quality:
-      - [ ] Follows TypeScript guidelines
-      - [ ] Implements proper error handling
-      - [ ] Uses proper dependency injection
-      - [ ] Follows SOLID principles
-    Integration Quality:
-      - [ ] Event handlers implemented correctly
-      - [ ] Service boundaries respected
-      - [ ] Proper error propagation
-      - [ ] Consistent data flow
-    Testing Quality:
-      - [ ] Unit tests cover core logic
-      - [ ] Integration tests verify flow
-      - [ ] E2E tests validate features
-      - [ ] Performance tests pass
-    Documentation Quality:
-      - [ ] API documentation complete
-      - [ ] Integration points documented
-      - [ ] Database schema changes documented
-      - [ ] Usage examples provided
-
-  **Acceptance Criteria**:
-    Functional Requirements:
-      1. Users can generate unique invitation links
-      2. System tracks which users joined via invitations
-      3. New users automatically follow their inviters
-      4. Inviters receive notifications when invitations are accepted
-    Integration Requirements:
-      1. Proper integration with user registration flow
-      2. Correct creation of follow relationships
-      3. Notification delivery for invitation events
-    Performance Requirements:
-      1. Invitation generation completes within 1 second
-      2. System handles high volume of concurrent invitations
-      3. No degradation of registration performance
-
-  **Notes**:
-    - Consider future extensions for invitation rewards or gamification
-    - Ensure GDPR compliance for handling invitee data
-    - Design for internationalization of invitation messages
-
-### FEED-002: Feed Enrichment Service Technical Debt Resolution
-
-**Metadata**:
-  Type: Technical Debt
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 8
-  Sprint: TBD
-  Change Type: Enhancement
-
-**Time Tracking**:
-  Estimated Hours: 32
-  Start Date: TBD
-  Due Date: TBD
-
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [Technical-Debt, Performance, Reliability]
-
-**Integration Analysis**:
-  Integration Type: Enhancement
-  Affected Systems:
-    - Feed module
-    - Cache system
-    - User module
-    - Content module
-  Current Implementation:
-    - Basic error handling
-    - Simple caching strategy
-    - Synchronous data fetching
-  Integration Points:
-    - Cache service
-    - User service
-    - Content service
-  Breaking Changes: None
-
-**Description**:
-Address technical debt in the feed enrichment service to improve reliability, performance, and maintainability. Current implementation has several issues:
-
-1. No batch processing for related data fetching
-2. Inefficient cache invalidation strategy
-3. Lack of proper error recovery mechanisms
-4. Missing circuit breakers for external service calls
-5. No retry mechanisms for failed enrichment operations
-
-**Tasks**:
-
-1. [ ] Implement batch processing for author information
-   - Add batch size configuration
-   - Create batch processing service
-   - Optimize database queries
-
-2. [ ] Improve caching strategy
-   - Implement intelligent cache invalidation
-   - Add cache warming for frequently accessed data
-   - Optimize cache key structure
-   - Add cache statistics monitoring
-
-3. [ ] Enhance error handling
-   - Implement circuit breakers for external calls
-   - Add retry mechanisms with exponential backoff
-   - Create fallback mechanisms for partial failures
-   - Improve error logging and monitoring
-
-4. [ ] Optimize performance
-   - Implement parallel data fetching where possible
-   - Add performance metrics collection
-   - Optimize database queries
-   - Implement request coalescing
-
-**Technical Notes**:
-
-- Consider using @nestjs/bull for batch processing
-- Implement proper telemetry for monitoring
-- Add comprehensive logging for debugging
-- Consider implementing cache preloading
-
-**Acceptance Criteria**:
-  Functional Requirements:
-    1. Batch processing reduces number of database queries by 70%
-    2. Cache hit rate improves to >90%
-    3. Failed enrichment operations automatically retry
-    4. Circuit breakers prevent cascade failures
-  Performance Requirements:
-    1. Enrichment completes in <500ms for up to 100 items
-    2. Cache operations complete in <50ms
-    3. System handles 3x current load without degradation
-
-### TWEET-001: Tweet Module Bug Fixes and Enhancements
-
-**Metadata**:
-  Type: Bug Fix
-  Component: Backend
-  Priority: High
-  Risk Level: Medium
-  Story Points: 5
-  Sprint: TBD
-  Change Type: Fix
-
-**Time Tracking**:
-  Estimated Hours: 20
-  Start Date: TBD
-  Due Date: TBD
-
-**Status**:
-  State: Backlog
-  Phase: Analysis
-  Labels: [Bug-Fix, Security, Performance]
-
-**Integration Analysis**:
-  Integration Type: Fix
-  Affected Systems:
-    - Tweet module
-    - User module
-    - Storage module
-  Current Implementation:
-    - Basic tweet CRUD operations
-    - Simple validation
-    - Event publishing
-  Integration Points:
-    - User service
-    - Storage service
-    - Event bus
-  Breaking Changes: None
-
-**Description**:
-Fix critical bugs and security issues in the tweet module:
-
-1. Missing user data fetching in getTweets endpoint
-2. Potential race condition in tweet update operations
-3. Incomplete error handling in image processing
-4. Missing validation for image URLs
-5. Event publishing failures not properly handled
-
-**Tasks**:
-
-1. [ ] Fix user data fetching in getTweets
-   - Implement proper user service integration
-   - Add user data caching
-   - Handle missing user data gracefully
-
-2. [ ] Address race conditions
-   - Implement optimistic locking for updates
-   - Add version control for tweets
-   - Improve concurrent update handling
-
-3. [ ] Enhance image handling
-   - Add proper image URL validation
-   - Implement image processing error handling
-   - Add image cleanup for failed tweets
-   - Validate image sizes and formats
-
-4. [ ] Improve event handling
-   - Add event publishing retry mechanism
-   - Implement event failure logging
-   - Create event reconciliation process
-   - Add monitoring for failed events
-
-**Technical Notes**:
-
-- Use proper validation library for image URLs
-- Implement proper database transactions
-- Add comprehensive error tracking
-- Consider implementing event outbox pattern
-
-**Acceptance Criteria**:
-  Functional Requirements:
-    1. User data correctly displayed in tweet lists
-    2. No data loss during concurrent updates
-    3. Invalid images properly rejected
-    4. All events successfully published or logged
-  Security Requirements:
-    1. Image URLs properly validated
-    2. User permissions properly enforced
-    3. Rate limiting implemented
-  Performance Requirements:
-    1. Tweet operations complete in <200ms
-    2. Image validation completes in <100ms
-    3. Event publishing doesn't block API response
+- **Risk:** Complex data integrity issues with concurrent modifications
+  **Mitigation:** Implement optimistic concurrency control with version tracking
+
+- **Risk:** User confusion with the forking concept
+  **Mitigation:** Create clear UI guidance and tooltips explaining the feature

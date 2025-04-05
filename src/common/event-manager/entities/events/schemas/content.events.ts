@@ -4,6 +4,7 @@ import {
   IsUUID,
   IsNumber,
   IsBoolean,
+  IsOptional,
 } from 'class-validator';
 import { EventSchema } from '../event.interface';
 
@@ -129,6 +130,106 @@ class TweetViewedEventPayload {
 }
 
 /**
+ * Payload for story created event
+ */
+class StoryCreatedEventPayload {
+  @IsUUID()
+  storyId: string;
+
+  @IsUUID()
+  userId: string;
+
+  @IsString()
+  content: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  images: string[];
+
+  @IsOptional()
+  @IsUUID()
+  parentId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  rootId?: string;
+
+  @IsNumber()
+  chainPosition: number;
+
+  @IsNumber()
+  timestamp: number;
+}
+
+/**
+ * Payload for story continued event
+ */
+class StoryContinuedEventPayload {
+  @IsUUID()
+  storyId: string;
+
+  @IsUUID()
+  userId: string;
+
+  @IsUUID()
+  parentId: string;
+
+  @IsUUID()
+  rootId: string;
+
+  @IsNumber()
+  chainPosition: number;
+
+  @IsString()
+  content: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  images: string[];
+
+  @IsNumber()
+  timestamp: number;
+}
+
+/**
+ * Payload for story forked event
+ */
+class StoryForkedEventPayload {
+  @IsUUID()
+  storyId: string;
+
+  @IsUUID()
+  userId: string;
+
+  @IsUUID()
+  sourceStoryId: string;
+
+  @IsString()
+  content: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  images: string[];
+
+  @IsNumber()
+  timestamp: number;
+}
+
+/**
+ * Payload for story viewed event
+ */
+class StoryViewedEventPayload {
+  @IsUUID()
+  storyId: string;
+
+  @IsUUID()
+  userId: string;
+
+  @IsNumber()
+  timestamp: number;
+}
+
+/**
  * All content related event schemas
  */
 export const ContentEventSchemas = {
@@ -195,6 +296,38 @@ export const ContentEventSchemas = {
     module: 'content',
     description: 'Emitted when a tweet is viewed',
   } as EventSchema<TweetViewedEventPayload>,
+
+  STORY_CREATED: {
+    eventName: 'content.story.created',
+    schema: new StoryCreatedEventPayload(),
+    version: '1.0.0',
+    module: 'content',
+    description: 'Emitted when a story is created',
+  } as EventSchema<StoryCreatedEventPayload>,
+
+  STORY_CONTINUED: {
+    eventName: 'content.story.continued',
+    schema: new StoryContinuedEventPayload(),
+    version: '1.0.0',
+    module: 'content',
+    description: 'Emitted when a story is continued',
+  } as EventSchema<StoryContinuedEventPayload>,
+
+  STORY_FORKED: {
+    eventName: 'content.story.forked',
+    schema: new StoryForkedEventPayload(),
+    version: '1.0.0',
+    module: 'content',
+    description: 'Emitted when a story is forked',
+  } as EventSchema<StoryForkedEventPayload>,
+
+  STORY_VIEWED: {
+    eventName: 'content.story.viewed',
+    schema: new StoryViewedEventPayload(),
+    version: '1.0.0',
+    module: 'content',
+    description: 'Emitted when a story is viewed',
+  } as EventSchema<StoryViewedEventPayload>,
 
   DELETE_IMAGE: {
     eventName: 'content.image.delete',

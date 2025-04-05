@@ -76,6 +76,9 @@ export class CommentDto implements CommentOutput {
   @ApiProperty({ nullable: true })
   tweetId: string | null;
 
+  @ApiProperty({ nullable: true })
+  storyId: string | null;
+
   static fromDomain(domain: CommentOutput): CommentDto {
     return { ...domain };
   }

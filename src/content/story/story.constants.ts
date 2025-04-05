@@ -1,0 +1,1 @@
+export const STORY_REPOSITORY = 'STORY_REPOSITORY';

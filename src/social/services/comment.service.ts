@@ -160,6 +160,7 @@ export class CommentService {
       postId: type === ContentType.POST ? contentId : null,
       emotionId: type === ContentType.EMOTION ? contentId : null,
       tweetId: null,
+      storyId: null,
       userId: comment.userId,
       parentId: comment.parentId,
       createdAt: comment.createdAt,
