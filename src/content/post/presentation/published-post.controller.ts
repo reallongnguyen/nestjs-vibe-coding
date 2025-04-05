@@ -9,7 +9,12 @@ import {
   UseInterceptors,
   Post,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   CreatedResponse,
   OkResponse,
@@ -33,6 +38,7 @@ import { PublishedPostDto } from './dtos/published-post.dto';
 import { CONTENT_ERRORS } from '../entities/errors';
 
 @ApiTags('Posts')
+@ApiBearerAuth()
 @Controller({
   path: 'posts/published',
   version: '1',

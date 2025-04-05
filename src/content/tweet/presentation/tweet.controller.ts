@@ -13,6 +13,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -47,6 +48,7 @@ import { TweetViewedEvent } from '../entities/events/tweet.events';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('tweets')
+@ApiBearerAuth()
 @ErrorResponse({})
 export class TweetController {
   constructor(

@@ -6,7 +6,7 @@ import {
   UseFilters,
   Get,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthGuard,
   AuthContextUser,
@@ -26,6 +26,7 @@ import { DailyEmotionDto } from './dtos/emotion-history.dto';
 import { GAMIFICATION_ERRORS } from '../entities/errors/gamification.errors';
 
 @ApiTags('emotions')
+@ApiBearerAuth()
 @Controller({
   path: 'emotions',
   version: '1',

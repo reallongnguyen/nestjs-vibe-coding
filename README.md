@@ -8,41 +8,6 @@
 
 A robust and flexible NestJS backend template designed for microservice-ready architecture with modular components that can be easily customized and deployed.
 
-## 🚀 Quick Start
-
-### Setup
-
-```bash
-# Clone and install
-git clone https://github.com/reallongnguyen/nestjs-vibe-coding
-cd nestjs-vibe-coding
-pnpm install
-
-# Configure environment
-cp .env.example .env
-
-# Start dependencies (PostgreSQL, Redis, MQTT)
-docker compose up -d
-
-# Setup database
-npx prisma db push
-
-# Create Root user
-export ROOT_USER_AUTH_ID=86f41bd0-a011-45a2-837d-36ff38f6e8da
-npx prisma db seed
-```
-
-### Development
-
-```bash
-# Start dev server with hot reload
-pnpm start:dev
-
-# Start production server
-pnpm build
-pnpm start:prod
-```
-
 ## ✨ Features
 
 - **Microservice Architecture**: Designed with modularity in mind, ready to split into separate microservices
@@ -83,6 +48,105 @@ This project is optimized for development with [Cursor](https://cursor.so/), an 
 3. **Use AI Commands**: Press `Ctrl+K` or `Cmd+K` to open the AI command palette
 
 Cursor helps you understand the codebase faster and implement features more efficiently by providing context-aware AI assistance.
+
+## 🚀 Quick Start
+
+### Setup
+
+```bash
+# Clone and install
+git clone https://github.com/reallongnguyen/nestjs-vibe-coding
+cd nestjs-vibe-coding
+pnpm install
+
+# Configure environment
+cp .env.example .env
+
+# Start dependencies (PostgreSQL, Redis, MQTT)
+docker compose up -d
+
+# Setup database
+npx prisma db push
+
+# Create Root user
+export ROOT_USER_AUTH_ID=437834e3-6fa8-4db3-9f8a-a0402f5d0814
+npx prisma db seed
+```
+
+### Development
+
+```bash
+# Start dev server with hot reload
+pnpm start:dev
+
+# Start production server
+pnpm build
+pnpm start:prod
+```
+
+### 🔑 Authentication & API Testing
+
+#### Using Swagger UI
+
+You can test the API endpoints using Swagger UI at `http://localhost:8000/api`.
+
+To authenticate:
+
+1. Click the "Authorize" button in Swagger UI
+2. Enter your JWT token in the format: `your_token_here`
+
+For testing purposes, you can generate a valid JWT using:
+
+```plain
+# Using node
+node -e "require('dotenv').config(); console.log(require('jsonwebtoken').sign({ sub: '437834e3-6fa8-4db3-9f8a-a0402f5d0814' }, process.env.JWT_SECRET ?? 'secret', { expiresIn: '1h' }))"
+```
+
+#### Getting Your Own Access Token (GoTrue API)
+
+This project uses Supabase GoTrue for authentication. Here's how to get your own access token:
+
+1. **Sign Up**
+
+```bash
+curl -X POST 'http://localhost:9999/auth/v1/signup' \
+-H "apikey: your-anon-key" \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "your.email@example.com",
+  "password": "your-password"
+}'
+```
+
+2. **Sign In**
+
+```bash
+curl -X POST 'http://localhost:9999/auth/v1/token?grant_type=password' \
+-H "apikey: your-anon-key" \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "your.email@example.com",
+  "password": "your-password"
+}'
+```
+
+Response will include your access token:
+
+```json
+{
+  "access_token": "your.jwt.token",
+  "token_type": "bearer",
+  "expires_in": 3600,
+  "refresh_token": "your-refresh-token"
+}
+```
+
+3. **Using the Token**
+
+- In API requests, add the header: `Authorization: Bearer your.jwt.token`
+- In Swagger UI, click "Authorize" and enter: `Bearer your.jwt.token`
+
+For more authentication options and details, see the [Supabase GoTrue documentation](https://github.com/supabase/auth).
 
 ## 🔧 Customizing Your Project
 

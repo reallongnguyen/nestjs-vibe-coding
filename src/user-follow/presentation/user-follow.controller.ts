@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   AuthGuard,
   RolesGuard,
@@ -32,6 +37,7 @@ import { IsFollowingDto } from './dtos/is-following.dto';
 import { USER_FOLLOW_ERRORS } from '../entities/user-follow.errors';
 
 @ApiTags('User Follow')
+@ApiBearerAuth()
 @Controller({
   path: 'users',
   version: '1',

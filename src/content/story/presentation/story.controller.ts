@@ -7,7 +7,7 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -29,6 +29,7 @@ import { CreateStoryDto, StoryResponseDto } from './dto';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('stories')
+@ApiBearerAuth()
 @ErrorResponse({})
 export class StoryController {
   constructor(

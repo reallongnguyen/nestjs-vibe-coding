@@ -10,7 +10,12 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -46,6 +51,7 @@ import { NOTIFICATION_ERRORS } from '../entities/errors';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('notification-templates')
+@ApiBearerAuth()
 @ErrorResponse(COMMON_ERRORS)
 export class NotificationTemplateController {
   constructor(private readonly templateService: NotificationTemplateService) {}
