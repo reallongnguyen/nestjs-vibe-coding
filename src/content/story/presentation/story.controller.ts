@@ -26,7 +26,12 @@ import {
 import { GlobalErrorFilter, ErrorResponse } from 'src/common/errors';
 import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { StoryService } from '../services/story.service';
-import { ContinueStoryDto, CreateStoryDto, StoryResponseDto } from './dto';
+import {
+  ContinueStoryDto,
+  CreateStoryDto,
+  ForkStoryDto,
+  StoryResponseDto,
+} from './dto';
 
 @Controller({
   path: 'stories',
@@ -101,6 +106,48 @@ export class StoryController {
       images: continueStoryDto.images || [],
       userId: user.id,
       parentId,
+    });
+
+    return {
+      id: story.id,
+      content: story.content,
+      images: story.images,
+      parentId: story.parentId,
+      rootId: story.rootId,
+      chainPosition: story.chainPosition,
+      createdAt: story.createdAt,
+      updatedAt: story.updatedAt,
+      author: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+      },
+    };
+  }
+
+  @Post(':storyId/fork')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({
+    description: 'Fork a story to create a new branch',
+    summary: 'Fork a story',
+  })
+  @ApiParam({
+    name: 'storyId',
+    description: 'ID of the story to fork',
+    type: String,
+  })
+  @OkResponse(StoryResponseDto)
+  async forkStory(
+    @Param('storyId') storyId: string,
+    @Body() forkStoryDto: ForkStoryDto,
+    @AuthContextUser() user: User,
+  ): Promise<StoryResponseDto> {
+    const story = await this.storyService.forkStory({
+      content: forkStoryDto.content,
+      images: forkStoryDto.images || [],
+      userId: user.id,
+      sourceStoryId: storyId,
     });
 
     return {

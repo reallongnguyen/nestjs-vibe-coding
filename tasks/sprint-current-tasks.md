@@ -178,7 +178,7 @@ Metadata:
   Type: Feature
   Component: Backend
   Priority: High
-  Status: Backlog
+  Status: In Progress
 
 Dependencies:
   Blocked By: [SC-01, SC-02]
@@ -196,14 +196,14 @@ Requirements:
 
 Instructions:
 
-  1. [ ] Create ForkStoryDto with content, images, and sourceStoryId fields
-  2. [ ] Implement POST /stories/{storyId}/fork endpoint in StoryController
-  3. [ ] Add validation for source story existence and permissions
-  4. [ ] Create StoryService.forkStory method
-  5. [ ] Implement logic to initialize new chain with appropriate metadata
-  6. [ ] Add event emission for StoryForkedEvent
+  1. [x] Create ForkStoryDto with content, images, and sourceStoryId fields
+  2. [x] Implement POST /stories/{storyId}/fork endpoint in StoryController
+  3. [x] Add validation for source story existence and permissions
+  4. [x] Create StoryService.forkStory method
+  5. [x] Implement logic to initialize new chain with appropriate metadata
+  6. [x] Add event emission for StoryForkedEvent
   7. [ ] Write integration tests for forking operations
-  8. [ ] Document the API endpoint with Swagger
+  8. [x] Document the API endpoint with Swagger
 
 Technical Notes:
 
@@ -216,12 +216,12 @@ Technical Notes:
 
 Acceptance Criteria:
 
-  1. [ ] POST /stories/{storyId}/fork endpoint successfully creates forked stories
-  2. [ ] Forked stories maintain reference to source story but start new chains
-  3. [ ] Chain metadata is correctly initialized for the new branch
-  4. [ ] StoryForkedEvent is emitted with correct payload
+  1. [x] POST /stories/{storyId}/fork endpoint successfully creates forked stories
+  2. [x] Forked stories maintain reference to source story but start new chains
+  3. [x] Chain metadata is correctly initialized for the new branch
+  4. [x] StoryForkedEvent is emitted with correct payload
   5. [ ] Integration tests verify fork relationship integrity
-  6. [ ] API endpoint is documented with Swagger
+  6. [x] API endpoint is documented with Swagger
 
 References:
 

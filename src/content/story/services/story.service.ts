@@ -3,7 +3,11 @@ import { IEventBus } from 'src/common/event-manager';
 import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { LOGGER_TOKEN } from 'src/common/logger/logger.token';
 import { StoryErrorFactory } from '../entities/errors';
-import { StoryCreatedEvent, StoryContinuedEvent } from '../entities/events';
+import {
+  StoryCreatedEvent,
+  StoryContinuedEvent,
+  StoryForkedEvent,
+} from '../entities/events';
 import { Story } from '../entities/story.entity';
 import {
   StoryRepository,
@@ -141,6 +145,69 @@ export class StoryService {
   }
 
   /**
+   * Fork a story to create a new chain/branch
+   */
+  async forkStory(data: {
+    content: string;
+    images: string[];
+    userId: string;
+    sourceStoryId: string;
+  }) {
+    const { content, images, userId, sourceStoryId } = data;
+
+    // Validate content
+    if (!content || content.trim().length === 0) {
+      throw StoryErrorFactory.contentEmpty();
+    }
+
+    if (content.length > 5000) {
+      throw StoryErrorFactory.contentTooLong();
+    }
+
+    // Validate source story
+    const sourceStory = await this.storyRepository.findById(sourceStoryId);
+
+    if (!sourceStory) {
+      throw StoryErrorFactory.storyNotFound(sourceStoryId);
+    }
+
+    if (sourceStory.isArchived) {
+      throw StoryErrorFactory.cannotForkArchivedStory();
+    }
+
+    // Create a new story with sourceStory as parent, but start a new chain
+    // A forked story is the root of its own chain (chainPosition = 0, rootId = null initially)
+    const story = await this.storyRepository.create({
+      content,
+      images: images || [],
+      userId,
+      parentId: sourceStoryId, // Link to source story
+      rootId: null, // This will be updated to its own ID after creation
+      chainPosition: 0, // First story in the new chain
+    });
+
+    // Update the story to set its rootId to its own ID (it's the root of a new chain)
+    const updatedStory = await this.storyRepository.update(
+      Story.create({
+        ...story,
+        rootId: story.id,
+      }),
+    );
+
+    // Publish event
+    try {
+      await this.publishStoryForkedEvent(updatedStory, sourceStoryId);
+    } catch (error) {
+      this.logger.error(
+        `Failed to publish story forked event: ${error.message}`,
+        error.stack,
+      );
+    }
+
+    return updatedStory;
+  }
+
+  /**
    * Publish event when a story is created
    */
   private async publishStoryCreatedEvent(story: Story) {
@@ -168,6 +235,22 @@ export class StoryService {
       parentId: story.parentId!,
       rootId: story.rootId!,
       chainPosition: story.chainPosition,
+      content: story.content,
+      images: story.images,
+      timestamp: Date.now(),
+    });
+
+    await this.eventBus.publish(event);
+  }
+
+  /**
+   * Publish event when a story is forked
+   */
+  private async publishStoryForkedEvent(story: Story, sourceStoryId: string) {
+    const event = new StoryForkedEvent({
+      storyId: story.id,
+      userId: story.userId,
+      sourceStoryId,
       content: story.content,
       images: story.images,
       timestamp: Date.now(),
