@@ -11,7 +11,12 @@ import {
   Query,
   Inject,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -51,6 +56,7 @@ import { IPublishedPostRepository } from '../services/interfaces/published-post.
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('draft-posts')
+@ApiBearerAuth()
 @ErrorResponse({
   ...COMMON_ERRORS,
 })

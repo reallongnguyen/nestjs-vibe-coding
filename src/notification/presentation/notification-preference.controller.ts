@@ -25,7 +25,12 @@ import {
   ErrorResponse,
   COMMON_ERRORS,
 } from 'src/common/errors';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { NotificationPreferenceService } from '../services/notification-preference.service';
 import { NotificationType } from '../entities/notification-preference.entity';
@@ -44,6 +49,7 @@ import {
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('notification-preferences')
+@ApiBearerAuth()
 @ErrorResponse(COMMON_ERRORS)
 export class NotificationPreferenceController {
   constructor(

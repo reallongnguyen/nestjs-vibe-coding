@@ -23,7 +23,12 @@ import {
   ErrorResponse,
   COMMON_ERRORS,
 } from 'src/common/errors';
-import { ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import {
   NotificationListQuery,
@@ -43,6 +48,7 @@ import { NOTIFICATION_ERRORS } from '../entities/errors';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('notifications')
+@ApiBearerAuth()
 @ErrorResponse(COMMON_ERRORS)
 export class NotificationController {
   constructor(

@@ -8,7 +8,12 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request } from 'express';
 import * as crypto from 'crypto';
 import {
@@ -34,6 +39,7 @@ import { EngagementStatsDto } from './dtos/engagement-stats.dto';
 import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
 
 @ApiTags('Social Engagement')
+@ApiBearerAuth()
 @Controller({
   path: 'social',
   version: '1',

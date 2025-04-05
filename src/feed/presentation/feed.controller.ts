@@ -6,7 +6,7 @@ import {
   UseInterceptors,
   UseFilters,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CacheTTL, CacheInterceptor } from '@nestjs/cache-manager';
 import {
   AuthGuard,
@@ -35,6 +35,7 @@ const REST_CONFIG = {
 };
 
 @ApiTags('Feeds')
+@ApiBearerAuth()
 @Controller({
   path: 'feeds',
   version: '1',

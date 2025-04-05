@@ -1,5 +1,5 @@
 import { Controller, UseGuards, UseFilters, Get } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthGuard,
   AuthContextUser,
@@ -17,6 +17,7 @@ import { GetStreakService } from '../services/get-streak.service';
 import { StreakResponseDto } from './dtos/streak.dto';
 
 @ApiTags('streaks')
+@ApiBearerAuth()
 @Controller({
   path: 'streaks',
   version: '1',

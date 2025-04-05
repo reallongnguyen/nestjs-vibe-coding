@@ -11,7 +11,12 @@ import {
   UseGuards,
   UseFilters,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiParam } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -41,6 +46,7 @@ import {
 import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
 
 @ApiTags('Content Comments')
+@ApiBearerAuth()
 @Controller({
   path: 'comments',
   version: '1',

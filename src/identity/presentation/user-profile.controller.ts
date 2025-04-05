@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   RequireAnyRoles,
   RolesGuard,
@@ -43,6 +43,7 @@ import { IDENTITY_ERRORS } from '../entities/errors';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('users-profile')
+@ApiBearerAuth()
 @ErrorResponse(COMMON_ERRORS)
 export class UserProfileController {
   private readonly userService: UserService;

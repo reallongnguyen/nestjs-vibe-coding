@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseFilters, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   RequireAnyRoles,
   AuthGuard,
@@ -26,6 +26,7 @@ import { GetTweetImageUploadUrlDto } from './dto/tweet-image-upload.dto';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('files')
+@ApiBearerAuth()
 @ErrorResponse(COMMON_ERRORS)
 export class FileController {
   constructor(private readonly assetService: FileService) {}

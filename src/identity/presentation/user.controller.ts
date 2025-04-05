@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PagedResult } from 'src/common/models';
 import {
   AuthCtx,
@@ -56,6 +56,7 @@ import { IDENTITY_ERRORS, IdentityErrorFactory } from '../entities/errors';
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('users')
+@ApiBearerAuth()
 @ErrorResponse(COMMON_ERRORS)
 export class UserController {
   private readonly userService: UserService;
