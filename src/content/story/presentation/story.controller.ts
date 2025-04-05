@@ -33,7 +33,9 @@ import {
   ForkStoryDto,
   StoryResponseDto,
   ChainResponseDto,
+  ChainVisualizationDto,
 } from './dto';
+import { ChainVisualizationService } from '../services/chain-visualization.service';
 
 @Controller({
   path: 'stories',
@@ -48,6 +50,7 @@ export class StoryController {
   constructor(
     private readonly storyService: StoryService,
     @Inject(LOGGER_TOKEN) private readonly logger: Logger,
+    private readonly chainVisualizationService: ChainVisualizationService,
   ) {}
 
   @Post()
@@ -212,5 +215,23 @@ export class StoryController {
       totalStories: chain.totalStories,
       maxDepth: chain.maxDepth,
     };
+  }
+
+  @Get(':rootId/visualization')
+  @RequireAnyRoles(Role.USER)
+  @ApiOperation({
+    description: 'Get visualization data for a story chain',
+    summary: 'Get story chain visualization',
+  })
+  @ApiParam({
+    name: 'rootId',
+    description: 'ID of the root story of the chain',
+    type: String,
+  })
+  @OkResponse(ChainVisualizationDto)
+  async getStoryChainVisualization(
+    @Param('rootId') rootId: string,
+  ): Promise<ChainVisualizationDto> {
+    return this.chainVisualizationService.visualizeChain(rootId);
   }
 }
