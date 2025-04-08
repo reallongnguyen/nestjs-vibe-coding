@@ -258,4 +258,44 @@ export class StoryService {
 
     await this.eventBus.publish(event);
   }
+
+  /**
+   * Get a story chain by its root ID
+   */
+  async getStoryChain(rootId: string) {
+    // First, validate that the root story exists
+    const rootStory = await this.storyRepository.findById(rootId);
+    if (!rootStory) {
+      throw StoryErrorFactory.storyNotFound(rootId);
+    }
+
+    // Verify this is actually a root story
+    if (rootStory.rootId !== rootId) {
+      throw StoryErrorFactory.notChainRoot(rootId);
+    }
+
+    // Get all stories in the chain
+    const chainStories = await this.storyRepository.findByRootId(rootId);
+
+    // Build the tree structure
+    const storyMap = new Map(
+      chainStories.map((story) => [story.id, { ...story, children: [] }]),
+    );
+    const root = storyMap.get(rootId)!;
+    let maxDepth = 0;
+
+    // Organize stories into tree structure
+    for (const story of chainStories) {
+      if (story.id === rootId) continue; // Skip root
+      const parent = storyMap.get(story.parentId!)!;
+      parent.children.push(storyMap.get(story.id)!);
+      maxDepth = Math.max(maxDepth, story.chainPosition);
+    }
+
+    return {
+      root,
+      totalStories: chainStories.length,
+      maxDepth,
+    };
+  }
 }

@@ -17,9 +17,9 @@ export interface StoryRepository {
     content: string;
     images: string[];
     userId: string;
-    parentId?: string | null;
-    rootId?: string | null;
-    chainPosition?: number;
+    parentId: string | null;
+    rootId: string | null;
+    chainPosition: number;
   }): Promise<Story>;
 
   findById(id: string): Promise<Story | null>;
@@ -31,7 +31,7 @@ export interface StoryRepository {
     options?: FindStoriesOptions,
   ): Promise<Story[]>;
 
-  findByRootId(rootId: string, options?: FindStoriesOptions): Promise<Story[]>;
+  findByRootId(rootId: string): Promise<Story[]>;
 
   findChainById(rootId: string, options?: FindChainOptions): Promise<Story[]>;
 
