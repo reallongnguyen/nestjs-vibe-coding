@@ -44,7 +44,7 @@
     "@nestjs/swagger": "^11.0.3",
     "@nestjs/terminus": "^10.3.0",
     "@nestjs/throttler": "^6.4.0",
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^6.8.2",
     "axios": "^1.8.2",
     "bull": "^4.16.5",
     "cache-manager": "^6.4.0",
