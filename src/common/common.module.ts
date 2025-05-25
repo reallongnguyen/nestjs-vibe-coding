@@ -5,6 +5,7 @@ import { RedisClientOptions } from 'redis';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import KeyvRedis from '@keyv/redis';
 import { BullModule } from '@nestjs/bull';
+import { RedisModule, RedisModuleOptions } from '@liaoliaots/nestjs-redis';
 
 import { LoggerModule } from './logger/logger.module';
 import { AppConfigModule } from './configuration/config.module';
@@ -26,6 +27,14 @@ import { MonitoringModule } from './monitoring/monitoring.module';
         return {
           stores: [new KeyvRedis(service.get<string>('redis.url'))],
         };
+      },
+    }),
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          url: configService.get<string>('redis.url'),
+        } as RedisModuleOptions;
       },
     }),
     BullModule.forRootAsync({

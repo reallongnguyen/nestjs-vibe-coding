@@ -1,4 +1,16 @@
-pnpm run format
+# Get staged files for formatting
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|json|md)$' | tr '\n' ' ')
+
+# Only run prettier if there are files to format
+if [ -n "$STAGED_FILES" ]; then
+  echo "Formatting staged files: $STAGED_FILES"
+  npx prettier --write $STAGED_FILES
+  
+  # Add the formatted files back to staging
+  git add $STAGED_FILES
+else
+  echo "No files to format"
+fi
 
 # Get staged TypeScript files
 STAGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' | grep -v 'src/generated/' | tr '\n' ' ')
