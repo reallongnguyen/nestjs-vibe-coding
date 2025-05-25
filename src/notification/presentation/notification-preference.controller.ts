@@ -28,7 +28,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { NotificationPreferenceService } from '../services/notification-preference.service';
-import { NotificationType } from '../entities/notification-preference.entity';
+import { NotificationType } from '../entities/notification-types.enum';
 import {
   CreateNotificationPreferenceDto,
   NotificationPreferenceListQuery,
@@ -86,11 +86,11 @@ export class NotificationPreferenceController {
   @ErrorResponse({})
   async getByType(
     @AuthContextUser() user: User,
-    @Param('type') type: NotificationType,
+    @Param('type') type: string,
   ): Promise<NotificationPreferenceOutput> {
     const preference = await this.preferenceService.getPreferenceByType(
       user.id,
-      type,
+      type as NotificationType,
     );
 
     return NotificationPreferenceOutput.fromDomain(preference);
@@ -128,12 +128,12 @@ export class NotificationPreferenceController {
   @ErrorResponse({})
   async update(
     @AuthContextUser() user: User,
-    @Param('type') type: NotificationType,
+    @Param('type') type: string,
     @Body() dto: UpdateNotificationPreferenceDto,
   ): Promise<NotificationPreferenceOutput> {
     const preference = await this.preferenceService.updatePreference(
       user.id,
-      type,
+      type as NotificationType,
       {
         channels: dto.channels,
         enabled: dto.enabled,
@@ -153,12 +153,12 @@ export class NotificationPreferenceController {
   @ErrorResponse({})
   async updateRateLimits(
     @AuthContextUser() user: User,
-    @Param('type') type: NotificationType,
+    @Param('type') type: string,
     @Body() dto: UpdateRateLimitConfigDto,
   ): Promise<NotificationPreferenceOutput> {
     const preference = await this.preferenceService.updateRateLimitConfig(
       user.id,
-      type,
+      type as NotificationType,
       dto,
     );
 
