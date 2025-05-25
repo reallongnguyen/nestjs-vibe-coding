@@ -1,5 +1,3 @@
-export * from './create-notification-template.dto';
-export * from './update-notification-template.dto';
-export * from './notification-template.dto';
-export { ValidationResultDto } from './validate-template.dto';
-export * from './test-render-template.dto';
+export * from './notification.dto';
+export * from './notification-preference.dto';
+export * from './rate-limit.dto';

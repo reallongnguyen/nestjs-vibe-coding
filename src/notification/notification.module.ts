@@ -71,7 +71,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventManagerModule } from 'src/common/event-manager/event-manager.module';
 import { NotificationController } from './presentation/notification.controller';
 import { NotificationPreferenceController } from './presentation/notification-preference.controller';
-import { NotificationTemplateController } from './presentation/notification-template.controller';
+
 import { NotificationHandler } from './presentation/handlers/notification.handler';
 import { LikeNotificationHandler } from './presentation/handlers/like-notification.handler';
 import { CommentNotificationHandler } from './presentation/handlers/comment-notification.handler';
@@ -113,11 +113,7 @@ import { NotificationRateLimitService } from './services/notification-rate-limit
     ]),
     EventManagerModule,
   ],
-  controllers: [
-    NotificationController,
-    NotificationPreferenceController,
-    NotificationTemplateController,
-  ],
+  controllers: [NotificationController, NotificationPreferenceController],
   providers: [
     // Services
     NotificationService,
