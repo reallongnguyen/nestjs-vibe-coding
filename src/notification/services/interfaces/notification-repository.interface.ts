@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { Notification } from '../../entities/notification.entity';
 
 export interface INotificationRepository {

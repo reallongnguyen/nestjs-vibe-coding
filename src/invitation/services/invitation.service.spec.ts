@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InvitationStatus } from '@prisma/client';
+import { InvitationStatus } from 'src/generated/client';
 import { EventBusAdapter } from 'src/common/event-manager/services/event-bus.adapter';
 import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';
 import { AppError } from 'src/common/errors/app.error';

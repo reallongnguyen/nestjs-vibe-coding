@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsBoolean } from 'class-validator';
 import { PageOptionsDto } from 'src/common';

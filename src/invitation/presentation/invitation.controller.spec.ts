@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Logger } from 'nestjs-pino';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { InvitationStatus, UserRole } from '@prisma/client';
+import { InvitationStatus, UserRole } from 'src/generated/client';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/prisma/prisma.service';

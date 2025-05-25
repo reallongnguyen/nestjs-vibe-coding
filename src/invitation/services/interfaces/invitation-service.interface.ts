@@ -1,4 +1,4 @@
-import { InvitationStatus } from '@prisma/client';
+import { InvitationStatus } from 'src/generated/client';
 import { PagedResult, PageOptionsDto } from 'src/common';
 import { Invitation } from '../../entities/invitation.entity';
 

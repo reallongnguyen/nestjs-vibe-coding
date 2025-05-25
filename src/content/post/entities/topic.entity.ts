@@ -1,4 +1,4 @@
-import { Topic as TopicPrisma } from '@prisma/client';
+import { Topic as TopicPrisma } from 'src/generated/client';
 
 export class Topic implements TopicPrisma {
   id: string;

@@ -1,1 +1,1 @@
-export { UserStreak } from '@prisma/client';
+export { UserStreak } from 'src/generated/client';

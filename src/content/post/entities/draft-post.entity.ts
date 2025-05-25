@@ -1,4 +1,4 @@
-import { DraftPost as DraftPostPrisma } from '@prisma/client';
+import { DraftPost as DraftPostPrisma } from 'src/generated/client';
 
 export class DraftPost implements DraftPostPrisma {
   id: string;

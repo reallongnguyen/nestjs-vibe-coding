@@ -25,12 +25,7 @@ import {
   ErrorResponse,
   COMMON_ERRORS,
 } from 'src/common/errors';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { NotificationPreferenceService } from '../services/notification-preference.service';
 import { NotificationType } from '../entities/notification-preference.entity';
@@ -87,11 +82,6 @@ export class NotificationPreferenceController {
     description:
       'Get a notification preference by type for the authenticated user',
   })
-  @ApiParam({
-    name: 'type',
-    description: 'Notification type',
-    enum: NotificationType,
-  })
   @OkResponse(NotificationPreferenceOutput)
   @ErrorResponse({})
   async getByType(
@@ -134,11 +124,6 @@ export class NotificationPreferenceController {
     summary: 'Update notification preference',
     description: 'Update a notification preference for the authenticated user',
   })
-  @ApiParam({
-    name: 'type',
-    description: 'Notification type',
-    enum: NotificationType,
-  })
   @OkResponse(NotificationPreferenceOutput)
   @ErrorResponse({})
   async update(
@@ -163,11 +148,6 @@ export class NotificationPreferenceController {
   @ApiOperation({
     summary: 'Update rate limit configuration',
     description: 'Update rate limit configuration for a notification type',
-  })
-  @ApiParam({
-    name: 'type',
-    description: 'Notification type',
-    enum: NotificationType,
   })
   @OkResponse(NotificationPreferenceOutput)
   @ErrorResponse({})

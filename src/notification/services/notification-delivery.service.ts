@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ClientProxy, MqttRecordBuilder } from '@nestjs/microservices';
-import { Notification } from '@prisma/client';
+import { Notification } from 'src/generated/client';
 import { Logger } from 'nestjs-pino';
 import { NotificationOutput } from '../presentation/dtos/notification.dto';
 import { NotificationPreferenceService } from './notification-preference.service';

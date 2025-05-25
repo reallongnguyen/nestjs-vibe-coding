@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Story } from '../entities/story.entity';
 import { StoryErrorFactory } from '../entities/errors';

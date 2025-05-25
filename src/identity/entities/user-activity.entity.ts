@@ -1,7 +1,7 @@
 import {
   UserActivityType,
   UserActivity as PrismaUserActivity,
-} from '@prisma/client';
+} from 'src/generated/client';
 
 export { UserActivityType };
 

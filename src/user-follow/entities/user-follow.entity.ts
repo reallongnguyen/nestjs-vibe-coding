@@ -1,4 +1,4 @@
-import { UserFollow as UserFollowPrisma } from '@prisma/client';
+import { UserFollow as UserFollowPrisma } from 'src/generated/client';
 
 export class UserFollow implements UserFollowPrisma {
   id: string;

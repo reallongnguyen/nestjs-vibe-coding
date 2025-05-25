@@ -1,4 +1,4 @@
-import { UserStreak } from '@prisma/client';
+import { UserStreak } from 'src/generated/client';
 
 export interface IStreakRepository {
   findByUserId(userId: string): Promise<UserStreak | null>;

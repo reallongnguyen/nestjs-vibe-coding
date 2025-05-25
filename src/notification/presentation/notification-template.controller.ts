@@ -10,12 +10,7 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthContextUser,
   AuthGuard,
@@ -44,10 +39,7 @@ import {
 } from './dtos/notification-template.dto';
 import { NOTIFICATION_ERRORS } from '../entities/errors';
 
-@Controller({
-  path: 'notifications/templates',
-  version: '1',
-})
+@Controller({ path: 'notifications/templates', version: '1' })
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
 @ApiTags('notification-templates')
@@ -84,15 +76,8 @@ export class NotificationTemplateController {
     summary: 'Get notification template',
     description: 'Get a notification template by ID',
   })
-  @ApiParam({
-    name: 'id',
-    description: 'Template ID',
-    type: String,
-  })
   @OkResponse(NotificationTemplateOutput)
-  @ErrorResponse({
-    TEMPLATE_NOT_FOUND: NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND,
-  })
+  @ErrorResponse({ TEMPLATE_NOT_FOUND: NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND })
   async getById(
     @AuthContextUser() user: User,
     @Param('id') id: string,
@@ -119,9 +104,7 @@ export class NotificationTemplateController {
       name: dto.type,
       type: dto.type,
       template: dto.body,
-      templateContent: {
-        [dto.language]: dto.body,
-      },
+      templateContent: { [dto.language]: dto.body },
       version: '1.0.0',
       description: dto.description,
     });
@@ -133,11 +116,6 @@ export class NotificationTemplateController {
   @ApiOperation({
     summary: 'Update notification template',
     description: 'Update an existing notification template',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Template ID',
-    type: String,
   })
   @OkResponse(NotificationTemplateOutput)
   @ErrorResponse({
@@ -163,15 +141,8 @@ export class NotificationTemplateController {
     summary: 'Delete notification template',
     description: 'Delete a notification template',
   })
-  @ApiParam({
-    name: 'id',
-    description: 'Template ID',
-    type: String,
-  })
   @OkResponse(null)
-  @ErrorResponse({
-    TEMPLATE_NOT_FOUND: NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND,
-  })
+  @ErrorResponse({ TEMPLATE_NOT_FOUND: NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND })
   async delete(
     @AuthContextUser() user: User,
     @Param('id') id: string,
@@ -185,15 +156,8 @@ export class NotificationTemplateController {
     summary: 'Compile notification template',
     description: 'Compile (hot reload) a notification template',
   })
-  @ApiParam({
-    name: 'id',
-    description: 'Template ID',
-    type: String,
-  })
   @OkResponse(NotificationTemplateOutput)
-  @ErrorResponse({
-    TEMPLATE_NOT_FOUND: NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND,
-  })
+  @ErrorResponse({ TEMPLATE_NOT_FOUND: NOTIFICATION_ERRORS.TEMPLATE_NOT_FOUND })
   async compile(
     @AuthContextUser() user: User,
     @Param('id') id: string,
@@ -209,11 +173,6 @@ export class NotificationTemplateController {
   @ApiOperation({
     summary: 'Validate notification template',
     description: 'Validate a notification template with sample data',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Template ID',
-    type: String,
   })
   @OkResponse(null)
   @ErrorResponse({})
@@ -236,11 +195,6 @@ export class NotificationTemplateController {
     summary: 'Test render notification template',
     description: 'Render a notification template with sample data',
   })
-  @ApiParam({
-    name: 'id',
-    description: 'Template ID',
-    type: String,
-  })
   @OkResponse(null)
   @ErrorResponse({})
   async render(
@@ -253,9 +207,6 @@ export class NotificationTemplateController {
   ): Promise<{ title: string; body: string }> {
     // TODO: This would need to be implemented in the service
     // For now, return dummy data
-    return {
-      title: 'Rendered Title',
-      body: 'Rendered Body with data',
-    };
+    return { title: 'Rendered Title', body: 'Rendered Body with data' };
   }
 }

@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User } from 'src/generated/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from 'nestjs-pino';
 import { IEventBus } from '@nestjs/cqrs';

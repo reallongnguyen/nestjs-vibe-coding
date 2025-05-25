@@ -1,1 +1,1 @@
-export { User } from '@prisma/client';
+export { User } from 'src/generated/client';

@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { InvitationStatus, PrismaClient } from '@prisma/client';
+import { InvitationStatus, PrismaClient } from 'src/generated/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PageOptionsDto } from 'src/common/presentation/dtos/page-options.dto';

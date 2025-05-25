@@ -1,4 +1,4 @@
-import { Comment as CommentPrisma } from '@prisma/client';
+import { Comment as CommentPrisma } from 'src/generated/client';
 
 export class Comment implements CommentPrisma {
   id: string;

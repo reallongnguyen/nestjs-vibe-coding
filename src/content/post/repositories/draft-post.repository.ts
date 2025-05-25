@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { BaseRepository } from 'src/common/repositories/base.repository';
 import { PagedResult } from 'src/common/models';

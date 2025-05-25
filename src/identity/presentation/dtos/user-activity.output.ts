@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserActivityType } from '@prisma/client';
+import { UserActivityType } from 'src/generated/client';
 
 import { UserActivity } from '../../entities/user-activity.entity';
 

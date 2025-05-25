@@ -4,7 +4,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 import {
   UserActivity as PrismaUserActivity,
   UserActivityType,
-} from '@prisma/client';
+} from 'src/generated/client';
 
 import { IUserActivityRepository } from '../services/interfaces/user-activity.repository.interface';
 import { UserActivity } from '../entities/user-activity.entity';

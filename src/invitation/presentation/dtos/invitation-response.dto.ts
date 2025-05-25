@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { InvitationStatus } from '@prisma/client';
+import { InvitationStatus } from 'src/generated/client';
 import { Invitation } from '../../entities/invitation.entity';
 
 export class InvitationResponseDto {

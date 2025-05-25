@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Logger } from 'nestjs-pino';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { cloneDeep } from 'lodash';
 import dayjs from 'dayjs';
 

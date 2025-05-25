@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { BaseRepository } from 'src/common/repositories/base.repository';
 import { PagedResult } from 'src/common/models';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { IPublishedPostRepository } from '../services/interfaces/published-post.repository.interface';
 import {
   PublishedPost,

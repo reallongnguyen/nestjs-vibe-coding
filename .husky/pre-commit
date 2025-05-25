@@ -1,2 +1,2 @@
-yarn format
-yarn lint
+pnpm run format
+pnpm run lint

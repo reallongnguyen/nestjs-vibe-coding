@@ -1,11 +1,18 @@
 /* eslint-disable no-console */
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole } from 'src/generated/client';
 
 const prisma = new PrismaClient();
 
 async function createRootUser(authId: string) {
-  return prisma.user.create({
-    data: {
+  return prisma.user.upsert({
+    where: {
+      authId,
+    },
+    update: {
+      firstName: 'Root',
+      roles: [UserRole.ROOT, UserRole.ADMIN, UserRole.USER],
+    },
+    create: {
       authId,
       firstName: 'Root',
       roles: [UserRole.ROOT, UserRole.ADMIN, UserRole.USER],

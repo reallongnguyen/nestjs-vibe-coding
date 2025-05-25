@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 
 export default {
   async up(prisma: Prisma.TransactionClient): Promise<void> {

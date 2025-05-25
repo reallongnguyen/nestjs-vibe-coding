@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { InvitationStatus } from '@prisma/client';
+import { InvitationStatus } from 'src/generated/client';
 import { randomBytes } from 'crypto';
 import { PagedResult, PageOptionsDto } from 'src/common';
 import { IEventBus } from 'src/common/event-manager';

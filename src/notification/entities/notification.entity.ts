@@ -1,4 +1,4 @@
-import { Notification as NotificationIf } from '@prisma/client';
+import { Notification as NotificationIf } from 'src/generated/client';
 
 export class NotificationObject implements PrismaJson.NotificationObjectType {
   id: string;

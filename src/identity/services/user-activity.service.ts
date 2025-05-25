@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { UserActivityType } from '@prisma/client';
+import { UserActivityType } from 'src/generated/client';
 
 import { IUserActivityRepository } from './interfaces/user-activity.repository.interface';
 import {

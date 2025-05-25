@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PagedResult } from 'src/common/models';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/client';
 import { Logger } from 'nestjs-pino';
 import { cloneDeep } from 'lodash';
 import { NotificationOutput } from '../presentation/dtos/notification.dto';

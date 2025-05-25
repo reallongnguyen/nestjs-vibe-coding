@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserStreak } from '@prisma/client';
+import { UserStreak } from 'src/generated/client';
 
 export class StreakResponseDto {
   @ApiProperty({

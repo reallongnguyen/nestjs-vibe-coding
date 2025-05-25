@@ -2,7 +2,7 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { UserRole } from '@prisma/client';
+import { UserRole } from 'src/generated/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { AuthGuard, RolesGuard } from 'src/common/auth';
 import { EVENT_BUS_TOKEN } from 'src/common/event-manager/entities/tokens';

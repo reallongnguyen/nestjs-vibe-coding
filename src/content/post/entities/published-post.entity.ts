@@ -1,4 +1,4 @@
-import { PublishedPost as PublishedPostPrisma } from '@prisma/client';
+import { PublishedPost as PublishedPostPrisma } from 'src/generated/client';
 
 export class PublishedPost implements PublishedPostPrisma {
   id: string;

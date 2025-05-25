@@ -1,4 +1,4 @@
-import { InvitationStatus } from '@prisma/client';
+import { InvitationStatus } from 'src/generated/client';
 
 export interface InviterInfo {
   id: string;
