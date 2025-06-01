@@ -1,0 +1,142 @@
+# Traefik Configuration for GCP Load Balancer Deployment
+# This config assumes HTTPS termination at GCP Load Balancer level
+
+api:
+  dashboard: true
+  # Secure dashboard access in production
+  insecure: false
+
+entryPoints:
+  web:
+    address: ":80"
+    # No HTTPS redirect - handled by GCP LB
+    forwardedHeaders:
+      trustedIPs:
+        # GCP Load Balancer IP ranges
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
+        - "35.191.0.0/16"  # GCP Health Check IPs
+        - "130.211.0.0/22" # GCP Health Check IPs
+
+  mqtt:
+    address: ":1883"
+
+# No Let's Encrypt configuration needed - handled by GCP
+# certificatesResolvers: # Commented out for GCP deployment
+
+# Enable experimental plugins
+experimental:
+  plugins:
+    jwt:
+      moduleName: "github.com/agilezebra/jwt-middleware"
+      version: "v1.2.15"
+
+providers:
+  # Docker provider for dynamic configuration
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: api-service-docker_vpc-bridge
+  
+  # File provider for static configuration (this file)
+  file:
+    filename: /etc/traefik/traefik.yaml
+    watch: true
+
+http:
+  middlewares:
+    # Circuit breaker middleware
+    circuitbreaker:
+      circuitBreaker:
+        expression: NetworkErrorRatio() > 0.3 || ResponseCodeRatio(500, 600, 0, 600) > 0.3
+        checkPeriod: 3s
+        fallbackDuration: 10s
+        recoveryDuration: 3s
+
+    # Rate limiting middleware
+    ratelimit:
+      rateLimit:
+        average: 100
+        period: 1s
+        burst: 200
+        sourceCriterion:
+          ipStrategy:
+            # Get real IP from GCP Load Balancer headers
+            depth: 2
+
+    # Security headers middleware for GCP deployment
+    security-headers:
+      headers:
+        customRequestHeaders:
+          # Trust GCP Load Balancer forwarded headers
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Frame-Options: "DENY"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Permissions-Policy: "geolocation=(), microphone=(), camera=()"
+          # HSTS set by GCP Load Balancer
+          # Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"
+
+    # Health check middleware for GCP
+    healthcheck:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "no-cache"
+
+    # Direct JWT validation middleware
+    jwt-auth:
+      plugin:
+        jwt:
+          # HMAC secret for JWT validation (Supabase Auth secret)
+          secret: ${AUTH_SERVICE_JWT_SECRET}
+
+          # Map JWT claims to HTTP headers
+          headerMap:
+            X-Auth-Id: "sub"
+
+          # Allow JWT in multiple locations
+          tokenSources:
+            - header
+            - cookie
+            - query
+
+    # CORS middleware for API
+    cors-api:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+          - "http://localhost:3001"
+          - "https://isling.me"
+          - "https://dev.isling.me"
+          - "https://stg.isling.me"
+        accessControlAllowHeaders:
+          - "Authorization"
+          - "Content-Type"
+          - "X-Requested-With"
+          - "Accept"
+          - "Origin"
+          - "X-Forwarded-For"
+          - "X-Forwarded-Proto"
+        accessControlExposeHeaders:
+          - "X-Auth-Id"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 86400
+
+log:
+  level: INFO
+  # JSON format for GCP Cloud Logging
+  format: json
+
+accessLog:
+  # JSON format for GCP Cloud Logging
+  format: json

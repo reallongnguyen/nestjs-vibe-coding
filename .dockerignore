@@ -19,7 +19,6 @@ Dockerfile
 README.md
 eslint.config.mjs
 nodemon.json
-infra
 scripts
 deployments
 docker-compose.yml
@@ -27,6 +26,6 @@ docker-compose.yml
 test
 
 docs
-infra
+infrastructure
 tasks
 blogs

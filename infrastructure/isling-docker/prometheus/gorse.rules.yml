@@ -1,0 +1,85 @@
+groups:
+  - name: gorse_alerts
+    rules:
+      # System Health
+      - alert: GorseHighErrorRate
+        expr: rate(gorse_error_count[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate in Gorse"
+          description: "Gorse error rate is {{ $value }} for the last 5 minutes"
+
+      - alert: GorseHighLatency
+        expr: histogram_quantile(0.95, rate(gorse_request_duration_seconds_bucket[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in Gorse"
+          description: "95th percentile latency is {{ $value }}s"
+
+      - alert: GorseLowCacheHitRate
+        expr: rate(gorse_cache_hit[5m]) / (rate(gorse_cache_hit[5m]) + rate(gorse_cache_miss[5m])) < 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit rate in Gorse"
+          description: "Cache hit rate is {{ $value }}"
+
+      # Worker Health
+      - alert: GorseWorkerDown
+        expr: up{job="gorse"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gorse worker is down"
+          description: "Worker {{ $labels.instance }} has been down for 5 minutes"
+
+      # Performance
+      - alert: GorseHighMemoryUsage
+        expr: process_resident_memory_bytes{job="gorse"} > 2e9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage in Gorse"
+          description: "Memory usage is {{ $value }} bytes"
+
+      - alert: GorseHighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="gorse"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage in Gorse"
+          description: "CPU usage is {{ $value }}"
+
+  - name: gorse_recording_rules
+    rules:
+      # Performance metrics
+      - record: gorse:request_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(gorse_request_duration_seconds_bucket[5m])) by (le))
+
+      - record: gorse:cache_hit_ratio:5m
+        expr: rate(gorse_cache_hit[5m]) / (rate(gorse_cache_hit[5m]) + rate(gorse_cache_miss[5m]))
+
+      - record: gorse:error_rate:5m
+        expr: rate(gorse_error_count[5m])
+
+      # Resource usage
+      - record: gorse:memory_usage:avg
+        expr: avg(process_resident_memory_bytes{job="gorse"})
+
+      - record: gorse:cpu_usage:avg
+        expr: avg(rate(process_cpu_seconds_total{job="gorse"}[5m]))
+
+      # Business metrics
+      - record: gorse:recommendations_total:rate5m
+        expr: rate(gorse_recommendations_total[5m])
+
+      - record: gorse:feedback_total:rate5m
+        expr: rate(gorse_feedback_total[5m]) 

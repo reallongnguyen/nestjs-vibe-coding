@@ -1,2 +1,12 @@
 /credentials
 .env
+.env.dev
+.env.stg
+.env.prod
+
+**/*/.env
+**/*/.env.dev
+**/*/.env.stg
+**/*/.env.prod
+
+**/*/traefik.yaml

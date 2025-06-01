@@ -1,0 +1,11 @@
+credentials/
+api-service/
+
+env/
+
+.env
+.env.dev
+.env.stg
+.env.prod
+
+traefik-gateway/traefik.yaml

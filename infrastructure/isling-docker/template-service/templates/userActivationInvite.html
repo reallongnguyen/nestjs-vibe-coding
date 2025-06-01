@@ -1,0 +1,311 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>{{if eq .Data.language "vi"}}Chào mừng đến với Isling{{else}}Welcome to Isling{{end}}</title>
+  <style type="text/css" rel="stylesheet" media="all">
+    /* Base ------------------------------ */
+    @import url("https://fonts.googleapis.com/css2?family=Figtree:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+    body {
+      height: 100%;
+      margin: 0;
+      -webkit-text-size-adjust: none;
+      font-family: "Figtree", Helvetica, Arial, sans-serif;
+      background-color: #F2F4F6;
+      color: #51545E;
+      width: 100% !important;
+    }
+
+    a {
+      color: #5803c4;
+    }
+
+    a img {
+      border: none;
+    }
+
+    td {
+      word-break: break-word;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #1d1a21;
+      font-size: 22px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    p {
+      margin: 0.4em 0 1.1875em;
+      font-size: 16px;
+      line-height: 1.625;
+      color: #51545E;
+    }
+
+    .email-wrapper {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #fcfaff;
+    }
+
+    .email-content {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .email-masthead {
+      padding: 25px 0;
+      text-align: center;
+    }
+
+    .email-body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .email-body_inner {
+      width: 570px;
+      margin: 0 auto;
+      padding: 0;
+      background-color: #ffffff;
+    }
+
+    .content-cell {
+      padding: 45px;
+    }
+
+    .email-footer {
+      width: 570px;
+      margin: 0 auto;
+      padding: 0;
+      text-align: center;
+    }
+
+    .button {
+      background-color: #5803c4 !important;
+      border-top: 12px solid #5803c4 !important;
+      border-right: 24px solid #5803c4 !important;
+      border-bottom: 12px solid #5803c4 !important;
+      border-left: 24px solid #5803c4 !important;
+      display: inline-block !important;
+      color: #fff !important;
+      text-decoration: none !important;
+      border-radius: 40px !important;
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.16) !important;
+      -webkit-text-size-adjust: none !important;
+      box-sizing: border-box !important;
+      font-size: 16px !important;
+    }
+
+    .body-action {
+      width: 100%;
+      margin: 30px auto;
+      padding: 0;
+      text-align: center;
+    }
+
+    .body-sub {
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 1px solid #e8e8e9;
+    }
+
+    .sub {
+      font-size: 13px;
+      line-height: 1.625;
+      color: #51545E;
+    }
+
+    .break-all {
+      word-break: break-all;
+    }
+
+    .align-center {
+      text-align: center;
+    }
+
+    .f-fallback {
+      font-family: "Figtree", Helvetica, Arial, sans-serif;
+    }
+
+    /* Responsive design */
+    @media only screen and (max-width: 500px) {
+      .button {
+        width: 100% !important;
+        text-align: center !important;
+      }
+    }
+
+    @media only screen and (max-width: 600px) {
+
+      .email-body_inner,
+      .email-footer {
+        width: 100% !important;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+
+      body,
+      .email-body,
+      .email-body_inner,
+      .email-content,
+      .email-wrapper,
+      .email-masthead,
+      .email-footer {
+        background-color: #1D1A21 !important;
+        color: #FFFFFF !important;
+      }
+
+      p,
+      ul,
+      ol,
+      blockquote,
+      h1,
+      h2,
+      h3 {
+        color: #FFFFFF !important;
+      }
+
+      .attributes_content,
+      .discount {
+        background-color: #4A484D !important;
+      }
+
+      .email-masthead_name {
+        text-shadow: none !important;
+      }
+    }
+  </style>
+
+  <!--[if mso]>
+  <style type="text/css">
+    .f-fallback {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+  <![endif]-->
+</head>
+
+<body>
+  <span class="preheader">{{if eq .Data.language "vi"}}Xác nhận địa chỉ email của bạn cho Isling{{else}}Confirm your email
+    address for Isling{{end}}</span>
+  <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table class="email-content" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="email-masthead">
+              <a href="https://example.com" class="f-fallback email-masthead_name" style="text-decoration: none;">
+                Isling
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td class="email-body" width="570" cellpadding="0" cellspacing="0">
+              <table class="email-body_inner" align="center" width="570" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="content-cell">
+                    <div class="f-fallback">
+                      <h1>
+                        {{if eq .Data.language "vi"}}Chào mừng bạn đến với Isling! Chúng tôi rất vui được hỗ trợ bạn trong hành trình khám phá
+                        và kết nối. Sử dụng nút bên dưới để xác nhận địa chỉ email của bạn.{{else}}Welcome to Isling! We're excited to support
+                        you on your journey of discovery and connection. Use the button below to confirm your email address.{{end}}
+                      </h1>
+
+                      <p>
+                        {{if eq .Data.language "vi"}}Chúng tôi cam kết liên tục cải thiện nền tảng để mang đến trải nghiệm tốt nhất cho bạn. Hãy
+                        chia sẻ ý kiến để giúp chúng tôi phục vụ bạn tốt hơn!{{else}}We're committed to continuously improving our platform to
+                        provide you with the best experience. Please share your feedback to help us serve you better!{{end}}
+                      </p>
+
+                      <!-- Action -->
+                      <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td align="center">
+                            <!-- Border based button https://litmus.com/blog/a-guide-to-bulletproof-buttons-in-email-design -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                              <tr>
+                                <td align="center">
+                                  <table border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                      <td>
+                                        <a href="{{ .ConfirmationURL }}" class="button" target="_blank">
+                                          {{if eq .Data.language "vi"}}Xác nhận email và bắt đầu!{{else}}Confirm your email address and get started!{{end}}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+
+                      <p>
+                        {{if eq .Data.language "vi"}}Việc xác nhận địa chỉ email giúp chúng tôi đảm bảo tính bảo mật cho tài khoản của
+                        bạn.{{else}}Confirming your email address helps us keep your account secure.{{end}}
+                      </p>
+
+                      <p>
+                        {{if eq .Data.language "vi"}}Chúng tôi mong muốn tạo ra một cộng đồng kết nối ý nghĩa, nơi mọi người có thể chia sẻ và
+                        khám phá những điều mới mẻ. Cảm ơn bạn đã tham gia cùng chúng tôi!{{else}}We aim to create a meaningful community where
+                        people can connect, share, and discover new things together. Thank you for joining us!{{end}}
+                      </p>
+
+                      <p>
+                        {{if eq .Data.language "vi"}}Chúc bạn có những trải nghiệm tuyệt vời!<br />Đội ngũ Isling{{else}}Wishing you great
+                        experiences ahead!<br />The Isling Team{{end}}
+                      </p>
+
+                      <!-- Sub copy -->
+                      <table class="body-sub">
+                        <tr>
+                          <td>
+                            <p class="sub">
+                              {{if eq .Data.language "vi"}}Nếu bạn gặp khó khăn khi nhấp vào nút, hãy sao chép và dán URL sau vào trình duyệt web của
+                              bạn.{{else}}If you're having trouble with the button above, copy and paste the URL below into your web browser.{{end}}
+                            </p>
+                            <p class="sub break-all">{{ .ConfirmationURL }}</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <table class="email-footer" align="center" width="570" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="content-cell" align="center">
+                    <p class="sub align-center">
+                      <a href="https://example.com">Isling</a> -
+                      {{if eq .Data.language "vi"}}Kết nối và khám phá{{else}}Connect and Discover{{end}}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>

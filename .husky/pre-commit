@@ -5,7 +5,7 @@ STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|
 if [ -n "$STAGED_FILES" ]; then
   echo "Formatting staged files: $STAGED_FILES"
   npx prettier --write $STAGED_FILES
-  
+
   # Add the formatted files back to staging
   git add $STAGED_FILES
 else
@@ -19,7 +19,7 @@ STAGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(
 if [ -n "$STAGED_TS_FILES" ]; then
   echo "Linting staged TypeScript files: $STAGED_TS_FILES"
   npx eslint $STAGED_TS_FILES --fix
-  
+
   # Add the fixed files back to staging
   git add $STAGED_TS_FILES
 else

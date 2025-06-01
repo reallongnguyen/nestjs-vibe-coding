@@ -1,5 +1,5 @@
 ---
-description: Handoff Message Templates
+description: Handoff Message Templates, finish work proceduce
 globs: 
 alwaysApply: false
 ---
@@ -388,4 +388,4 @@ Links:
 - Sprint summary: docs/sprint-summaries/sprint-[X]-summary.md
 - Sprint metrics: docs/sprint-metrics/sprint-[X]-metrics.md
 - Sprint demo recording: [link if applicable]
-``` 
+```

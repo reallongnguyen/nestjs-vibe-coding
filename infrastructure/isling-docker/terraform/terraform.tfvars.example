@@ -1,0 +1,54 @@
+# Example Terraform variables file
+# Copy this to terraform.tfvars and customize for your environment
+
+# GCP Configuration
+project_id = "isling-me"
+region     = "asia-northeast1"
+zone       = "asia-northeast1-a"
+
+# Environment Tier Configuration
+# Set to "dev-staging" for shared development/staging resources (cost-optimized)
+# Set to "production" for dedicated production resources (performance-optimized)
+environment_tier = "dev-staging"  # Change to "production" for production deployments
+
+# Domain Configuration (New format: service.environment.domain.tld)
+api_domain     = "api.dev.isling.me"
+auth_domain    = "auth.dev.isling.me"
+mqtt_domain    = "mqtt.dev.isling.me"
+traefik_domain = "traefik.dev.isling.me"
+
+# Environment
+environment = "development"
+
+# Cost Optimization
+# Set to true for development environments to save ~70% on compute costs
+# WARNING: Preemptible instances can be terminated anytime
+use_preemptible = false  # Change to true for cost savings
+
+# Scaling Configuration
+machine_type               = "e2-medium"        # e2-standard-2 for production
+min_instances             = 1                   # 2 for production
+max_instances             = 3                   # 10 for production
+target_cpu_utilization    = 0.7                # Scale when CPU > 70%
+
+# Database Configuration
+# Cloud SQL f1-micro is now the default (recommended for all environments)
+enable_cloud_sql = true   # Default: managed PostgreSQL database
+
+# Security Configuration
+# Cloud Armor provides DDoS protection and WAF rules
+enable_cloud_armor = true  # Recommended for production ($2/month)
+
+# Production Example Configuration (commented out):
+# environment_tier           = "production"
+# api_domain                 = "api.isling.me"
+# auth_domain                = "auth.isling.me"
+# mqtt_domain                = "mqtt.isling.me"
+# traefik_domain             = "traefik.isling.me"
+# machine_type               = "e2-standard-2"
+# min_instances             = 2
+# max_instances             = 10
+# target_cpu_utilization    = 0.6
+# enable_cloud_sql          = true
+# enable_cloud_armor        = true
+# use_preemptible           = false

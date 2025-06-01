@@ -5,7 +5,7 @@ import { OkResponse } from 'src/common';
 import { GlobalErrorFilter } from 'src/common/errors/error.filter';
 import { ErrorResponse, COMMON_ERRORS } from 'src/common/errors';
 
-@Controller()
+@Controller('info')
 @UseFilters(GlobalErrorFilter)
 @ErrorResponse(COMMON_ERRORS)
 @ApiTags('app')

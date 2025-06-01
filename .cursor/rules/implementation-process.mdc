@@ -7,9 +7,7 @@ alwaysApply: false
 
 ### STEP 1: Task Analysis
 
-- Read the file: [sprint-current-tasks.md](mdc:tasks/sprint-current-tasks.md)
-- Extract and understand:
-  - Task requirements
+- Extract and undements
   - Acceptance criteria
   - Technical notes
   - Dependencies task
@@ -30,21 +28,17 @@ alwaysApply: false
   - Understand impact of change
   - Understand scope of change
   - Don't change current code if no need
-- Read the file: [architecture.mermaid](mdc:docs/architecture.mermaid)
-  - Extract and understand:
-    - Module boundaries and relationships
+- Read the file: @architecture.mermaid
+  - Extract and undeboundaries and relationships
     - Data flow patterns
     - System interfaces
     - Component dependencies
   - Validate any changes against architectural constraints
   - Ensure new code maintains defined separation of concerns
-- Read the file: [schema.prisma](mdc:prisma/schema.prisma)
-- Read the file: [technical.md](mdc:docs/technical.md)
-- Understand the module's style in [module-structure.md](mdc:docs/module-structure.md)
+- Read the file: @schema.prisma
+- Read the file: @technicalnd the module's ste-structure.md
 
-### STEP 4: Implementation Planning
-
-If this task is complex or high risk or integration-heavy, consider to perform Dependency Analysis and Planning first. You can create sub folder in `tasks/work/` to store analysis files.
+### STEP 4: Implementhis task is complex or high risk or integration-heavy, consider to perform Dependency Analysis and Planning first. You can create sub folder in `tasks/work/` to store analysis files.
 
 1. Create skeleton:
    - Module structure following patterns
@@ -85,4 +79,5 @@ If this task is complex or high risk or integration-heavy, consider to perform D
 
 ### STEP 6: Keep documentation updated
 
-
+- Update task status
+- Update relate docs

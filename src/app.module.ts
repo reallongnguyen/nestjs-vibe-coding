@@ -7,6 +7,7 @@ import { IdentityModule } from 'src/identity/identity.module';
 // import { GamificationModule } from 'src/gamification/gamification.module';
 import { SocialModule } from 'src/social/social.module';
 import { ContentModule } from 'src/content/content.module';
+import { MediaModule } from './media/media.module';
 // import { UserFollowModule } from 'src/user-follow/user-follow.module';
 // import { RecommendationModule } from 'src/recommendation/recommendation.module';
 // import { FeedModule } from 'src/feed/feed.module';
@@ -22,6 +23,7 @@ import { ContentModule } from 'src/content/content.module';
     NotificationModule,
     SocialModule,
     ContentModule,
+    MediaModule,
     // UserFollowModule,
     // RecommendationModule,
     // FeedModule,

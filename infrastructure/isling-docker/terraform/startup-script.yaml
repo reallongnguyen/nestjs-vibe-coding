@@ -1,0 +1,84 @@
+#cloud-config
+
+write_files:
+  - path: /opt/setup/install.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -e
+      
+      echo "Starting infrastructure setup..."
+      
+      # Update system packages
+      apt-get update
+      apt-get upgrade -y
+      
+      # Install fundamental packages
+      apt-get install -y \
+          curl \
+          wget \
+          git \
+          unzip \
+          vim \
+          htop \
+          jq \
+          software-properties-common \
+          ca-certificates \
+          gnupg \
+          lsb-release
+      
+      # Install Docker
+      echo "Installing Docker..."
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+      apt-get update
+      apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      
+      # Start and enable Docker
+      systemctl start docker
+      systemctl enable docker
+      
+      # Add default user to docker group
+      usermod -aG docker $(getent passwd 1000 | cut -d: -f1) 2>/dev/null || true
+      
+      # Install Node.js (LTS version)
+      echo "Installing Node.js..."
+      curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+      apt-get install -y nodejs
+      
+      # Install Docker Compose standalone (backup method)
+      echo "Installing Docker Compose..."
+      LATEST_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
+      curl -L "https://github.com/docker/compose/releases/download/$LATEST_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      chmod +x /usr/local/bin/docker-compose
+      
+      # Configure Docker authentication for Artifact Registry
+      echo "Configuring Docker for Artifact Registry..."
+      gcloud auth configure-docker ${region}-docker.pkg.dev --quiet
+      
+      # Install Google Cloud Operations Agent
+      echo "Installing Google Cloud Operations Agent..."
+      curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+      bash add-google-cloud-ops-agent-repo.sh --also-install
+      
+      # Create application directories with proper permissions
+      mkdir -p /opt/isling
+      chown -R $(getent passwd 1000 | cut -d: -f1):$(getent passwd 1000 | cut -d: -f1) /opt/isling 2>/dev/null || true
+      
+      # Clean up
+      apt-get autoremove -y
+      apt-get autoclean
+      
+      echo "Infrastructure setup completed successfully!"
+      echo "Installed versions:"
+      echo "Docker: $(docker --version)"
+      echo "Docker Compose: $(docker compose --version)"
+      echo "Node.js: $(node --version)"
+      echo "NPM: $(npm --version)"
+      echo "Git: $(git --version)"
+
+bootcmd:
+  - mkdir -p /opt/setup
+
+runcmd:
+  - /opt/setup/install.sh 

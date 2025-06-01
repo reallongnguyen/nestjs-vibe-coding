@@ -1,0 +1,452 @@
+services:
+  traefik-gateway:
+    image: traefik:v3
+    labels:
+      - "traefik.http.middlewares.circuitbreaker.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 5000 || ResponseCodeRatio(500, 599, 0, 600) > 0.3"
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=200"
+
+    command: --api.insecure=false --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "1883:1883"  # MQTT TCP port
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik-gateway/traefik.yaml:/etc/traefik/traefik.yaml
+    networks:
+      - vpc-bridge
+
+  auth-postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - auth-postgres-vol-data:/var/lib/postgresql/data
+      - ./auth-service/db/auth.sql:/docker-entrypoint-initdb.d/auth.sql
+    environment:
+      POSTGRES_USER: ${AUTH_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_SERVICE_POSTGRES_DB}
+    networks:
+      - vpc-bridge
+
+  email-template-service:
+    image: nginx:alpine
+    restart: unless-stopped
+    labels:
+      - "traefik.http.routers.email-template-service.rule=Host(`${EMAIL_TEMPLATE_SERVICE_HOST:-email-templates.localhost}`)"
+      - "traefik.http.services.email-template-service.loadbalancer.server.port=80"
+      - "traefik.http.routers.email-template-service.middlewares=cors-api@file,ratelimit@file,security-headers@file"
+      - "traefik.enable=true"
+    volumes:
+      - ./template-service/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./template-service/templates:/usr/share/nginx/html/templates
+    networks:
+      - vpc-bridge
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      timeout: 5s
+      interval: 10s
+      retries: 3
+
+  auth-service:
+    image: supabase/gotrue:v2.173.0
+    labels:
+      - "traefik.http.routers.auth-service.rule=Host(`${AUTH_SERVICE_HOST}`)"
+      - "traefik.http.routers.auth-service.middlewares=circuitbreaker@file,ratelimit@file,security-headers@file,healthcheck@file"
+      - "traefik.http.services.auth-service.loadbalancer.server.port=8000"
+
+      - "traefik.enable=true"
+    networks:
+      - vpc-bridge
+    depends_on:
+      - auth-postgres
+      - email-template-service
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8000/health',
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 8000
+      API_EXTERNAL_URL: ${AUTH_SERVICE_API_EXTERNAL_URL}
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${AUTH_SERVICE_POSTGRES_PASSWORD}@auth-postgres:5432/${AUTH_SERVICE_POSTGRES_DB}
+
+      GOTRUE_SITE_URL: ${AUTH_SERVICE_SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${AUTH_SERVICE_ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_DISABLE_SIGNUP: ${AUTH_SERVICE_DISABLE_SIGNUP}
+
+      GOTRUE_PASSWORD_MIN_LENGTH: 8
+
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${AUTH_SERVICE_JWT_EXPIRY}
+      GOTRUE_JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${AUTH_SERVICE_ENABLE_EMAIL_SIGNUP}
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${AUTH_SERVICE_ENABLE_ANONYMOUS_USERS}
+      GOTRUE_MAILER_AUTOCONFIRM: ${AUTH_SERVICE_ENABLE_EMAIL_AUTOCONFIRM}
+      GOTRUE_MAILER_OTP_EXP: 3600  # 1 hour expiration for email confirmation links (default: 86400 = 24 hours)
+      GOTRUE_SMTP_ADMIN_EMAIL: ${AUTH_SERVICE_SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_HOST: ${AUTH_SERVICE_SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${AUTH_SERVICE_SMTP_PORT}
+      GOTRUE_SMTP_USER: ${AUTH_SERVICE_SMTP_USER}
+      GOTRUE_SMTP_PASS: ${AUTH_SERVICE_SMTP_PASS}
+      GOTRUE_SMTP_SENDER_NAME: ${AUTH_SERVICE_SMTP_SENDER_NAME}
+      GOTRUE_MAILER_URLPATHS_INVITE: ${AUTH_SERVICE_MAILER_URLPATHS_INVITE}
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: ${AUTH_SERVICE_MAILER_URLPATHS_CONFIRMATION}
+      GOTRUE_MAILER_URLPATHS_RECOVERY: ${AUTH_SERVICE_MAILER_URLPATHS_RECOVERY}
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${AUTH_SERVICE_MAILER_URLPATHS_EMAIL_CHANGE}
+
+      # URL-Based Email Templates (NGINX TEMPLATE SERVICE)
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://email-template-service/userActivationInvite.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://email-template-service/userPasswordReset.html
+      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://email-template-service/userMagicLink.html
+
+      # Custom Email Subjects
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: "Welcome to Isling"
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: "Change your password"
+      GOTRUE_MAILER_SUBJECTS_MAGIC_LINK: "Log in to Isling"
+
+      GOTRUE_EXTERNAL_PHONE_ENABLED: ${AUTH_SERVICE_ENABLE_PHONE_SIGNUP}
+      GOTRUE_SMS_AUTOCONFIRM: ${AUTH_SERVICE_ENABLE_PHONE_AUTOCONFIRM}
+
+      # Uncomment to enable custom access token hook. You'll need to create a public.custom_access_token_hook function and grant necessary permissions.
+      # See: https://supabase.com/docs/guides/auth/auth-hooks#hook-custom-access-token for details
+      # GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED="true"
+      # GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_URI="pg-functions://postgres/public/custom_access_token_hook"
+
+      # GOTRUE_HOOK_MFA_VERIFICATION_ATTEMPT_ENABLED="true"
+      # GOTRUE_HOOK_MFA_VERIFICATION_ATTEMPT_URI="pg-functions://postgres/public/mfa_verification_attempt"
+
+      # GOTRUE_HOOK_PASSWORD_VERIFICATION_ATTEMPT_ENABLED="true"
+      # GOTRUE_HOOK_PASSWORD_VERIFICATION_ATTEMPT_URI="pg-functions://postgres/public/password_verification_attempt"
+
+  api-postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - api-pg-data:/var/lib/postgresql/data
+    networks:
+      - vpc-bridge
+    ports:
+      - 15432:5432
+    environment:
+      POSTGRES_USER: ${API_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${API_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${API_SERVICE_POSTGRES_DB}
+
+  api-redis:
+    image: redis:8
+    restart: unless-stopped
+    networks:
+      - vpc-bridge
+    # environment:
+    #   REDIS_ARGS: --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - api-redis-data:/data
+
+  api-mqtt01:
+    image: emqx:5.8
+    restart: unless-stopped
+    labels:
+      # MQTT Dashboard (HTTP) - Could optionally add middleware from traefik.yaml
+      - "traefik.http.routers.mqtt-dashboard.rule=Host(`${MQTT_SERVICE_HOST}`)"
+      - "traefik.http.routers.mqtt-dashboard.service=mqtt-dashboard"
+      - "traefik.http.services.mqtt-dashboard.loadbalancer.server.port=18083"
+      # - "traefik.http.routers.mqtt-dashboard.middlewares=circuitbreaker@file,ratelimit@file"
+      
+      # MQTT WebSocket (HTTP)
+      - "traefik.http.routers.mqtt-websocket.rule=Host(`${MQTT_SERVICE_HOST}`) && PathPrefix(`/mqtt`)"
+      - "traefik.http.routers.mqtt-websocket.service=mqtt-websocket"
+      - "traefik.http.services.mqtt-websocket.loadbalancer.server.port=8083"
+      
+      # MQTT TCP (requires TCP router configuration in Traefik)
+      - "traefik.tcp.routers.mqtt-tcp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.mqtt-tcp.entrypoints=mqtt"
+      - "traefik.tcp.routers.mqtt-tcp.service=mqtt-tcp"
+      - "traefik.tcp.services.mqtt-tcp.loadbalancer.server.port=1883"
+      
+      - "traefik.enable=true"
+    volumes:
+      - api-vol-emqx01-data:/opt/emqx/data
+      - api-vol-emqx01-log:/opt/emqx/log
+    environment:
+      - 'EMQX_NODE__NAME=emqx@node01.emqx.io'
+      - 'EMQX_CLUSTER__DISCOVERY_STRATEGY=static'
+      - 'EMQX_CLUSTER__STATIC__SEEDS=[emqx@node01.emqx.io]'
+    networks:
+      vpc-bridge:
+        aliases:
+          - node01.emqx.io
+
+  api-service:
+    image: isling-api:latest
+    labels:
+      # Public routes (no JWT validation required)
+      - "traefik.http.routers.api-public.rule=Host(`${API_SERVICE_HOST}`) && (Path(`/info`) || Path(`/health`) || Path(`/metrics`) || Path(`/api`) || Path(`/api-json`))"
+      - "traefik.http.routers.api-public.service=api-service"
+      - "traefik.http.routers.api-public.middlewares=cors-api@file,ratelimit@file,circuitbreaker@file,security-headers@file,healthcheck@file"
+      - "traefik.http.routers.api-public.priority=100"
+
+      # Protected routes (JWT validation required)
+      - "traefik.http.routers.api-protected.rule=Host(`${API_SERVICE_HOST}`) && PathPrefix(`/v1`)"
+      - "traefik.http.routers.api-protected.service=api-service"
+      - "traefik.http.routers.api-protected.middlewares=cors-api@file,jwt-auth@file,ratelimit@file,circuitbreaker@file,security-headers@file,healthcheck@file"
+      - "traefik.http.routers.api-protected.priority=50"
+
+      # Service definition
+      - "traefik.http.services.api-service.loadbalancer.server.port=8000"
+      - "traefik.enable=true"
+    networks:
+      - vpc-bridge
+    volumes:
+      - ./${API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS}:/etc/${API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS}
+    depends_on:
+      - api-postgres
+      - api-redis
+      - api-mqtt01
+      - gorse-master
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8000/health',
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      NODE_ENV: production
+      # Common module
+      APP_NAME: ${API_SERVICE_APP_NAME}
+      APP_URL: ${API_SERVICE_APP_URL}
+      APP_PORT: 8000
+      LOG_LEVEL: info
+      ## DB
+      DATABASE_URL: postgresql://${API_SERVICE_POSTGRES_USER}:${API_SERVICE_POSTGRES_PASSWORD}@api-postgres:5432/${API_SERVICE_POSTGRES_DB}?schema=public
+      REDIS_URL: redis://api-redis:6379/0
+      ## Security
+      VERIFY_TOKEN: FALSE
+      # Notification module
+      NOTIFICATION_MQTT_URL: mqtt://api-mqtt01:2883
+      ## unit: second
+      NOTIFICATION_MERGE_THRESHOLD: 28800
+      ## Distributed locks
+      MUTEX_REDIS1_HOST: api-redis
+      MUTEX_REDIS1_PORT: 6379
+      MUTEX_REDIS2_HOST: api-redis
+      MUTEX_REDIS2_PORT: 6379
+      MUTEX_REDIS3_HOST: api-redis
+      MUTEX_REDIS3_PORT: 6379
+
+      ## Storage
+      USER_ASSET_BUCKET: ${API_SERVICE_USER_ASSET_BUCKET}
+      ## Credentials
+      GOOGLE_APPLICATION_CREDENTIALS: /etc/${API_SERVICE_GOOGLE_APPLICATION_CREDENTIALS}
+
+      ## Image proxy
+      IMGPROXY_URL: ${API_SERVICE_IMGPROXY_URL}
+      IMGPROXY_KEY: ${API_SERVICE_IMGPROXY_KEY}
+      IMGPROXY_SALT: ${API_SERVICE_IMGPROXY_SALT}
+      # Gorse configuration
+      GORSE_URL: http://gorse-master:8088
+      GORSE_API_KEY: ${API_SERVICE_GORSE_API_KEY}
+
+  imgproxy:
+    image: darthsim/imgproxy:v3
+    labels:
+      - "traefik.http.routers.imgproxy.rule=Host(`${IMGPROXY_HOST}`)"
+      - "traefik.http.routers.imgproxy.middlewares=ratelimit@docker"
+      - "traefik.http.services.imgproxy.loadbalancer.server.port=5001"
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_KEY: ${IMGPROXY_KEY}
+      IMGPROXY_SALT: ${IMGPROXY_SALT}
+      IMGPROXY_MAX_SRC_RESOLUTION: 50
+      IMGPROXY_MAX_ANIMATION_FRAMES: 200
+      IMGPROXY_ALLOW_ORIGIN: "*"
+      IMGPROXY_ENFORCE_WEBP: "true"
+      IMGPROXY_ENFORCE_AVIF: "true"
+      IMGPROXY_AUTO_WEBP: "true"
+      IMGPROXY_AUTO_AVIF: "true"
+      IMGPROXY_ENABLE_CLIENT_HINTS: "true"
+      IMGPROXY_USE_GCS: "true"
+      IMGPROXY_GCS_KEY: ${IMGPROXY_GCS_KEY_JSON}
+      IMGPROXY_GCS_BUCKET: ${IMGPROXY_GCS_ALLOWED_BUCKETS}
+      IMGPROXY_QUALITY: "80"
+      IMGPROXY_FORMAT_QUALITY: "jpeg=80,webp=70,avif=50"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+    networks:
+      - vpc-bridge
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  gorse-postgres:
+    image: postgres
+    restart: unless-stopped
+    volumes:
+      - gorse-pg-data:/var/lib/postgresql/data
+    networks:
+      - vpc-bridge
+    environment:
+      POSTGRES_USER: ${GORSE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${GORSE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${GORSE_POSTGRES_DB}
+
+  gorse-redis:
+    image: redis:latest
+    restart: unless-stopped
+    networks:
+      - vpc-bridge
+    volumes:
+      - gorse-redis-data:/data
+
+  gorse-master:
+    image: zhenghaoz/gorse-master
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gorse-dashboard.rule=Host(`${GORSE_MASTER_HOST}`)"
+      - "traefik.http.services.gorse-dashboard.loadbalancer.server.port=8088"
+    ports:
+      - 8088:8088
+    volumes:
+      - gorse-master-data:/var/lib/gorse
+      - ./gorse/config.toml:/etc/gorse/config.toml
+    command: >
+      -c /etc/gorse/config.toml 
+      --log-path /var/log/gorse/master.log 
+      --cache-path /var/lib/gorse/master_cache.data
+    environment:
+      GORSE_CACHE_STORE: redis://gorse-redis:6379/1
+      GORSE_DATA_STORE: postgres://${GORSE_POSTGRES_USER}:${GORSE_POSTGRES_PASSWORD}@gorse-postgres:5432/${GORSE_POSTGRES_DB}?sslmode=disable
+      GORSE_WORKER_ADDRESSES: "gorse-worker-1:8089,gorse-worker-2:8089"
+      GORSE_DASHBOARD_USER_NAME: ${GORSE_ADMIN_USER}
+      GORSE_DASHBOARD_PASSWORD: ${GORSE_ADMIN_PASS}
+      GORSE_API_KEY: ${GORSE_API_KEY}
+    networks:
+      - vpc-bridge
+    depends_on:
+      - gorse-postgres
+      - gorse-redis
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8088/api/health/ready"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+  gorse-worker-1:
+    image: zhenghaoz/gorse-worker
+    restart: unless-stopped
+    # expose:
+    #   - "8089"   # gRPC port
+    #   - "9091"   # metrics
+    volumes:
+      - gorse-worker-1-data:/var/lib/gorse
+    command: >
+      --master-host gorse-master --master-port 8086 
+      --http-host 0.0.0.0 --http-port 8089
+      --log-path /var/log/gorse/worker.log 
+      --cache-path /var/lib/gorse/worker_cache.data
+    networks:
+      - vpc-bridge
+    depends_on:
+      - gorse-master
+
+  gorse-worker-2:
+    image: zhenghaoz/gorse-worker
+    restart: unless-stopped
+    # expose:
+    #   - "8089"   # gRPC port
+    #   - "9091"   # metrics
+    volumes:
+      - gorse-worker-2-data:/var/lib/gorse
+    command: >
+      --master-host gorse-master --master-port 8086 
+      --http-host 0.0.0.0 --http-port 8089
+      --log-path /var/log/gorse/worker.log 
+      --cache-path /var/lib/gorse/worker_cache.data
+    networks:
+      - vpc-bridge
+    depends_on:
+      - gorse-master
+
+  # monitor-grafana:
+  #   image: grafana/grafana-oss:latest
+  #   ports:
+  #     - '1300:3000'
+  #   restart: unless-stopped
+  #   networks:
+  #     - vpc-bridge
+  #   volumes:
+  #     - monitor-grafana:/var/lib/grafana
+  #     - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+  #     - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources/
+  #     - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards/
+
+  # monitor-prometheus:
+  #   image: prom/prometheus:v2.54.1
+  #   ports:
+  #     - '9090:9090'
+  #   networks:
+  #     - vpc-bridge
+  #   volumes:
+  #     - monitor-prometheus:/prometheus
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - ./prometheus/slos.rules.yml:/etc/prometheus/slos.rules.yml
+  #     # Add Gorse metrics scraping config
+  #     - ./prometheus/gorse.rules.yml:/etc/prometheus/gorse.rules.yml
+
+  # monitor-exporter:
+  #   image: prom/node-exporter:latest
+  #   networks:
+  #     - vpc-bridge
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+volumes:
+  auth-postgres-vol-data:
+  api-pg-data:
+  api-redis-data:
+  api-vol-emqx01-data:
+  api-vol-emqx01-log:
+  # monitor-grafana:
+  # monitor-prometheus:
+  gorse-redis-data:
+  gorse-pg-data:
+  gorse-master-data:
+  gorse-worker-1-data:
+  gorse-worker-2-data:
+
+networks:
+  vpc-bridge:
+    driver: bridge
