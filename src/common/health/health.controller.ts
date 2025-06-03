@@ -6,17 +6,16 @@ import {
   MemoryHealthIndicator,
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
-import {
-  GlobalErrorFilter,
-  ErrorResponse,
-  COMMON_ERRORS,
-} from 'src/common/errors';
+// import { ErrorResponse, COMMON_ERRORS } from 'src/common/errors'; // Removed ErrorResponse and COMMON_ERRORS
+import { GlobalErrorFilter } from 'src/common/errors'; // Keep GlobalErrorFilter
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CacheHealthIndicator } from './cache.health';
 
 @Controller('health')
 @UseFilters(GlobalErrorFilter)
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 @ApiTags('app')
 export class HealthController {
   constructor(
@@ -29,6 +28,7 @@ export class HealthController {
 
   @Get()
   @HealthCheck()
+  @ApiAppErrors([CommonErrorCode.SERVER_ERROR])
   check() {
     return this.health.check([
       () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),

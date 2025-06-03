@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { GetSignedUrlConfig, Storage } from '@google-cloud/storage';
 import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
-import { AppError } from 'src/common/models';
+import { AppError } from 'src/common/errors/app.error';
+import { STORAGE_ERRORS, StorageErrorCode } from './errors';
 import { v7 as uuidv7 } from 'uuid';
 
 import { UploadUrlDto } from './dto/upload-url.dto';
@@ -97,7 +98,10 @@ export class FileService {
 
   async generatePresignedUrl(uri: string): Promise<string> {
     if (!uri.startsWith(`gs://${this.userAssetBucketName}/`)) {
-      throw new AppError('file.common.notFound');
+      throw new AppError(
+        StorageErrorCode.FILE_NOT_FOUND,
+        STORAGE_ERRORS[StorageErrorCode.FILE_NOT_FOUND]
+      );
     }
 
     const filePath = uri.replace(`gs://${this.userAssetBucketName}/`, '');
@@ -120,7 +124,10 @@ export class FileService {
         `Delete file failed: ${uri} is not in the user asset bucket`,
       );
 
-      throw new AppError('file.common.notFound');
+      throw new AppError(
+        StorageErrorCode.FILE_NOT_FOUND,
+        STORAGE_ERRORS[StorageErrorCode.FILE_NOT_FOUND]
+      );
     }
 
     const filePath = uri.replace(`gs://${this.userAssetBucketName}/`, '');

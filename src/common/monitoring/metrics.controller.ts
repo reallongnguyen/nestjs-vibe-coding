@@ -6,14 +6,16 @@ import {
   ApiSecurity,
 } from '@nestjs/swagger';
 import { GlobalErrorFilter } from 'src/common/errors/error.filter';
-import { ErrorResponse } from 'src/common/errors/decorators/error-response.decorator';
-import { COMMON_ERRORS } from 'src/common/errors/common.errors';
+// import { ErrorResponse } from 'src/common/errors/decorators/error-response.decorator'; // Removed
+// import { COMMON_ERRORS } from 'src/common/errors/common.errors'; // Removed
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
 import { ApiKeyGuard } from 'src/common/auth';
 import { MetricsService } from './metrics.service';
 
 @ApiTags('Monitoring')
 @ApiSecurity('api_key')
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 @Controller('metrics')
 @UseGuards(ApiKeyGuard)
 @UseFilters(GlobalErrorFilter)
@@ -38,6 +40,10 @@ export class MetricsController {
       },
     },
   })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_API_KEY,
+    CommonErrorCode.SERVER_ERROR,
+  ])
   async getMetrics(): Promise<string> {
     return this.metricsService.getRegistry().metrics();
   }

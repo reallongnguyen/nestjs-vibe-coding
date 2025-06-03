@@ -22,9 +22,12 @@ import {
 } from 'src/common';
 import {
   GlobalErrorFilter,
-  ErrorResponse,
-  COMMON_ERRORS,
+  // ErrorResponse, // Removed
+  // COMMON_ERRORS, // Removed
 } from 'src/common/errors';
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { NotificationErrorCode } from '../entities/errors/notification.error-codes';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { NotificationPreferenceService } from '../services/notification-preference.service';
@@ -45,7 +48,7 @@ import {
 @UseFilters(GlobalErrorFilter)
 @ApiTags('notification-preferences')
 @ApiBearerAuth()
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class NotificationPreferenceController {
   constructor(
     private readonly preferenceService: NotificationPreferenceService,
@@ -59,7 +62,11 @@ export class NotificationPreferenceController {
       'Get a list of notification preferences for the authenticated user',
   })
   @PaginatedResponse(NotificationPreferenceOutput)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+  ])
   async list(
     @AuthContextUser() user: User,
     @Query() query: NotificationPreferenceListQuery,
@@ -83,7 +90,12 @@ export class NotificationPreferenceController {
       'Get a notification preference by type for the authenticated user',
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    NotificationErrorCode.PREFERENCE_NOT_FOUND,
+  ])
   async getByType(
     @AuthContextUser() user: User,
     @Param('type') type: string,
@@ -103,7 +115,13 @@ export class NotificationPreferenceController {
     description: 'Create a notification preference for the authenticated user',
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    NotificationErrorCode.PREFERENCE_ALREADY_EXISTS,
+  ])
   async create(
     @AuthContextUser() user: User,
     @Body() dto: CreateNotificationPreferenceDto,
@@ -125,7 +143,13 @@ export class NotificationPreferenceController {
     description: 'Update a notification preference for the authenticated user',
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    NotificationErrorCode.PREFERENCE_NOT_FOUND,
+  ])
   async update(
     @AuthContextUser() user: User,
     @Param('type') type: string,
@@ -150,7 +174,14 @@ export class NotificationPreferenceController {
     description: 'Update rate limit configuration for a notification type',
   })
   @OkResponse(NotificationPreferenceOutput)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    NotificationErrorCode.PREFERENCE_NOT_FOUND,
+    NotificationErrorCode.RATE_LIMIT_UPDATE_FAILED,
+  ])
   async updateRateLimits(
     @AuthContextUser() user: User,
     @Param('type') type: string,

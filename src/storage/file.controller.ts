@@ -9,11 +9,11 @@ import {
   AuthContextUser,
   OkResponse,
 } from 'src/common';
-import {
-  GlobalErrorFilter,
-  ErrorResponse,
-  COMMON_ERRORS,
-} from 'src/common/errors';
+// import { ErrorResponse, COMMON_ERRORS } from 'src/common/errors'; // Removed ErrorResponse and COMMON_ERRORS
+import { GlobalErrorFilter } from 'src/common/errors'; // Keep GlobalErrorFilter
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { StorageErrorCode } from './errors/storage.error-codes';
 
 import { FileService } from './file.service';
 import { GetImageUploadUrlDto, UploadUrlDto } from './dto/upload-url.dto';
@@ -27,7 +27,7 @@ import { GetTweetImageUploadUrlDto } from './dto/tweet-image-upload.dto';
 @UseFilters(GlobalErrorFilter)
 @ApiTags('files')
 @ApiBearerAuth()
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class FileController {
   constructor(private readonly assetService: FileService) {}
 
@@ -38,7 +38,14 @@ export class FileController {
     summary: 'Get the upload avatar url',
   })
   @OkResponse(UploadUrlDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    StorageErrorCode.AVATAR_UPLOAD_URL_FAILED,
+    StorageErrorCode.FILE_UPLOAD_FAILED, // General fallback
+  ])
   async getUploadAvatarUrl(
     @Query() query: GetImageUploadUrlDto,
     @AuthContextUser() user: User,
@@ -59,7 +66,13 @@ export class FileController {
     summary: 'Get the upload tweet image url',
   })
   @OkResponse(UploadUrlDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    StorageErrorCode.FILE_UPLOAD_FAILED,
+  ])
   async getUploadTweetImageUrl(
     @Query() query: GetTweetImageUploadUrlDto,
     @AuthContextUser() user: User,

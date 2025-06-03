@@ -21,12 +21,15 @@ import {
 import {
   GlobalErrorFilter,
   ErrorResponse,
-  COMMON_ERRORS,
+  // COMMON_ERRORS, // Removed
 } from 'src/common/errors';
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { FeedErrorCode } from '../errors/feed.error-codes';
 import { FeedService } from '../services/feed.service';
 import { FeedType } from '../entities';
 import { FeedItemDto } from './dtos/feed-item.dto';
-import { FEED_ERRORS } from '../errors';
+// import { FEED_ERRORS } from '../errors'; // Removed
 
 // Common decorator configurations for all endpoints
 const REST_CONFIG = {
@@ -42,7 +45,7 @@ const REST_CONFIG = {
 })
 @UseGuards(...REST_CONFIG.guards)
 @UseFilters(...REST_CONFIG.filters)
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class FeedController {
   constructor(private readonly feedService: FeedService) {}
 
@@ -56,7 +59,17 @@ export class FeedController {
       'Returns a personalized feed based on user preferences and behavior. Combines recommended, popular, and latest content.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    FeedErrorCode.PERSONALIZED_FEED_FAILED,
+    FeedErrorCode.FEED_GENERATION_FAILED,
+    FeedErrorCode.FEED_ENRICHMENT_FAILED,
+    FeedErrorCode.FEED_CACHE_FAILED,
+    FeedErrorCode.IDENTITY_FETCH_FAILED,
+    FeedErrorCode.SOCIAL_METRICS_FETCH_FAILED,
+  ])
   async getPersonalizedFeed(
     @AuthContextUser('id') userId: string,
     @Query() pageOptions: PageOptionsDto,
@@ -79,7 +92,18 @@ export class FeedController {
     description: 'Returns posts from users the current user is following.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    FeedErrorCode.FOLLOWING_FEED_FAILED,
+    FeedErrorCode.FEED_GENERATION_FAILED,
+    FeedErrorCode.FEED_ENRICHMENT_FAILED,
+    FeedErrorCode.FEED_CACHE_FAILED,
+    FeedErrorCode.IDENTITY_FETCH_FAILED,
+    FeedErrorCode.SOCIAL_METRICS_FETCH_FAILED,
+    FeedErrorCode.FOLLOW_STATUS_FETCH_FAILED,
+  ])
   async getFollowingFeed(
     @AuthContextUser('id') userId: string,
     @Query() pageOptions: PageOptionsDto,
@@ -102,7 +126,17 @@ export class FeedController {
       'Returns trending posts based on engagement metrics like views, likes, and comments.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse(FEED_ERRORS)
+  // @ErrorResponse(FEED_ERRORS) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE, // Assuming trending might still require auth for consistency or future features
+    FeedErrorCode.TRENDING_FEED_FAILED,
+    FeedErrorCode.FEED_GENERATION_FAILED,
+    FeedErrorCode.FEED_ENRICHMENT_FAILED,
+    FeedErrorCode.FEED_CACHE_FAILED,
+    FeedErrorCode.IDENTITY_FETCH_FAILED,
+    FeedErrorCode.SOCIAL_METRICS_FETCH_FAILED,
+  ])
   async getTrendingFeed(
     @Query() pageOptions: PageOptionsDto,
     @AuthContextUser('id') userId: string,
@@ -124,7 +158,17 @@ export class FeedController {
     description: 'Returns the most recently published posts.',
   })
   @PaginatedResponse(FeedItemDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN, // Assuming latest might still require auth
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    FeedErrorCode.LATEST_FEED_FAILED,
+    FeedErrorCode.FEED_GENERATION_FAILED,
+    FeedErrorCode.FEED_ENRICHMENT_FAILED,
+    FeedErrorCode.FEED_CACHE_FAILED,
+    FeedErrorCode.IDENTITY_FETCH_FAILED,
+    FeedErrorCode.SOCIAL_METRICS_FETCH_FAILED,
+  ])
   async getLatestFeed(
     @Query() pageOptions: PageOptionsDto,
     @AuthContextUser('id') userId?: string,

@@ -19,9 +19,12 @@ import {
 } from 'src/common';
 import {
   GlobalErrorFilter,
-  ErrorResponse,
-  COMMON_ERRORS,
+  // ErrorResponse, // Removed
+  // COMMON_ERRORS, // Removed
 } from 'src/common/errors';
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { IdentityErrorCode } from '../entities/errors/identity.error-codes';
 import {
   ImageSize,
   ImageUrlService,
@@ -34,7 +37,7 @@ import { PatchProfileDto } from './dtos/profile.input';
 import { ProfileDto } from './dtos/profile.output';
 import { UserRepository } from '../repositories/user.repository';
 import { UserActivityRepository } from '../repositories/user-activity.repository';
-import { IDENTITY_ERRORS } from '../entities/errors';
+// import { IDENTITY_ERRORS } from '../entities/errors'; // Removed
 
 @Controller({
   path: 'users/profile',
@@ -44,7 +47,7 @@ import { IDENTITY_ERRORS } from '../entities/errors';
 @UseFilters(GlobalErrorFilter)
 @ApiTags('users-profile')
 @ApiBearerAuth()
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class UserProfileController {
   private readonly userService: UserService;
 
@@ -68,9 +71,14 @@ export class UserProfileController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Get user profile' })
   @OkResponse(ProfileDto)
-  @ErrorResponse({
-    USER_PROFILE_NOT_FOUND: IDENTITY_ERRORS.USER_PROFILE_NOT_FOUND,
-  })
+  // @ErrorResponse({ // Removed
+  //   USER_PROFILE_NOT_FOUND: IDENTITY_ERRORS.USER_PROFILE_NOT_FOUND,
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    IdentityErrorCode.USER_PROFILE_NOT_FOUND,
+  ])
   async get(@AuthContextUser() user: User): Promise<ProfileDto> {
     const profile = await this.userService.getProfile(user.id);
 
@@ -90,7 +98,14 @@ export class UserProfileController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Update user profile' })
   @OkResponse(ProfileDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED, // Assuming PatchProfileDto is validated
+    IdentityErrorCode.USER_NOT_FOUND, // As per UserService.updateProfile
+    IdentityErrorCode.USER_UPDATE_FAILED, // As per UserService.updateProfile (covers profile update failures)
+  ])
   async update(
     @Body() profileData: PatchProfileDto,
     @AuthContextUser() user: User,

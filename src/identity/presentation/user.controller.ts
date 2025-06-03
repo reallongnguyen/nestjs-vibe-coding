@@ -26,9 +26,12 @@ import {
 } from 'src/common';
 import {
   GlobalErrorFilter,
-  ErrorResponse,
-  COMMON_ERRORS,
+  // ErrorResponse, // Removed
+  // COMMON_ERRORS, // Removed
 } from 'src/common/errors';
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { IdentityErrorCode } from '../entities/errors/identity.error-codes';
 import {
   ImageSize,
   ImageUrlService,
@@ -47,7 +50,8 @@ import { ActivityFiltersDto } from './dtos/activity-filters.input';
 import { PasswordResetResultDto } from './dtos/password-reset-result.output';
 import { UserActivityRepository } from '../repositories/user-activity.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { IDENTITY_ERRORS, IdentityErrorFactory } from '../entities/errors';
+// import { IDENTITY_ERRORS, IdentityErrorFactory } from '../entities/errors'; // IDENTITY_ERRORS removed
+import { IdentityErrorFactory } from '../entities/errors'; // Keep IdentityErrorFactory
 
 @Controller({
   path: 'users',
@@ -57,7 +61,7 @@ import { IDENTITY_ERRORS, IdentityErrorFactory } from '../entities/errors';
 @UseFilters(GlobalErrorFilter)
 @ApiTags('users')
 @ApiBearerAuth()
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class UserController {
   private readonly userService: UserService;
 
@@ -80,9 +84,15 @@ export class UserController {
   @Post()
   @ApiOperation({ summary: 'Create user' })
   @CreatedResponse(UserDto)
-  @ErrorResponse({
-    REQUIRE_PERSON: IDENTITY_ERRORS.REQUIRE_PERSON,
-  })
+  // @ErrorResponse({ // Removed
+  //   REQUIRE_PERSON: IDENTITY_ERRORS.REQUIRE_PERSON,
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    IdentityErrorCode.REQUIRE_PERSON,
+    IdentityErrorCode.USER_CREATE_FAILED,
+    CommonErrorCode.VALIDATION_FAILED, // Assuming CreateUserDto is validated
+  ])
   async create(
     @Body() userData: CreateUserDto,
     @AuthContext() authCtx: AuthCtx,
@@ -106,8 +116,13 @@ export class UserController {
   @Get()
   @ApiOperation({ summary: 'List users' })
   @PaginatedResponse(UserDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
   @RequireAnyRoles(Role.ADMIN)
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    IdentityErrorCode.USER_QUERY_FAILED,
+  ])
   async list(
     @Query() filters: UserSearchFiltersDto,
   ): Promise<PagedResult<UserDto>> {
@@ -133,10 +148,19 @@ export class UserController {
   @Post('bulk')
   @ApiOperation({ summary: 'Bulk operations on users' })
   @OkResponse(BulkOperationResultDto)
-  @ErrorResponse({
-    INVALID_BULK_OPERATION: IDENTITY_ERRORS.INVALID_BULK_OPERATION,
-  })
+  // @ErrorResponse({ // Removed
+  //   INVALID_BULK_OPERATION: IDENTITY_ERRORS.INVALID_BULK_OPERATION,
+  // })
   @RequireAnyRoles(Role.ADMIN)
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    IdentityErrorCode.INVALID_BULK_OPERATION,
+    IdentityErrorCode.USER_NOT_FOUND, // If any user in the list is not found
+    IdentityErrorCode.USER_DELETE_FAILED, // For delete operations
+    IdentityErrorCode.USER_UPDATE_FAILED, // For activate/deactivate/role updates
+    CommonErrorCode.VALIDATION_FAILED, // Assuming BulkUserOperationDto is validated
+  ])
   async bulkOperation(
     @Body() operation: BulkUserOperationDto,
     @AuthContextUser() user: User,
@@ -147,9 +171,13 @@ export class UserController {
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @OkResponse(UserDto)
-  @ErrorResponse({
-    USER_NOT_FOUND: IDENTITY_ERRORS.USER_NOT_FOUND,
-  })
+  // @ErrorResponse({ // Removed
+  //   USER_NOT_FOUND: IDENTITY_ERRORS.USER_NOT_FOUND,
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN, // Though typically public or requires basic auth
+    IdentityErrorCode.USER_NOT_FOUND,
+  ])
   async getUser(@Param('id') userId: string): Promise<UserDto> {
     const user = await this.userService.getUserById(userId);
 
@@ -166,8 +194,14 @@ export class UserController {
   @Get(':id/activity')
   @ApiOperation({ summary: 'Get user activity' })
   @PaginatedResponse(UserActivityDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
   @RequireAnyRoles(Role.ADMIN)
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    IdentityErrorCode.USER_NOT_FOUND, // If the user for whom activity is fetched is not found
+    IdentityErrorCode.USER_QUERY_FAILED, // If the activity query itself fails
+  ])
   async getUserActivity(
     @Param('id') userId: string,
     @Query() filters: ActivityFiltersDto,
@@ -180,11 +214,17 @@ export class UserController {
   @Post(':id/reset-password')
   @ApiOperation({ summary: 'Reset user password' })
   @OkResponse(PasswordResetResultDto)
-  @ErrorResponse({
-    USER_NOT_FOUND: IDENTITY_ERRORS.USER_NOT_FOUND,
-    USER_UPDATE_FAILED: IDENTITY_ERRORS.USER_UPDATE_FAILED,
-  })
+  // @ErrorResponse({ // Removed
+  //   USER_NOT_FOUND: IDENTITY_ERRORS.USER_NOT_FOUND,
+  //   USER_UPDATE_FAILED: IDENTITY_ERRORS.USER_UPDATE_FAILED,
+  // })
   @RequireAnyRoles(Role.ADMIN)
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    IdentityErrorCode.USER_NOT_FOUND,
+    IdentityErrorCode.PASSWORD_RESET_FAILED,
+  ])
   async initiatePasswordReset(
     @Param('id') userId: string,
   ): Promise<PasswordResetResultDto> {

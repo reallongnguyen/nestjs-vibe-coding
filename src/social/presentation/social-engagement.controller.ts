@@ -28,15 +28,15 @@ import {
   AuthCtx,
   OkResponse,
 } from 'src/common';
-import {
-  ErrorResponse,
-  GlobalErrorFilter,
-  COMMON_ERRORS,
-} from 'src/common/errors';
+// import { ErrorResponse, COMMON_ERRORS } from 'src/common/errors'; // Removed ErrorResponse and COMMON_ERRORS
+import { GlobalErrorFilter } from 'src/common/errors'; // Keep GlobalErrorFilter
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { SocialErrorCode } from '../entities/errors/social.error-codes';
 
 import { SocialEngagementService } from '../services/social-engagement.service';
 import { EngagementStatsDto } from './dtos/engagement-stats.dto';
-import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
+// import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors'; // Removed SOCIAL_ERRORS, SocialErrorCode is imported above
 
 @ApiTags('Social Engagement')
 @ApiBearerAuth()
@@ -45,7 +45,7 @@ import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
   version: '1',
 })
 @UseFilters(GlobalErrorFilter)
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class SocialEngagementController {
   constructor(
     private readonly socialEngagementService: SocialEngagementService,
@@ -60,7 +60,11 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(EngagementStatsDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    // CommonErrorCode.AUTH_INVALID_TOKEN, // Class level AuthGuard applies
+    SocialErrorCode.ENGAGEABLE_NOT_FOUND,
+  ])
   async getEngagementStats(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -79,12 +83,19 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(null)
-  @ErrorResponse({
-    [SocialErrorCode.ENGAGEABLE_NOT_FOUND]:
-      SOCIAL_ERRORS[SocialErrorCode.ENGAGEABLE_NOT_FOUND],
-    [SocialErrorCode.LIKE_ALREADY_EXISTS]:
-      SOCIAL_ERRORS[SocialErrorCode.LIKE_ALREADY_EXISTS],
-  })
+  // @ErrorResponse({ // Removed
+  //   [SocialErrorCode.ENGAGEABLE_NOT_FOUND]:
+  //     SOCIAL_ERRORS[SocialErrorCode.ENGAGEABLE_NOT_FOUND],
+  //   [SocialErrorCode.LIKE_ALREADY_EXISTS]:
+  //     SOCIAL_ERRORS[SocialErrorCode.LIKE_ALREADY_EXISTS],
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    SocialErrorCode.ENGAGEABLE_NOT_FOUND,
+    SocialErrorCode.LIKE_ALREADY_EXISTS,
+    SocialErrorCode.LIKE_FAILED,
+  ])
   async likeContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -104,12 +115,19 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(null)
-  @ErrorResponse({
-    [SocialErrorCode.ENGAGEABLE_NOT_FOUND]:
-      SOCIAL_ERRORS[SocialErrorCode.ENGAGEABLE_NOT_FOUND],
-    [SocialErrorCode.UNLIKE_NOT_FOUND]:
-      SOCIAL_ERRORS[SocialErrorCode.UNLIKE_NOT_FOUND],
-  })
+  // @ErrorResponse({ // Removed
+  //   [SocialErrorCode.ENGAGEABLE_NOT_FOUND]:
+  //     SOCIAL_ERRORS[SocialErrorCode.ENGAGEABLE_NOT_FOUND],
+  //   [SocialErrorCode.UNLIKE_NOT_FOUND]:
+  //     SOCIAL_ERRORS[SocialErrorCode.UNLIKE_NOT_FOUND],
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    SocialErrorCode.ENGAGEABLE_NOT_FOUND,
+    SocialErrorCode.UNLIKE_NOT_FOUND,
+    SocialErrorCode.UNLIKE_FAILED,
+  ])
   async unlikeContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -128,7 +146,12 @@ export class SocialEngagementController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @OkResponse(null)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    // CommonErrorCode.AUTH_INVALID_TOKEN, // OptionalAuthGuard, so direct auth errors are less of a primary path unless logic inside demands user
+    SocialErrorCode.ENGAGEABLE_NOT_FOUND,
+    SocialErrorCode.VIEW_FAILED,
+  ])
   async recordView(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,

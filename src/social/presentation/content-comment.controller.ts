@@ -30,11 +30,11 @@ import {
   PagedResult,
   PageOptionsDto,
 } from 'src/common';
-import {
-  COMMON_ERRORS,
-  ErrorResponse,
-  GlobalErrorFilter,
-} from 'src/common/errors';
+// import { COMMON_ERRORS, ErrorResponse } from 'src/common/errors'; // Removed ErrorResponse and COMMON_ERRORS
+import { GlobalErrorFilter } from 'src/common/errors'; // Keep GlobalErrorFilter
+import { ApiAppErrors } from 'src/common/swagger/api-app-errors.decorator';
+import { CommonErrorCode } from 'src/common/errors/common.error-codes';
+import { SocialErrorCode } from '../entities/errors/social.error-codes';
 import { ContentType } from '../entities/events/social.events';
 
 import { CommentService } from '../services/comment.service';
@@ -43,7 +43,7 @@ import {
   CreateCommentDto,
   UpdateCommentDto,
 } from './dtos/comment.dto';
-import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
+// import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors'; // Removed SOCIAL_ERRORS, kept SocialErrorCode from above
 
 @ApiTags('Content Comments')
 @ApiBearerAuth()
@@ -53,7 +53,7 @@ import { SOCIAL_ERRORS, SocialErrorCode } from '../entities/errors';
 })
 @UseGuards(AuthGuard, RolesGuard)
 @UseFilters(GlobalErrorFilter)
-@ErrorResponse(COMMON_ERRORS)
+// @ErrorResponse(COMMON_ERRORS) // Removed
 export class ContentCommentController {
   constructor(private readonly commentService: CommentService) {}
 
@@ -67,10 +67,19 @@ export class ContentCommentController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @CreatedResponse(CommentDto)
-  @ErrorResponse({
-    [SocialErrorCode.COMMENT_NOT_FOUND]:
-      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
-  })
+  // @ErrorResponse({ // Removed
+  //   [SocialErrorCode.COMMENT_NOT_FOUND]:
+  //     SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    SocialErrorCode.ENGAGEABLE_NOT_FOUND, // If target post/emotion not found
+    SocialErrorCode.COMMENT_NOT_FOUND,    // If parentId is provided and parent comment not found
+    SocialErrorCode.COMMENT_CREATE_FAILED,
+    CommonErrorCode.FORBIDDEN, // If emotion privacy prevents commenting
+  ])
   async createComment(
     @Param('type') type: ContentType.POST | ContentType.EMOTION,
     @Param('id', ParseUUIDPipe) id: string,
@@ -97,7 +106,12 @@ export class ContentCommentController {
   })
   @ApiParam({ name: 'id', description: 'Content ID' })
   @PaginatedResponse(CommentDto)
-  @ErrorResponse({})
+  // @ErrorResponse({}) // Removed
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN, // Assuming user context might be used for private content in future
+    // CommonErrorCode.AUTH_NO_PRIVILEGE, // Not explicitly role-protected beyond AuthGuard
+    SocialErrorCode.ENGAGEABLE_NOT_FOUND, // If the content itself is not found
+  ])
   async getCommentsByContent(
     @Param('type') type: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -118,12 +132,20 @@ export class ContentCommentController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Update comment' })
   @OkResponse(CommentDto)
-  @ErrorResponse({
-    [SocialErrorCode.COMMENT_NOT_FOUND]:
-      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
-    [SocialErrorCode.COMMENT_NOT_OWNER]:
-      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_OWNER],
-  })
+  // @ErrorResponse({ // Removed
+  //   [SocialErrorCode.COMMENT_NOT_FOUND]:
+  //     SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
+  //   [SocialErrorCode.COMMENT_NOT_OWNER]:
+  //     SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_OWNER],
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    CommonErrorCode.VALIDATION_FAILED,
+    SocialErrorCode.COMMENT_NOT_FOUND,
+    SocialErrorCode.COMMENT_NOT_OWNER,
+    SocialErrorCode.COMMENT_UPDATE_FAILED,
+  ])
   async updateComment(
     @Param('id') id: string,
     @Body() data: UpdateCommentDto,
@@ -137,12 +159,19 @@ export class ContentCommentController {
   @RequireAnyRoles(Role.USER)
   @ApiOperation({ summary: 'Delete comment' })
   @OkResponse(null)
-  @ErrorResponse({
-    [SocialErrorCode.COMMENT_NOT_FOUND]:
-      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
-    [SocialErrorCode.COMMENT_NOT_OWNER]:
-      SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_OWNER],
-  })
+  // @ErrorResponse({ // Removed
+  //   [SocialErrorCode.COMMENT_NOT_FOUND]:
+  //     SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_FOUND],
+  //   [SocialErrorCode.COMMENT_NOT_OWNER]:
+  //     SOCIAL_ERRORS[SocialErrorCode.COMMENT_NOT_OWNER],
+  // })
+  @ApiAppErrors([
+    CommonErrorCode.AUTH_INVALID_TOKEN,
+    CommonErrorCode.AUTH_NO_PRIVILEGE,
+    SocialErrorCode.COMMENT_NOT_FOUND,
+    SocialErrorCode.COMMENT_NOT_OWNER,
+    SocialErrorCode.COMMENT_DELETE_FAILED,
+  ])
   async deleteComment(
     @Param('id') id: string,
     @AuthContextUser() user: User,

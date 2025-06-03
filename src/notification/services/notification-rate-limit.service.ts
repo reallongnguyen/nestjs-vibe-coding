@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
-import { AppError } from 'src/common/models';
+import { AppError } from 'src/common/errors/app.error';
+import { NOTIFICATION_ERRORS, NotificationErrorCode } from '../entities/errors';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationPreferenceService } from './notification-preference.service';
 import { NotificationType } from '../entities/notification-preference.entity';
@@ -454,7 +455,10 @@ export class NotificationRateLimitService {
           `Rate limit override attempted for user ${userId} but overrides are disabled`,
         );
 
-        throw new AppError('notification.setRateLimit.overrideDisabled');
+        throw new AppError(
+          NotificationErrorCode.RATE_LIMIT_OVERRIDE_DISABLED,
+          NOTIFICATION_ERRORS[NotificationErrorCode.RATE_LIMIT_OVERRIDE_DISABLED]
+        );
       }
 
       const minuteKey = `${this.redisKeyPrefix}:${userId}:${notificationType}:minute`;
