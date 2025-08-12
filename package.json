@@ -35,7 +35,7 @@
     "@nestjs/axios": "^4.0.0",
     "@nestjs/bull": "^11.0.1",
     "@nestjs/cache-manager": "^3.0.0",
-    "@nestjs/common": "^11.0.11",
+    "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.5",
     "@nestjs/cqrs": "^11.0.0",
